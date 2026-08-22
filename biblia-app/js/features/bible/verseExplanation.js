@@ -4,7 +4,6 @@
 import { icons } from '../../components/icons.js';
 import { getVerseCommentary } from '../../../data/verseCommentary.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
-import { progressRepository } from '../../data-access/progressRepository.js';
 
 let overlayEl = null;
 
@@ -28,13 +27,11 @@ function sectionHtml(icon, title, text) {
  * Mostra o painel de explicação para um versículo.
  * @param {{ bookIndex: number, bookName: string, chapterIndex: number, verseIndex: number, verseText: string }} info
  */
-export async function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseIndex, verseText }) {
+export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseIndex, verseText }) {
   removePanel();
 
   const commentary = getVerseCommentary(bookIndex, chapterIndex, verseIndex);
   const ref = `${bookName} ${chapterIndex + 1}:${verseIndex + 1}`;
-  const isFavorite = await progressRepository.isFavorite(ref);
-  const note = await progressRepository.getNote(ref);
 
   overlayEl = document.createElement('div');
   overlayEl.className = 'verse-explain-overlay';
@@ -59,7 +56,6 @@ export async function showVerseExplanation({ bookIndex, bookName, chapterIndex, 
       <div class="verse-explain-handle"></div>
       <button class="verse-explain-close" id="btnCloseExplain" aria-label="Fechar">${icons.close}</button>
       <div class="verse-explain-ref">📖 ${ref}</div>
-      <div class="verse-actions"><button type="button" id="btnFavoriteVerse" class="verse-action-btn">${isFavorite ? "⭐ Remover dos favoritos" : "☆ Adicionar aos favoritos"}</button><button type="button" id="btnNoteVerse" class="verse-action-btn">📝 ${note ? "Editar anotação" : "Adicionar anotação"}</button></div>
       <blockquote class="verse-explain-text">"${verseText}"</blockquote>
       ${body}
     </div>
@@ -71,16 +67,6 @@ export async function showVerseExplanation({ bookIndex, bookName, chapterIndex, 
     if (e.target === overlayEl) removePanel(); // toca fora do painel fecha
   });
   overlayEl.querySelector('#btnCloseExplain').addEventListener('click', removePanel);
-
-  overlayEl.querySelector('#btnFavoriteVerse').addEventListener('click', async () => {
-    const active = await progressRepository.toggleFavorite(ref, { bookIndex, bookName, chapterIndex, verseIndex, verseText });
-    overlayEl.querySelector('#btnFavoriteVerse').textContent = active ? '⭐ Remover dos favoritos' : '☆ Adicionar aos favoritos';
-  });
-  overlayEl.querySelector('#btnNoteVerse').addEventListener('click', async () => {
-    const current = await progressRepository.getNote(ref);
-    const value = window.prompt(`Anotação para ${ref}:`, current);
-    if (value !== null) { await progressRepository.saveNote(ref, value); overlayEl.querySelector('#btnNoteVerse').textContent = value.trim() ? '📝 Editar anotação' : '📝 Adicionar anotação'; }
-  });
 
   const externalBtn = overlayEl.querySelector('#btnExternalExplain');
   if (externalBtn) {

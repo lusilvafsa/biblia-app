@@ -19,7 +19,6 @@ import { getBook, getChapter, getAllBooks } from '../../data-access/bibleReposit
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { speak, stopSpeech, isSpeechSupported } from '../../utils/speech.js';
-import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js';
 import { setHeaderTitle } from '../../state/header.js';
 import { attachSelectionToolbar } from './selectionToolbar.js';
 import { showVerseExplanation } from './verseExplanation.js';
@@ -66,7 +65,6 @@ function template() {
         <button class="tool-btn" id="btnStop" title="Parar leitura" disabled>${icons.stop}<span>Parar</span></button>
         <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A-</button>
         <button class="tool-btn" id="btnFontPlus" aria-label="Aumentar fonte">A+</button>
-        <label class="voice-speed-control" title="Velocidade da narrativa">⚡<select id="voiceSpeed" aria-label="Velocidade da narrativa"><option value="0.75">0,75×</option><option value="1">1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="1.75">1,75×</option><option value="2">2×</option></select></label>
       </div>
     </div>
     <div id="readContent" class="read-content"></div>
@@ -161,12 +159,6 @@ export const readerPage = {
       applySettings();
     });
 
-    const voiceSpeed = qs('#voiceSpeed', container);
-    const savedVoiceRate = getVoiceSettings().rate;
-    voiceSpeed.value = String(savedVoiceRate);
-    if (voiceSpeed.value !== String(savedVoiceRate)) voiceSpeed.value = '0.85';
-    voiceSpeed.addEventListener('change', () => setVoiceSettings({ rate: Number(voiceSpeed.value) }));
-
     // ---- Narrativa: iniciar / pausar / continuar / parar -----------------
     const playPauseBtn = qs('#btnPlayPause', container);
     const stopBtn = qs('#btnStop', container);
@@ -243,7 +235,6 @@ export const readerPage = {
       speak(text, {
         onEnd: () => {
           if (readingState !== 'playing') return; // foi pausado/parado durante a fala
-          void progressRepository.markVerseRead({ book: bookIndex, chapter: chapterIndex, verse: readingIndex });
           readingIndex++;
           persistVerseProgress();
           setTimeout(readLoop, VERSE_PAUSE_MS);
@@ -263,7 +254,6 @@ export const readerPage = {
       updateControlsUI();
       await syncBackgroundPlayback(false);
       await progressRepository.saveProgress({ book: bookIndex, chapter: chapterIndex, verse: 0 });
-      await progressRepository.markChapterRead({ book: bookIndex, chapter: chapterIndex });
 
       const hasNextChapter = chapterIndex < book.chapterCount - 1;
       if (hasNextChapter) {
@@ -368,31 +358,11 @@ export const readerPage = {
       },
       onPause: pauseReading,
       onStop: stopReading,
-      onNext: async () => {
-        if (chapterIndex < book.chapterCount - 1) {
-          requestAutoStart(0);
-          navigateTo(`/biblia/${bookIndex}/${chapterIndex + 1}`);
-          return;
-        }
-        const books = await getAllBooks();
-        const nextBook = books[bookIndex + 1];
-        if (nextBook) {
-          requestAutoStart(0);
-          navigateTo(`/biblia/${nextBook.index}/0`);
-        }
+      onNext: () => {
+        if (chapterIndex < book.chapterCount - 1) navigateTo(`/biblia/${bookIndex}/${chapterIndex + 1}`);
       },
-      onPrev: async () => {
-        if (chapterIndex > 0) {
-          requestAutoStart(0);
-          navigateTo(`/biblia/${bookIndex}/${chapterIndex - 1}`);
-          return;
-        }
-        const books = await getAllBooks();
-        const prevBook = books[bookIndex - 1];
-        if (prevBook) {
-          requestAutoStart(0);
-          navigateTo(`/biblia/${prevBook.index}/${prevBook.chapterCount - 1}`);
-        }
+      onPrev: () => {
+        if (chapterIndex > 0) navigateTo(`/biblia/${bookIndex}/${chapterIndex - 1}`);
       },
     });
 
