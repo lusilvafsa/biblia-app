@@ -1,4 +1,4 @@
-# Bíblia de Estudo — V2.2.0
+# Bíblia de Estudo — V2.3.1
 
 ## Narrativa profissional
 - Tela Bíblia em Áudio passou a usar a narrativa TTS do leitor, sem faixas musicais de demonstração.
@@ -10,3 +10,8 @@
 
 ## Observação
 A voz masculina depende das vozes TTS instaladas no aparelho/navegador. A Web Speech API não garante que uma voz específica seja masculina.
+
+
+## V2.3.1
+- Corrigido o contraste dos botões de velocidade da narrativa no tema escuro.
+- Fundo, texto e borda da velocidade agora usam tokens próprios para manter legibilidade nos temas escuro e claro.

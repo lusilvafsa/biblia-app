@@ -1,6 +1,6 @@
 {
   "name": "biblia-de-estudo",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "private": true,
   "description": "Bíblia de Estudo — app web/PWA preparado para Android com Capacitor.",
   "scripts": {
@@ -11,10 +11,10 @@
     "android:build:release": "cap sync android && cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
-    "@capacitor/core": "^7.4.0"
+    "@capacitor/core": "7.6.8"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.4.0",
-    "@capacitor/android": "^7.4.0"
+    "@capacitor/cli": "7.6.8",
+    "@capacitor/android": "7.6.8"
   }
 }

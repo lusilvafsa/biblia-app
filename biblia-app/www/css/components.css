@@ -937,7 +937,7 @@
 .verse-action-btn { border:1px solid var(--border); border-radius:10px; padding:9px 11px; background:var(--navy-light); color:var(--text-primary); font-size:12px; cursor:pointer; }
 .verse-action-btn:active { transform:scale(.98); }
 
-/* V2.2 — controles da narrativa */
+/* V2.3.1 — controles de velocidade com contraste correto nos dois temas */
 .voice-speed-control {
   display: inline-flex;
   align-items: center;
@@ -945,12 +945,24 @@
 }
 .voice-speed-control select,
 .audio-speed-row select {
-  border: 1px solid var(--border-color, #ddd);
+  border: 1px solid var(--speed-border);
   border-radius: 8px;
-  background: var(--surface, #fff);
-  color: inherit;
+  background: var(--speed-bg);
+  color: var(--speed-text);
   padding: 6px 8px;
   font: inherit;
+  font-weight: 600;
+  color-scheme: dark;
+}
+.voice-speed-control select option,
+.audio-speed-row select option {
+  background: var(--speed-bg);
+  color: var(--speed-text);
+}
+
+[data-theme="light"] .voice-speed-control select,
+[data-theme="light"] .audio-speed-row select {
+  color-scheme: light;
 }
 .audio-speed-row {
   display: flex;

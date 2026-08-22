@@ -28,6 +28,10 @@
   --danger: #d48484;
   --warning: #e8c97a;
 
+  --speed-bg: #3d4f75;
+  --speed-text: #ffffff;
+  --speed-border: rgba(201, 169, 110, 0.45);
+
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 20px;
@@ -44,6 +48,9 @@
   --text-tertiary: #8a92a8;
 
   --border: rgba(26, 39, 68, 0.12);
+  --speed-bg: #e0d8cc;
+  --speed-text: #1a2744;
+  --speed-border: rgba(26, 39, 68, 0.22);
   --cream: #1a2744;
   --cream-soft: rgba(26, 39, 68, 0.05);
   --white: #1a2744;
