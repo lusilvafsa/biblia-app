@@ -19,6 +19,7 @@ import { getBook, getChapter } from '../../data-access/bibleRepository.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { speak, stopSpeech, isSpeechSupported } from '../../utils/speech.js';
+import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js';
 import { setHeaderTitle } from '../../state/header.js';
 import { attachSelectionToolbar } from './selectionToolbar.js';
 import { showVerseExplanation } from './verseExplanation.js';
@@ -63,6 +64,9 @@ function template() {
       <div class="read-toolbar">
         <button class="tool-btn" id="btnPlayPause" title="Iniciar leitura">${icons.listen}<span id="btnPlayPauseLabel">Iniciar</span></button>
         <button class="tool-btn" id="btnStop" title="Parar leitura" disabled>${icons.stop}<span>Parar</span></button>
+        <button class="tool-btn" id="btnSpeed" title="Velocidade da narração" aria-label="Velocidade da narração">
+          ⚡ <span id="btnSpeedLabel">0.85x</span>
+        </button>
         <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A-</button>
         <button class="tool-btn" id="btnFontPlus" aria-label="Aumentar fonte">A+</button>
       </div>
@@ -327,7 +331,43 @@ export const readerPage = {
         continueReading();
       }
     });
-    stopBtn.addEventListener('click', () => {
+    // Controle de velocidade da narração
+  const speedBtn = qs('#btnSpeed', container);
+  const speedLabel = qs('#btnSpeedLabel', container);
+
+  const speedOptions = [0.5, 0.75, 0.85, 1.0, 1.15, 1.25, 1.5];
+
+  function updateSpeedLabel() {
+    const rate = Number(getVoiceSettings().rate) || 0.85;
+    speedLabel.textContent = `${rate}x`;
+    speedBtn.title = `Velocidade: ${rate}x`;
+    speedBtn.setAttribute('aria-label', `Velocidade da narração: ${rate}x`);
+  }
+
+  speedBtn.addEventListener('click', () => {
+    const current = Number(getVoiceSettings().rate) || 0.85;
+
+    let index = speedOptions.findIndex(
+      value => Math.abs(value - current) < 0.01
+    );
+
+    index = (index + 1) % speedOptions.length;
+
+    const rate = speedOptions[index];
+
+    setVoiceSettings({ rate });
+    updateSpeedLabel();
+
+    // Se estiver narrando, reinicia para aplicar imediatamente
+    if (readingState !== 'idle') {
+      stopSpeech();
+      startFresh(readingIndex);
+    }
+  });
+
+  updateSpeedLabel();
+
+  stopBtn.addEventListener('click', () => {
       stopReading();
       toast.info('Leitura parada');
     });
