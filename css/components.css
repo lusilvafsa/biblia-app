@@ -1047,3 +1047,94 @@
     line-height: 1.45;
   }
 }
+
+/* =========================================================
+   AJUSTE FINAL - LEITURA EM PAISAGEM NO CELULAR
+   ========================================================= */
+
+@media (orientation: landscape) and (max-height: 700px) {
+
+  /* Aproveita melhor a altura da tela */
+  .reader,
+  .bible-reader,
+  .reader-container {
+    min-height: calc(100vh - 42px) !important;
+  }
+
+  /* Cabeçalho mais compacto */
+  .reader-header {
+    padding: 3px 12px !important;
+    min-height: 30px !important;
+  }
+
+  /* Área de leitura */
+  .reader-content,
+  .bible-content,
+  .chapter-content {
+    padding-top: 4px !important;
+    padding-bottom: 90px !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Versículos ocupam melhor a largura */
+  .verse,
+  .verse-text {
+    font-size: 18px !important;
+    line-height: 1.45 !important;
+  }
+
+  /* Barra de controles compacta */
+  .reader .toolbar,
+  .bible-reader .toolbar,
+  .reader-controls {
+    margin: 2px auto 4px !important;
+    padding: 2px !important;
+    gap: 5px !important;
+  }
+
+  .reader .toolbar button,
+  .bible-reader .toolbar button,
+  .reader-controls button,
+  .tool-btn {
+    min-height: 34px !important;
+    padding: 4px 10px !important;
+    font-size: 13px !important;
+  }
+
+  /* Navegação inferior */
+  .bottom-nav,
+  .bottom-navigation,
+  nav.bottom-nav {
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 2px 6px !important;
+    z-index: 1000 !important;
+  }
+
+  .bottom-nav button,
+  .bottom-navigation button,
+  nav.bottom-nav button {
+    min-height: 38px !important;
+    padding: 1px 6px !important;
+  }
+
+  .bottom-nav svg,
+  .bottom-navigation svg,
+  nav.bottom-nav svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+
+  .bottom-nav span,
+  .bottom-navigation span,
+  nav.bottom-nav span {
+    font-size: 9px !important;
+    line-height: 10px !important;
+  }
+
+  /* Impede a barra inferior de esconder o último versículo */
+  .verse-list,
+  .verses {
+    padding-bottom: 90px !important;
+  }
+}
