@@ -1138,3 +1138,60 @@
     padding-bottom: 130px !important;
   }
 }
+
+/* ===== AJUSTE FINAL - CONTROLES SUPERIORES ===== */
+
+@media (orientation: landscape) and (max-width: 900px) {
+
+  /* Cabeçalho */
+  .reader-header {
+    position: relative;
+    min-height: 70px !important;
+    padding: 4px 16px !important;
+  }
+
+  /* Nome do livro à esquerda */
+  .reader-header .book-title,
+  .reader-header .chapter-title {
+    align-self: flex-start;
+  }
+
+  /* Menu superior centralizado */
+  .reader .toolbar,
+  .bible-reader .toolbar,
+  .reader-controls {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
+
+    position: absolute !important;
+    top: 4px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 30 !important;
+  }
+
+  /* Botões do menu superior */
+  .reader .toolbar button,
+  .bible-reader .toolbar button,
+  .reader-controls button,
+  .tool-btn {
+    min-height: 36px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+  }
+
+  /* Conteúdo começa logo abaixo do cabeçalho */
+  .reader-content,
+  .bible-content,
+  .chapter-content {
+    padding-top: 8px !important;
+  }
+}
+
+/* ===== FIM DO AJUSTE ===== */
+
