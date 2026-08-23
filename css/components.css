@@ -1105,31 +1105,31 @@
   .bottom-nav,
   .bottom-navigation,
   nav.bottom-nav {
-    height: 42px !important;
-    min-height: 42px !important;
-    padding: 2px 6px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 1px 4px !important;
     z-index: 1000 !important;
   }
 
   .bottom-nav button,
   .bottom-navigation button,
   nav.bottom-nav button {
-    min-height: 38px !important;
+    min-height: 30px !important;
     padding: 1px 6px !important;
   }
 
   .bottom-nav svg,
   .bottom-navigation svg,
   nav.bottom-nav svg {
-    width: 19px !important;
-    height: 19px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
 
   .bottom-nav span,
   .bottom-navigation span,
   nav.bottom-nav span {
-    font-size: 9px !important;
-    line-height: 10px !important;
+    font-size: 8px !important;
+    line-height: 9px !important;
   }
 
   /* Impede a barra inferior de esconder o último versículo */
