@@ -925,3 +925,125 @@
 }
 .tts-status.show { display: flex; }
 .tts-status .tts-dot { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; animation: ttsBlink 1s ease-in-out infinite; }
+
+
+/* =========================================================
+   LEITURA EM TELA CHEIA — MODO PAISAGEM
+   ========================================================= */
+
+@media (orientation: landscape) and (max-height: 600px) {
+
+  /* Aproveita melhor a altura disponível */
+  .reader,
+  .bible-reader,
+  .reader-container {
+    min-height: calc(100vh - 38px);
+  }
+
+  /* Cabeçalho mais compacto */
+  .reader-header {
+    padding: 4px 16px;
+    min-height: 34px;
+  }
+
+  /* Área principal da leitura */
+  .reader-content,
+  .bible-content,
+  .chapter-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 8px 5vw 45px;
+  }
+
+  /* Texto dos versículos ocupa mais largura */
+  .verse,
+  .verse-text {
+    max-width: 1300px;
+  }
+
+  /* Barra de controles da leitura:
+     fica na região superior */
+  .reader .toolbar,
+  .bible-reader .toolbar,
+  .reader-controls {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 2px auto 8px;
+    padding: 4px;
+  }
+
+  /* Botões de leitura menores */
+  .reader .toolbar button,
+  .bible-reader .toolbar button,
+  .reader-controls button,
+  .tool-btn {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+
+  /* Navegação inferior compacta */
+  .bottom-nav,
+  .bottom-navigation,
+  nav.bottom-nav {
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 2px 8px !important;
+  }
+
+  .bottom-nav button,
+  .bottom-navigation button,
+  nav.bottom-nav button {
+    padding: 2px 8px !important;
+    min-height: 38px !important;
+    gap: 1px !important;
+  }
+
+  .bottom-nav svg,
+  .bottom-navigation svg,
+  nav.bottom-nav svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .bottom-nav span,
+  .bottom-navigation span,
+  nav.bottom-nav span {
+    font-size: 10px !important;
+    line-height: 11px !important;
+  }
+
+  /* Mais espaço para o texto */
+  .verse-list,
+  .verses {
+    padding-bottom: 50px;
+  }
+}
+
+/* =========================================================
+   TELA PAISAGEM EM CELULARES
+   ========================================================= */
+
+@media (orientation: landscape) and (max-width: 900px) {
+
+  .selection-toolbar {
+    max-width: 90vw;
+  }
+
+  .reader-content,
+  .bible-content,
+  .chapter-content {
+    padding-left: 4vw;
+    padding-right: 4vw;
+  }
+
+  .verse,
+  .verse-text {
+    font-size: 18px;
+    line-height: 1.45;
+  }
+}
