@@ -1072,7 +1072,7 @@
   .bible-content,
   .chapter-content {
     padding-top: 4px !important;
-    padding-bottom: 90px !important;
+    padding-bottom: 130px !important;
     margin-bottom: 0 !important;
   }
 
@@ -1135,6 +1135,6 @@
   /* Impede a barra inferior de esconder o último versículo */
   .verse-list,
   .verses {
-    padding-bottom: 90px !important;
+    padding-bottom: 130px !important;
   }
 }
