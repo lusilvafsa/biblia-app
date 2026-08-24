@@ -1,0 +1,29 @@
+{
+  "name": "biblia-app",
+  "version": "1.0.0",
+  "description": "Aplicativo web de estudo bíblico: Bíblia completa (ACF, com suporte a mais versões — veja abaixo), busca por palavra, Bíblia em áudio, orações guiadas, quiz bíblico e guia de ministração. Interface em português, tema claro/escuro, responsivo em retrato e paisagem, 100% client-side (sem backend).",
+  "main": "sw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lusilvafsa/biblia-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lusilvafsa/biblia-app/issues"
+  },
+  "homepage": "https://github.com/lusilvafsa/biblia-app#readme",
+  "dependencies": {
+    "@capacitor-community/text-to-speech": "^8.0.2",
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/core": "^8.5.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.0"
+  }
+}

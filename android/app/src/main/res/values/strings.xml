@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bíblia de Estudo</string>
+    <string name="title_activity_main">Bíblia de Estudo</string>
+    <string name="package_name">com.biblia.deestudo</string>
+    <string name="custom_url_scheme">com.biblia.deestudo</string>
+</resources>
