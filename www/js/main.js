@@ -27,7 +27,7 @@ const NAV_ICONS = { home: icons.home, bible: icons.bibleNav, audio: icons.audio,
 function initSplashScreen() {
   setTimeout(() => {
     qs('#splashScreen').classList.add('hidden');
-  }, 2500);
+  }, 1000);
 }
 
 function initBottomNavIcons() {
