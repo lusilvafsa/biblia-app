@@ -10,7 +10,6 @@ import {
   getAvailableVoices,
   onVoicesChanged,
   isSpeechSupported,
-  guessVoiceGender,
   findVoiceByGender,
 } from '../../utils/speech.js';
 import { getVoiceSettings, setVoiceSettings, resetVoiceSettings, DEFAULT_VOICE_SETTINGS } from '../../state/voiceSettings.js';
@@ -31,7 +30,7 @@ function rateLabel(v) {
 }
 
 function genderSuffix(voice) {
-  const gender = guessVoiceGender(voice);
+  const gender = findVoiceByGender(voice);
   if (gender === 'male') return ' — masculina';
   if (gender === 'female') return ' — feminina';
   return '';
@@ -52,7 +51,7 @@ function voiceOptionsHtml(voices, selectedURI) {
 function currentGenderPreference(settings) {
   if (!settings.voiceURI) return 'auto';
   const voice = getAvailableVoices().find((v) => v.voiceURI === settings.voiceURI);
-  return guessVoiceGender(voice) === 'female' ? 'female' : guessVoiceGender(voice) === 'male' ? 'male' : 'auto';
+  return findVoiceByGender(voice) === 'female' ? 'female' : findVoiceByGender(voice) === 'male' ? 'male' : 'auto';
 }
 
 function template(settings) {
@@ -205,7 +204,7 @@ export const settingsPage = {
       const voiceURI = voiceSelect.value || null;
       setVoiceSettings({ voiceURI });
       const voice = getAvailableVoices().find((v) => v.voiceURI === voiceURI);
-      const gender = voiceURI ? guessVoiceGender(voice) : 'auto';
+      const gender = voiceURI ? findVoiceByGender(voice) : 'auto';
       setActiveGenderButton(gender === 'unknown' ? 'auto' : gender);
       if (voiceURI) hideVoiceHint();
     });
