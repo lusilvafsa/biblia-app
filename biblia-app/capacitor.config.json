@@ -1,9 +1,5 @@
 {
-  "appId": "com.bibliadeestudo.app",
+  "appId": "com.biblia.deestudo",
   "appName": "Bíblia de Estudo",
-  "webDir": "www",
-  "backgroundColor": "#0f1729",
-  "server": {
-    "androidScheme": "https"
-  }
+  "webDir": "www"
 }
