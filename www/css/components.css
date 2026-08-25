@@ -1719,3 +1719,256 @@ main.app-content {
     }
 }
 
+
+/* ==========================================================
+   AJUSTE FINAL - MENU FLUTUANTE + LEITURA EM PAISAGEM
+   ========================================================== */
+
+/* Menu compacto flutuante no canto inferior direito */
+.bottom-nav.compact-menu {
+    position: fixed !important;
+    right: 6px !important;
+    bottom: 6px !important;
+    left: auto !important;
+    width: auto !important;
+    max-width: max-content !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    z-index: 9999 !important;
+}
+
+/* Botão principal do menu */
+.bottom-nav.compact-menu .menu-toggle {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 14px !important;
+}
+
+/* Ícone do botão principal */
+.bottom-nav.compact-menu .menu-toggle .menu-toggle-icon,
+.bottom-nav.compact-menu .menu-toggle .nav-icon {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+}
+
+/* Itens quando o menu estiver aberto */
+.bottom-nav.compact-menu .bottom-menu-items {
+    gap: 6px !important;
+}
+
+/* Ícones dos itens */
+.bottom-nav.compact-menu .bottom-menu-items .nav-item .nav-icon {
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 24px !important;
+}
+
+/* ==========================================================
+   MODO PAISAGEM - MAIS ESPAÇO PARA A LEITURA
+   ========================================================== */
+
+@media (orientation: landscape) and (max-height: 700px) {
+
+    .read-header {
+        padding: 3px 8px !important;
+    }
+
+    .read-toolbar {
+        padding: 3px 6px !important;
+        gap: 5px !important;
+        margin: 0 !important;
+    }
+
+    .read-content {
+        padding: 6px 12px 12px !important;
+        line-height: 1.7 !important;
+    }
+
+    .verse-line {
+        margin-bottom: 6px !important;
+    }
+
+    /* Menu não ocupa a largura da tela */
+    .bottom-nav.compact-menu {
+        right: 6px !important;
+        bottom: 6px !important;
+        left: auto !important;
+        width: auto !important;
+    }
+}
+
+/* ==========================================================
+   CELULARES PEQUENOS
+   ========================================================== */
+
+@media (max-width: 480px) {
+
+    .bottom-nav.compact-menu {
+        right: 4px !important;
+        bottom: 6px !important;
+    }
+
+    .bottom-nav.compact-menu .menu-toggle {
+        width: 46px !important;
+        height: 46px !important;
+        min-width: 46px !important;
+        min-height: 46px !important;
+    }
+}
+
+/* =========================================================
+   CORREÇÃO FINAL - LEITOR / MENU INFERIOR COMPACTO
+   ========================================================= */
+
+.read-header {
+  position: relative;
+  padding: 4px 0;
+}
+
+.read-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  flex-wrap: nowrap;
+}
+
+.read-toolbar .tool-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 4px;
+  margin: 0;
+}
+
+.read-content {
+  padding: 8px 12px 90px;
+}
+
+/* Menu inferior compacto */
+.bottom-nav.compact-menu {
+  position: fixed !important;
+  right: 12px !important;
+  bottom: 12px !important;
+  left: auto !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  z-index: 9999 !important;
+}
+
+.bottom-nav.compact-menu .menu-toggle {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.bottom-nav.compact-menu .menu-toggle .nav-icon,
+.bottom-nav.compact-menu .menu-toggle .menu-toggle-icon {
+  width: 25px !important;
+  height: 25px !important;
+}
+
+.bottom-nav.compact-menu .bottom-menu-items {
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 56px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 8px !important;
+  border-radius: 16px !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  transform: translateY(8px) !important;
+  pointer-events: none !important;
+  transition: opacity .2s ease, transform .2s ease, visibility .2s ease !important;
+}
+
+.bottom-nav.compact-menu.menu-open .bottom-menu-items,
+.bottom-nav.compact-menu.open .bottom-menu-items {
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+}
+
+.bottom-nav.compact-menu .bottom-menu-items .nav-item {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.bottom-nav.compact-menu .bottom-menu-items .nav-item span:not(.nav-icon) {
+  display: none !important;
+}
+
+.bottom-nav.compact-menu .bottom-menu-items .nav-icon {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+/* Em telas horizontais: aproveitar ainda mais a área de leitura */
+@media (orientation: landscape) {
+  .read-header {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+  }
+
+  .read-toolbar {
+    padding: 2px 8px !important;
+    gap: 4px !important;
+  }
+
+  .read-toolbar .tool-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+  }
+
+  .read-content {
+    padding: 4px 20px 70px !important;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .bottom-nav.compact-menu {
+    right: 10px !important;
+    bottom: 8px !important;
+  }
+}
+
+/* Botão de velocidade sempre visível */
+#btnSpeed {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
