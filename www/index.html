@@ -43,22 +43,28 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <nav class="bottom-nav" aria-label="Navegação principal">
-    <button class="nav-item" data-nav-key="home" data-route="/">
-      <span class="nav-icon"></span><span>Início</span>
+  <nav class="bottom-nav compact-menu" aria-label="Navegação principal">
+    <button class="menu-toggle" id="bottomMenuToggle" type="button" aria-label="Abrir menu" aria-expanded="false">
+      <span class="menu-toggle-icon">▦</span>
     </button>
-    <button class="nav-item" data-nav-key="bible" data-route="/biblia">
-      <span class="nav-icon"></span><span>Bíblia</span>
-    </button>
-    <button class="nav-item" data-nav-key="audio" data-route="/audio">
-      <span class="nav-icon"></span><span>Áudio</span>
-    </button>
-    <button class="nav-item" data-nav-key="prayer" data-route="/oracao">
-      <span class="nav-icon"></span><span>Oração</span>
-    </button>
-    <button class="nav-item" data-nav-key="profile" data-route="/perfil">
-      <span class="nav-icon"></span><span>Perfil</span>
-    </button>
+
+    <div class="bottom-menu-items">
+      <button class="nav-item" data-nav-key="home" data-route="/">
+        <span class="nav-icon"></span><span>Início</span>
+      </button>
+      <button class="nav-item" data-nav-key="bible" data-route="/biblia">
+        <span class="nav-icon"></span><span>Bíblia</span>
+      </button>
+      <button class="nav-item" data-nav-key="audio" data-route="/audio">
+        <span class="nav-icon"></span><span>Áudio</span>
+      </button>
+      <button class="nav-item" data-nav-key="prayer" data-route="/oracao">
+        <span class="nav-icon"></span><span>Oração</span>
+      </button>
+      <button class="nav-item" data-nav-key="profile" data-route="/perfil">
+        <span class="nav-icon"></span><span>Perfil</span>
+      </button>
+    </div>
   </nav>
 
   <div class="home-indicator"></div>

@@ -62,12 +62,12 @@ function template() {
     <div class="read-header">
       <div class="read-subtitle" id="readSubtitle"></div>
       <div class="read-toolbar">
-        <button class="tool-btn" id="btnPlayPause" title="Iniciar leitura">${icons.listen}<span id="btnPlayPauseLabel">Iniciar</span></button>
-        <button class="tool-btn" id="btnStop" title="Parar leitura" disabled>${icons.stop}<span>Parar</span></button>
+        <button class="tool-btn" id="btnPlayPause" title="Iniciar leitura">${icons.listen}</button>
+        <button class="tool-btn" id="btnStop" title="Parar leitura" disabled>${icons.stop}</button>
         <button class="tool-btn" id="btnSpeed" title="Velocidade da narração" aria-label="Velocidade da narração">
-          ⚡ <span id="btnSpeedLabel">0.85x</span>
+          ⚡
         </button>
-        <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A-</button>
+        <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A−</button>
         <button class="tool-btn" id="btnFontPlus" aria-label="Aumentar fonte">A+</button>
       </div>
     </div>
@@ -98,7 +98,10 @@ export const readerPage = {
 
     container.innerHTML = template();
     setHeaderTitle(book.name);
-    qs('#readSubtitle', container).textContent = `${book.name} — Capítulo ${chapterIndex + 1}`;
+  const readSubtitle = qs('#readSubtitle', container);
+  if (readSubtitle) {
+    readSubtitle.textContent = `${book.name} - Capítulo ${chapterIndex + 1}`;
+  }
 
     const readContent = qs('#readContent', container);
     const verseEls = [];
@@ -183,11 +186,11 @@ export const readerPage = {
         playPauseBtn.innerHTML = `${icons.pause}<span id="btnPlayPauseLabel">Pausar</span>`;
         playPauseBtn.title = 'Pausar leitura';
       } else if (readingState === 'paused') {
-        playPauseBtn.innerHTML = `${icons.listen}<span id="btnPlayPauseLabel">Continuar</span>`;
+        playPauseBtn.innerHTML = `${icons.listen}`;
         playPauseBtn.title = 'Continuar leitura';
       } else {
         const label = readingIndex > 0 ? 'Continuar' : 'Iniciar';
-        playPauseBtn.innerHTML = `${icons.listen}<span id="btnPlayPauseLabel">${label}</span>`;
+        playPauseBtn.innerHTML = `${icons.listen}`;
         playPauseBtn.title = readingIndex > 0 ? 'Continuar leitura' : 'Iniciar leitura';
       }
     }
