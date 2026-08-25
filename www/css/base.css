@@ -94,7 +94,7 @@ svg {
 }
 .app-header h1 {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--gold);
@@ -300,3 +300,97 @@ svg {
     box-shadow: 0 0 0 4px var(--navy), 0 30px 80px rgba(0, 0, 0, 0.7);
   }
 }
+
+/* Ajuste dos ícones da barra de leitura */
+.read-toolbar .tool-btn {
+    width: 54px;
+    height: 54px;
+    min-width: 54px;
+    min-height: 54px;
+    font-size: 19px;
+}
+
+.read-toolbar .tool-btn svg {
+    width: 25px;
+    height: 25px;
+}
+
+.read-toolbar .tool-btn span {
+    font-size: 19px;
+}
+
+#btnSpeed {
+    font-size: 19px;
+}
+
+#btnFontMinus,
+#btnFontPlus {
+    font-size: 19px;
+}
+
+/* Barra de leitura - tamanho 40px */
+.read-toolbar .tool-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+}
+
+.read-toolbar .tool-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.read-toolbar .tool-btn span {
+    font-size: 16px;
+}
+
+#btnSpeed {
+    font-size: 17px;
+}
+
+#btnFontMinus,
+#btnFontPlus {
+    font-size: 17px;
+}
+
+/* Ajuste do botão de velocidade */
+#btnSpeed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+}
+
+#btnSpeed svg {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+}
+
+#btnSpeed span {
+    margin: 0;
+    padding: 0;
+}
+
+
+/* Botões do menu superior - 40px */
+.header-actions .tool-btn,
+.top-actions .tool-btn,
+header .tool-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+}
+
+.header-actions .tool-btn svg,
+.top-actions .tool-btn svg,
+header .tool-btn svg {
+    width: 22px;
+    height: 22px;
+}
+

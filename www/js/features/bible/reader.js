@@ -65,6 +65,7 @@ function template() {
         <button class="tool-btn" id="btnPlayPause" title="Iniciar leitura">${icons.listen}</button>
         <button class="tool-btn" id="btnStop" title="Parar leitura" disabled>${icons.stop}</button>
         <button class="tool-btn" id="btnSpeed" title="Velocidade da narração" aria-label="Velocidade da narração">
+        <span id="btnSpeedLabel">0.85x</span>
           ⚡
         </button>
         <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A−</button>
@@ -183,7 +184,7 @@ export const readerPage = {
       stopBtn.disabled = readingState === 'idle';
       playPauseBtn.classList.toggle('active-audio', readingState === 'playing');
       if (readingState === 'playing') {
-        playPauseBtn.innerHTML = `${icons.pause}<span id="btnPlayPauseLabel">Pausar</span>`;
+        playPauseBtn.innerHTML = `${icons.pause}`;
         playPauseBtn.title = 'Pausar leitura';
       } else if (readingState === 'paused') {
         playPauseBtn.innerHTML = `${icons.listen}`;
