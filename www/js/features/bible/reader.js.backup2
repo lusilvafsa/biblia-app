@@ -65,7 +65,7 @@ function template() {
         <button class="tool-btn" id="btnPlayPause" title="Iniciar leitura">${icons.listen}</button>
         <button class="tool-btn" id="btnStop" title="Parar leitura" disabled>${icons.stop}</button>
         <button class="tool-btn" id="btnSpeed" title="Velocidade da narração" aria-label="Velocidade da narração">
-          <span id="btnSpeedLabel">0.85x</span> ⚡
+          ⚡
         </button>
         <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A−</button>
         <button class="tool-btn" id="btnFontPlus" aria-label="Aumentar fonte">A+</button>
@@ -98,10 +98,7 @@ export const readerPage = {
 
     container.innerHTML = template();
     setHeaderTitle(book.name);
-  const readSubtitle = qs('#readSubtitle', container);
-  if (readSubtitle) {
-    readSubtitle.textContent = `${book.name} - Capítulo ${chapterIndex + 1}`;
-  }
+    qs('#readSubtitle', container).textContent = `${book.name} — Capítulo ${chapterIndex + 1}`;
 
     const readContent = qs('#readContent', container);
     const verseEls = [];
@@ -342,9 +339,9 @@ export const readerPage = {
 
   function updateSpeedLabel() {
     const rate = Number(getVoiceSettings().rate) || 0.85;
-    if (speedLabel) speedLabel.textContent = `${rate}x`;
-    if (speedBtn) speedBtn.title = `Velocidade: ${rate}x`;
-    if (speedBtn) speedBtn.setAttribute('aria-label', `Velocidade da narração: ${rate}x`);
+    speedLabel.textContent = `${rate}x`;
+    speedBtn.title = `Velocidade: ${rate}x`;
+    speedBtn.setAttribute('aria-label', `Velocidade da narração: ${rate}x`);
   }
 
   speedBtn.addEventListener('click', () => {
