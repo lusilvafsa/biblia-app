@@ -20,21 +20,12 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/animations.css">
+
+
 </head>
 <body>
 <div class="phone-frame" id="phoneFrame">
-
-  <div class="splash-screen" id="splashScreen">
-    <video class="splash-media" autoplay loop muted playsinline aria-hidden="true">
-      <source src="assets/media/hero-loop.webm" type="video/webm">
-      <source src="assets/media/hero-loop.mp4" type="video/mp4">
-    </video>
-    <div class="splash-title">Bíblia de Estudo</div>
-    <div class="splash-subtitle">Sua jornada de fé</div>
-    <div class="splash-loading"><div class="splash-loading-bar"></div></div>
-  </div>
-
-  <header class="app-header">
+<header class="app-header">
     <h1 id="headerTitle">Bíblia de Estudo</h1>
     <div class="header-actions" id="headerActions"></div>
   </header>
@@ -43,22 +34,28 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <nav class="bottom-nav" aria-label="Navegação principal">
-    <button class="nav-item" data-nav-key="home" data-route="/">
-      <span class="nav-icon"></span><span>Início</span>
+  <nav class="bottom-nav compact-menu" aria-label="Navegação principal">
+    <button class="menu-toggle" id="bottomMenuToggle" type="button" aria-label="Abrir menu" aria-expanded="false">
+      <span class="menu-toggle-icon">▦</span>
     </button>
-    <button class="nav-item" data-nav-key="bible" data-route="/biblia">
-      <span class="nav-icon"></span><span>Bíblia</span>
-    </button>
-    <button class="nav-item" data-nav-key="audio" data-route="/audio">
-      <span class="nav-icon"></span><span>Áudio</span>
-    </button>
-    <button class="nav-item" data-nav-key="prayer" data-route="/oracao">
-      <span class="nav-icon"></span><span>Oração</span>
-    </button>
-    <button class="nav-item" data-nav-key="profile" data-route="/perfil">
-      <span class="nav-icon"></span><span>Perfil</span>
-    </button>
+
+    <div class="bottom-menu-items">
+      <button class="nav-item" data-nav-key="home" data-route="/">
+        <span class="nav-icon"></span><span>Início</span>
+      </button>
+      <button class="nav-item" data-nav-key="bible" data-route="/biblia">
+        <span class="nav-icon"></span><span>Bíblia</span>
+      </button>
+      <button class="nav-item" data-nav-key="audio" data-route="/audio">
+        <span class="nav-icon"></span><span>Áudio</span>
+      </button>
+      <button class="nav-item" data-nav-key="prayer" data-route="/oracao">
+        <span class="nav-icon"></span><span>Oração</span>
+      </button>
+      <button class="nav-item" data-nav-key="profile" data-route="/perfil">
+        <span class="nav-icon"></span><span>Perfil</span>
+      </button>
+    </div>
   </nav>
 
   <div class="home-indicator"></div>
