@@ -25,9 +25,17 @@ import { notFoundPage } from './features/notFound.js';
 const NAV_ICONS = { home: icons.home, bible: icons.bibleNav, audio: icons.audio, prayer: icons.prayer, profile: icons.profile };
 
 function initSplashScreen() {
-  setTimeout(() => {
-    qs('#splashScreen').classList.add('hidden');
-  }, 2500);
+  const splash = qs('#splashScreen');
+  if (!splash) return;
+
+  const hide = () => {
+    splash.classList.add('hidden');
+    splash.style.opacity = '0';
+    splash.style.visibility = 'hidden';
+    splash.style.pointerEvents = 'none';
+  };
+
+  setTimeout(hide, 1000);
 }
 
 function initBottomNavIcons() {
@@ -119,3 +127,160 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+/* ===== MENU INFERIOR COMPACTO ===== */
+(() => {
+  const initCompactBottomMenu = () => {
+    const toggle = document.querySelector('#bottomMenuToggle');
+    const menu = document.querySelector('.bottom-nav.compact-menu');
+
+    if (!toggle || !menu) return;
+
+    toggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const aberto = menu.classList.toggle('menu-open');
+
+      toggle.setAttribute('aria-expanded', String(aberto));
+      toggle.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!menu.contains(event.target)) {
+        menu.classList.remove('menu-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Abrir menu');
+      }
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCompactBottomMenu);
+  } else {
+    initCompactBottomMenu();
+  }
+})();
+
+/* ===== CONTROLES DA BÍBLIA SOMENTE COM ÍCONES ===== */
+(() => {
+
+    const compactarBotoesAudio = () => {
+
+        const nomes = ['Iniciar', 'Continuar', 'Parar'];
+
+        const botoes = [...document.querySelectorAll('button')].filter(botao => {
+            const texto = botao.textContent.trim();
+            return nomes.includes(texto);
+        });
+
+        if (botoes.length === 0) return;
+
+        botoes.forEach(botao => {
+
+            const textoOriginal = botao.textContent.trim();
+
+            /* Mantém o nome para acessibilidade */
+            botao.setAttribute('aria-label', textoOriginal);
+            botao.setAttribute('title', textoOriginal);
+
+            /* Classe para o modo somente ícone */
+            botao.classList.add('biblia-audio-icon-only');
+
+            /* Remove textos diretos */
+            [...botao.childNodes].forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    node.remove();
+                }
+            });
+
+            /* Esconde elementos que contenham somente o nome */
+            [...botao.querySelectorAll('span, strong, b, label')].forEach(elemento => {
+
+                const texto = elemento.textContent.trim();
+
+                const possuiIcone = elemento.querySelector('svg, img, i');
+
+                if (!possuiIcone && nomes.includes(texto)) {
+                    elemento.remove();
+                }
+            });
+
+            /* Tamanho do botão */
+            botao.style.width = '58px';
+            botao.style.minWidth = '58px';
+            botao.style.height = '54px';
+            botao.style.padding = '0';
+            botao.style.margin = '0';
+            botao.style.display = 'flex';
+            botao.style.alignItems = 'center';
+            botao.style.justifyContent = 'center';
+            botao.style.flexShrink = '0';
+            botao.style.fontSize = '0';
+            botao.style.lineHeight = '0';
+
+            /* Tamanho do ícone */
+            const icone = botao.querySelector('svg, img, i');
+
+            if (icone) {
+                icone.style.width = '24px';
+                icone.style.height = '24px';
+                icone.style.margin = '0';
+                icone.style.fontSize = '24px';
+                icone.style.lineHeight = '1';
+                icone.style.display = 'block';
+            }
+        });
+
+        /* Coloca os botões na mesma linha */
+        const primeiro = botoes[0];
+
+        if (primeiro && primeiro.parentElement) {
+
+            const container = primeiro.parentElement;
+
+            container.style.display = 'flex';
+            container.style.flexDirection = 'row';
+            container.style.flexWrap = 'nowrap';
+            container.style.alignItems = 'center';
+            container.style.justifyContent = 'center';
+            container.style.gap = '8px';
+        }
+    };
+
+    /* CSS de segurança para esconder os nomes */
+    const estilo = document.createElement('style');
+
+    estilo.textContent = `
+        .biblia-audio-icon-only {
+            font-size: 0 !important;
+            line-height: 0 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+        }
+
+        .biblia-audio-icon-only svg,
+        .biblia-audio-icon-only img,
+        .biblia-audio-icon-only i {
+            width: 24px !important;
+            height: 24px !important;
+            font-size: 24px !important;
+            line-height: 1 !important;
+            margin: 0 !important;
+            display: block !important;
+        }
+
+        .biblia-audio-icon-only span:not(:has(svg)):not(:has(img)):not(:has(i)) {
+            display: none !important;
+        }
+    `;
+
+    document.head.appendChild(estilo);
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', compactarBotoesAudio);
+    } else {
+        compactarBotoesAudio();
+    }
+
+})();
