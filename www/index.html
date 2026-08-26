@@ -22,48 +22,10 @@
 <link rel="stylesheet" href="css/animations.css">
 
 
-<style>
-  /* Proteção: nunca deixar o splash bloquear o aplicativo */
-  #splashScreen {
-    animation: forceHideSplash 0s 3s forwards;
-  }
-
-  @keyframes forceHideSplash {
-    to {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-  }
-</style>
-
-<script>
-  window.setTimeout(function () {
-    var splash = document.getElementById('splashScreen');
-    if (splash) {
-      splash.classList.add('hidden');
-      splash.style.opacity = '0';
-      splash.style.visibility = 'hidden';
-      splash.style.pointerEvents = 'none';
-    }
-  }, 3000);
-</script>
-
 </head>
 <body>
 <div class="phone-frame" id="phoneFrame">
-
-  <div class="splash-screen" id="splashScreen">
-    <video class="splash-media" autoplay loop muted playsinline aria-hidden="true">
-      <source src="assets/media/hero-loop.webm" type="video/webm">
-      <source src="assets/media/hero-loop.mp4" type="video/mp4">
-    </video>
-    <div class="splash-title">Bíblia de Estudo</div>
-    <div class="splash-subtitle">Sua jornada de fé</div>
-    <div class="splash-loading"><div class="splash-loading-bar"></div></div>
-  </div>
-
-  <header class="app-header">
+<header class="app-header">
     <h1 id="headerTitle">Bíblia de Estudo</h1>
     <div class="header-actions" id="headerActions"></div>
   </header>
