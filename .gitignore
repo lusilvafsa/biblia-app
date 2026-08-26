@@ -4,3 +4,12 @@ Thumbs.db
 .vscode/
 .idea/
 node_modules/
+
+# Backups locais
+*.backup
+*.backup-*
+*.bak
+*.bak.*
+
+# APKs gerados localmente
+*.apk
