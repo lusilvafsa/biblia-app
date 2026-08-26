@@ -25,9 +25,17 @@ import { notFoundPage } from './features/notFound.js';
 const NAV_ICONS = { home: icons.home, bible: icons.bibleNav, audio: icons.audio, prayer: icons.prayer, profile: icons.profile };
 
 function initSplashScreen() {
-  setTimeout(() => {
-    qs('#splashScreen').classList.add('hidden');
-  }, 1000);
+  const splash = qs('#splashScreen');
+  if (!splash) return;
+
+  const hide = () => {
+    splash.classList.add('hidden');
+    splash.style.opacity = '0';
+    splash.style.visibility = 'hidden';
+    splash.style.pointerEvents = 'none';
+  };
+
+  setTimeout(hide, 1000);
 }
 
 function initBottomNavIcons() {
