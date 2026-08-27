@@ -1195,3 +1195,83 @@
 
 /* ===== FIM DO AJUSTE ===== */
 
+
+/* =========================================================
+   CORREÇÃO FINAL - MENU INFERIOR COMPACTO
+   ========================================================= */
+
+.bottom-nav.compact-menu {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: row !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  padding: 4px 8px !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+.bottom-nav.compact-menu .menu-toggle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+}
+
+.bottom-nav.compact-menu .menu-toggle-icon {
+  display: block !important;
+  font-size: 24px !important;
+  line-height: 1 !important;
+}
+
+.bottom-nav.compact-menu .bottom-menu-items {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  align-items: center !important;
+  justify-content: space-around !important;
+  flex-direction: row !important;
+  gap: 2px !important;
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+.bottom-nav.compact-menu .nav-item {
+  display: flex !important;
+  flex: 1 1 0 !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  min-height: 48px !important;
+  height: 48px !important;
+  padding: 2px 4px !important;
+  gap: 2px !important;
+}
+
+.bottom-nav.compact-menu .nav-item .nav-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.bottom-nav.compact-menu .nav-item svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.bottom-nav.compact-menu .nav-item span:not(.nav-icon) {
+  display: block !important;
+  font-size: 9px !important;
+  line-height: 11px !important;
+}
+
