@@ -1,5 +1,3 @@
-import { Capacitor } from '@capacitor/core';
-import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { getVoiceSettings } from '../state/voiceSettings.js';
 
 const synth = window.speechSynthesis || null;
@@ -12,7 +10,7 @@ let nativeTTS = false;
 
 const voicesListeners = new Set();
 
-const isNative = () => Capacitor.isNativePlatform();
+const isNative = () => false;
 
 async function loadNativeVoices() {
   if (!isNative()) return [];
