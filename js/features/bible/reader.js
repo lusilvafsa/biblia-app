@@ -64,8 +64,8 @@ function template() {
       <div class="read-toolbar">
         <button class="tool-btn" id="btnPlayPause" title="Iniciar leitura" aria-label="Iniciar leitura">${icons.listen}</button>
         <button class="tool-btn" id="btnStop" title="Parar leitura" aria-label="Parar leitura" disabled>${icons.stop}</button>
-        <button class="tool-btn" id="btnSpeed" title="Velocidade da narração" aria-label="Velocidade da narração">
-          ⚡ <span id="btnSpeedLabel">0.85x</span>
+        <button class="tool-btn speed-icon-only" id="btnSpeed" title="Velocidade da narração" aria-label="Velocidade da narração">
+          ⚡ <span id="btnSpeedLabel" aria-hidden="true"></span>
         </button>
         <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A-</button>
         <button class="tool-btn" id="btnFontPlus" aria-label="Aumentar fonte">A+</button>
@@ -342,7 +342,7 @@ export const readerPage = {
 
   function updateSpeedLabel() {
     const rate = Number(getVoiceSettings().rate) || 0.85;
-    speedLabel.textContent = `${rate}x`;
+    speedLabel.textContent = '';
     speedBtn.title = `Velocidade: ${rate}x`;
     speedBtn.setAttribute('aria-label', `Velocidade da narração: ${rate}x`);
   }

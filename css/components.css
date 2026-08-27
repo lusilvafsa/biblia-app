@@ -1418,3 +1418,25 @@
   z-index: 3 !important;
 }
 
+
+/* ===== BOTÃO DE VELOCIDADE SOMENTE COM ÍCONE ===== */
+.speed-icon-only {
+  width: 42px !important;
+  min-width: 42px !important;
+  max-width: 42px !important;
+  height: 42px !important;
+  padding: 0 !important;
+  margin-left: 2px !important;
+  margin-right: 2px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 42px !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.speed-icon-only #btnSpeedLabel {
+  display: none !important;
+}
