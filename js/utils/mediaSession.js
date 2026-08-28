@@ -1,3 +1,30 @@
+// Plugin nativo de notificação do Capacitor.
+// Mesmo padrão usado pelo TTS que já funciona no APK.
+const MediaNotification = (() => {
+  try {
+    if (typeof window !== 'undefined' && window.Capacitor) {
+      // Usa o mesmo mecanismo nativo já utilizado pelo TTS.
+      return window.Capacitor.Plugins?.MediaNotification || null;
+    }
+  } catch (e) {
+    console.warn('MediaNotification Capacitor indisponível:', e);
+  }
+  return null;
+})();
+
+async function syncNativeNotification(playing, title = 'Bíblia de Estudo', artist = 'Bíblia em Áudio') {
+  if (!MediaNotification) return;
+  try {
+    await MediaNotification.update({
+      title,
+      artist,
+      playing: !!playing
+    });
+  } catch (err) {
+    console.warn('MediaNotification indisponível:', err);
+  }
+}
+
 // Integração com a Media Session API: mostra controles de reprodução na
 // tela de bloqueio / central de notificações do celular, e sinaliza ao
 // navegador que a página está reproduzindo mídia — isso também ajuda o
@@ -23,12 +50,19 @@ export function setMediaSessionMetadata({ title, artist, album }) {
 
 /** 'playing' | 'paused' | 'none' */
 export function setMediaSessionPlaybackState(state) {
-  if (!isMediaSessionSupported()) return;
-  try {
-    navigator.mediaSession.playbackState = state;
-  } catch (_err) {
-    /* ignora */
+  if (isMediaSessionSupported()) {
+    try {
+      navigator.mediaSession.playbackState = state;
+    } catch (_err) {
+      /* ignora */
+    }
   }
+
+  syncNativeNotification(
+    state === 'playing',
+    'Bíblia de Estudo',
+    'Bíblia em Áudio'
+  );
 }
 
 /** Handlers ausentes/null desativam aquele botão de controle. */

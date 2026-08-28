@@ -111,10 +111,38 @@ export const readerPage = {
       p.style.lineHeight = String(settings.lineHeight);
       p.addEventListener('click', () => {
         // Evita conflitar com uma seleção de texto (arrastar para
-        // selecionar um trecho): só abre a explicação se não há seleção.
+        // selecionar um trecho).
         if (window.getSelection().toString().length > 0) return;
-        verseEls.forEach((v, i) => v.classList.toggle('selected', i === idx));
-        showVerseExplanation({ bookIndex, bookName: book.name, chapterIndex, verseIndex: idx, verseText: text });
+
+        // Marca o versículo selecionado.
+        verseEls.forEach((v, i) => {
+          v.classList.toggle('selected', i === idx);
+        });
+
+        // Ao tocar em um versículo, inicia a leitura exatamente dele.
+        readingIndex = idx;
+        readingState = 'playing';
+
+        updateControlsUI();
+        syncBackgroundPlayback(true);
+        persistVerseProgress();
+
+        // Cancela qualquer fala anterior e começa o versículo escolhido.
+        stopSpeech();
+
+        setTimeout(() => {
+          if (readingState === 'playing') {
+            readLoop();
+          }
+        }, 100);
+
+        showVerseExplanation({
+          bookIndex,
+          bookName: book.name,
+          chapterIndex,
+          verseIndex: idx,
+          verseText: text
+        });
       });
       readContent.appendChild(p);
       verseEls.push(p);
@@ -325,6 +353,38 @@ export const readerPage = {
       progressRepository.saveProgress({ book: bookIndex, chapter: chapterIndex, verse: 0 });
     }
 
+    // Controle de versículo pela notificação do Android
+    function changeNotificationVerse(delta) {
+      if (!verses.length) return;
+
+      // Interrompe imediatamente a fala do versículo atual.
+      stopSpeech();
+
+      // Calcula o novo versículo sem sair dos limites do capítulo.
+      readingIndex = Math.max(
+        0,
+        Math.min(verses.length - 1, readingIndex + delta)
+      );
+
+      persistVerseProgress();
+      highlightVerse(readingIndex);
+
+      // Se estava lendo, começa imediatamente o novo versículo.
+      if (readingState === 'playing') {
+        readLoop();
+      } else {
+        updateControlsUI();
+      }
+    }
+
+    window.addEventListener('media-notification-prev', () => {
+      changeNotificationVerse(-1);
+    });
+
+    window.addEventListener('media-notification-next', () => {
+      changeNotificationVerse(1);
+    });
+
     playPauseBtn.addEventListener('click', () => {
       if (readingState === 'idle') {
         startFresh(readingIndex); // readingIndex já é 0 ou o versículo salvo
@@ -374,6 +434,33 @@ export const readerPage = {
       stopReading();
       toast.info('Leitura parada');
     });
+
+    // ============================================================
+    // CONTROLES DA NOTIFICAÇÃO NATIVA DO ANDROID
+    // ============================================================
+    const nativeMediaPlay = () => {
+      if (readingState === 'idle') {
+        startFresh(readingIndex);
+      } else if (readingState === 'paused') {
+        continueReading();
+      }
+    };
+
+    const nativeMediaPause = () => {
+      if (readingState === 'playing') {
+        pauseReading();
+      }
+    };
+
+    const nativeMediaStop = () => {
+      if (readingState !== 'idle') {
+        stopReading();
+      }
+    };
+
+    window.addEventListener('media-notification-play', nativeMediaPlay);
+    window.addEventListener('media-notification-pause', nativeMediaPause);
+    window.addEventListener('media-notification-stop', nativeMediaStop);
 
     // Controles de mídia na tela de bloqueio / central de notificações.
     setMediaSessionHandlers({
@@ -448,6 +535,11 @@ export const readerPage = {
     // texto ao sair da tela.
     return () => {
       stopSpeech();
+
+      window.removeEventListener('media-notification-play', nativeMediaPlay);
+      window.removeEventListener('media-notification-pause', nativeMediaPause);
+      window.removeEventListener('media-notification-stop', nativeMediaStop);
+
       detachSelectionToolbar();
       detachWakeLockReacquire();
       releaseWakeLock();
