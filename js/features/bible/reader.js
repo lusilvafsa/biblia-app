@@ -395,38 +395,87 @@ export const readerPage = {
       }
     });
     // Controle de velocidade da narração
-  const speedBtn = qs('#btnSpeed', container);
-  const speedLabel = qs('#btnSpeedLabel', container);
+    const speedBtn = qs('#btnSpeed', container);
+    const speedLabel = qs('#btnSpeedLabel', container);
 
-  const speedOptions = [0.5, 0.75, 0.85, 1.0, 1.15, 1.25, 1.5];
+    const speedOptions = [0.5, 0.75, 0.85, 1.0, 1.15, 1.25, 1.5];
 
-  function updateSpeedLabel() {
-    const rate = Number(getVoiceSettings().rate) || 0.85;
-    speedLabel.textContent = '';
-    speedBtn.title = `Velocidade: ${rate}x`;
-    speedBtn.setAttribute('aria-label', `Velocidade da narração: ${rate}x`);
-  }
+    let speedMenu = null;
 
-  speedBtn.addEventListener('click', () => {
-    const current = Number(getVoiceSettings().rate) || 0.85;
-
-    let index = speedOptions.findIndex(
-      value => Math.abs(value - current) < 0.01
-    );
-
-    index = (index + 1) % speedOptions.length;
-
-    const rate = speedOptions[index];
-
-    setVoiceSettings({ rate });
-    updateSpeedLabel();
-
-    // Se estiver narrando, reinicia para aplicar imediatamente
-    if (readingState !== 'idle') {
-      stopSpeech();
-      startFresh(readingIndex);
+    function updateSpeedLabel() {
+      const rate = Number(getVoiceSettings().rate) || 0.85;
+      speedLabel.textContent = '';
+      speedBtn.title = `Velocidade: ${rate}x`;
+      speedBtn.setAttribute('aria-label', `Velocidade da narração: ${rate}x`);
     }
-  });
+
+    function closeSpeedMenu() {
+      if (speedMenu) {
+        speedMenu.remove();
+        speedMenu = null;
+      }
+    }
+
+    function openSpeedMenu() {
+      closeSpeedMenu();
+
+      speedMenu = document.createElement('div');
+      speedMenu.className = 'speed-selection-menu';
+
+      const current = Number(getVoiceSettings().rate) || 0.85;
+
+      speedOptions.forEach((rate) => {
+        const option = document.createElement('button');
+
+        option.type = 'button';
+        option.className = 'speed-option';
+        option.textContent = `${rate}x`;
+
+        if (Math.abs(rate - current) < 0.01) {
+          option.classList.add('selected');
+        }
+
+        option.addEventListener('click', (event) => {
+          event.stopPropagation();
+
+          setVoiceSettings({ rate });
+          updateSpeedLabel();
+          closeSpeedMenu();
+
+          // Aplica imediatamente se estiver lendo
+          if (readingState !== 'idle') {
+            stopSpeech();
+            startFresh(readingIndex);
+          }
+        });
+
+        speedMenu.appendChild(option);
+      });
+
+      speedBtn.parentElement.appendChild(speedMenu);
+    }
+
+    speedBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+
+      if (speedMenu) {
+        closeSpeedMenu();
+      } else {
+        openSpeedMenu();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (
+        speedMenu &&
+        !speedMenu.contains(event.target) &&
+        event.target !== speedBtn
+      ) {
+        closeSpeedMenu();
+      }
+    });
+
+    updateSpeedLabel();
 
   updateSpeedLabel();
 
