@@ -2,6 +2,23 @@ import { getVoiceSettings } from '../state/voiceSettings.js';
 
 const synth = window.speechSynthesis || null;
 
+// Plugin TTS fornecido pelo Capacitor no aplicativo nativo.
+// No navegador normal, permanece indisponível e usamos o fallback web.
+const TextToSpeech = (() => {
+  try {
+    if (
+      typeof window !== 'undefined' &&
+      window.Capacitor &&
+      typeof window.Capacitor.registerPlugin === 'function'
+    ) {
+      return window.Capacitor.registerPlugin('TextToSpeech');
+    }
+  } catch (e) {
+    console.warn('TTS Capacitor indisponível:', e);
+  }
+  return null;
+})();
+
 let ptVoice = null;
 let allVoices = [];
 let currentUtterance = null;
@@ -10,7 +27,10 @@ let nativeTTS = false;
 
 const voicesListeners = new Set();
 
-const isNative = () => false;
+const isNative = () =>
+  !!(window.Capacitor &&
+     typeof window.Capacitor.isNativePlatform === 'function' &&
+     window.Capacitor.isNativePlatform());
 
 async function loadNativeVoices() {
   if (!isNative()) return [];
@@ -220,31 +240,19 @@ export async function speak(
     try {
       await ensureReady();
 
-      let voiceIndex;
-
-      if (voiceURI && allVoices.length) {
-        const index = allVoices.findIndex(
-          v => v.voiceURI === voiceURI
-        );
-
-        if (index >= 0) {
-          voiceIndex = index;
-        }
-      }
-
-      const selectedVoice =
-        voiceURI
-          ? allVoices.find(v => v.voiceURI === voiceURI)
-          : ptVoice;
-
       const lang =
-        selectedVoice?.lang ||
-        settings.lang ||
-        'pt-BR';
+        (settings.lang || 'pt-BR').toString();
 
       if (onStart) onStart();
 
       speaking = true;
+
+      console.log('[TTS] falando:', {
+        text: text.trim(),
+        lang,
+        rate,
+        pitch
+      });
 
       await TextToSpeech.speak({
         text: text.trim(),
@@ -252,25 +260,23 @@ export async function speak(
         rate,
         pitch,
         volume: 1,
-        ...(voiceIndex !== undefined
-          ? { voice: voiceIndex }
-          : {}),
         queueStrategy: 0
       });
 
       speaking = false;
 
+      console.log('[TTS] fala concluída');
+
       if (onEnd) onEnd();
 
       return true;
+
     } catch (error) {
       speaking = false;
 
-      console.error('Erro no TTS nativo:', error);
+      console.error('[TTS] ERRO NATIVO:', error);
 
       if (onError) onError(error);
-
-      if (onEnd) onEnd();
 
       return false;
     }

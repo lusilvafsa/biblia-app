@@ -2,6 +2,7 @@
 // `containerEl` (ex.: o texto do capítulo), com ações de Compartilhar,
 // Explicar e Narrar o trecho selecionado.
 import { icons } from '../../components/icons.js';
+import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js';
 
 const MIN_SELECTION_LENGTH = 2;
 

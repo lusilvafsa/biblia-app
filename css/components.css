@@ -1874,3 +1874,206 @@
   color: var(--gold) !important;
 }
 
+
+/* =========================================================
+   TELA FAVORITOS
+   ========================================================= */
+
+.favorites-page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.favorites-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.favorites-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--text-primary);
+}
+
+.favorites-header p {
+  margin: 5px 0 0;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.favorites-section {
+  margin-bottom: 24px;
+}
+
+.favorites-section h3 {
+  margin: 0 0 12px;
+  font-size: 17px;
+  color: var(--text-primary);
+}
+
+.favorites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.favorite-card {
+  position: relative;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+
+.favorite-verse {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.favorite-verse strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 15px;
+  color: var(--gold);
+}
+
+.favorite-verse span {
+  display: block;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+
+.favorite-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.favorite-card-actions button {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-alt, var(--surface));
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.favorite-card-actions button:active {
+  transform: scale(.97);
+}
+
+.favorite-remove-btn {
+  color: var(--gold) !important;
+}
+
+.favorite-note {
+  margin-top: 10px;
+  padding: 9px 11px;
+  border-left: 3px solid var(--gold);
+  border-radius: 7px;
+  background: rgba(255,255,255,.04);
+}
+
+.favorite-note strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--gold);
+}
+
+.favorite-note p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+}
+
+.favorite-card.note-card {
+  padding-bottom: 12px;
+}
+
+.favorites-empty {
+  padding: 45px 20px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.favorites-empty-icon {
+  margin-bottom: 10px;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--gold);
+}
+
+.favorites-empty h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.favorites-empty p {
+  max-width: 420px;
+  margin: 0 auto;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 480px) {
+  .favorites-page {
+    padding: 12px;
+  }
+
+  .favorites-header h2 {
+    font-size: 21px;
+  }
+
+  .favorite-card {
+    padding: 11px;
+  }
+
+  .favorite-verse span {
+    font-size: 14px;
+  }
+
+  .favorite-card-actions button {
+    font-size: 11px;
+  }
+}
+
+
+/* ===== AÇÕES DO MEU PERFIL ===== */
+
+.profile-action-item {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.profile-action-item:active {
+  transform: scale(0.98);
+}
+

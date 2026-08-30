@@ -4,6 +4,7 @@
 import { icons } from '../../components/icons.js';
 import { getVerseCommentary } from '../../../data/verseCommentary.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
+import { favoritesRepository } from '../../data-access/favoritesRepository.js';
 
 let overlayEl = null;
 
@@ -36,6 +37,74 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
   overlayEl = document.createElement('div');
   overlayEl.className = 'verse-explain-overlay';
 
+  const isFavorite = favoritesRepository.isFavorite(
+    bookIndex,
+    chapterIndex,
+    verseIndex
+  );
+
+  const savedItem = favoritesRepository.get(
+    bookIndex,
+    chapterIndex,
+    verseIndex
+  );
+
+  const savedNote = savedItem?.note || '';
+
+  const verseActions = `
+    <div class="verse-actions">
+      <button
+        type="button"
+        class="verse-action-btn ${isFavorite ? 'active' : ''}"
+        id="btnToggleFavorite"
+      >
+        <span class="verse-action-icon">
+          ${isFavorite ? '★' : '☆'}
+        </span>
+        <span id="favoriteLabel">
+          ${isFavorite ? 'Favoritado' : 'Favoritar'}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="verse-action-btn"
+        id="btnVerseNote"
+      >
+        <span class="verse-action-icon">📝</span>
+        <span id="noteLabel">
+          ${savedNote ? 'Editar anotação' : 'Adicionar anotação'}
+        </span>
+      </button>
+    </div>
+
+    <div
+      class="verse-note-editor"
+      id="verseNoteEditor"
+      ${savedNote ? '' : 'hidden'}
+    >
+      <label for="verseNoteInput">
+        📝 Anotação do versículo
+      </label>
+
+      <textarea
+        id="verseNoteInput"
+        rows="4"
+        placeholder="Escreva sua anotação, comentário ou lembrete..."
+      >${savedNote.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+
+      <div class="verse-note-buttons">
+        <button type="button" id="btnSaveVerseNote">
+          💾 Salvar
+        </button>
+
+        <button type="button" id="btnCancelVerseNote">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  `;
+
   const body = commentary
     ? `
       ${sectionHtml('💡', 'Explicação', commentary.explicacao)}
@@ -57,6 +126,9 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
       <button class="verse-explain-close" id="btnCloseExplain" aria-label="Fechar">${icons.close}</button>
       <div class="verse-explain-ref">📖 ${ref}</div>
       <blockquote class="verse-explain-text">"${verseText}"</blockquote>
+
+      ${verseActions}
+
       ${body}
     </div>
   `;
@@ -67,6 +139,68 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
     if (e.target === overlayEl) removePanel(); // toca fora do painel fecha
   });
   overlayEl.querySelector('#btnCloseExplain').addEventListener('click', removePanel);
+
+  // ===== FAVORITOS =====
+
+  const favoriteBtn = overlayEl.querySelector('#btnToggleFavorite');
+
+  favoriteBtn.addEventListener('click', () => {
+    const favorite = favoritesRepository.toggleFavorite({
+      bookIndex,
+      bookName,
+      chapterIndex,
+      verseIndex,
+      verseText
+    });
+
+    favoriteBtn.classList.toggle('active', favorite);
+
+    favoriteBtn.querySelector('.verse-action-icon').textContent =
+      favorite ? '★' : '☆';
+
+    favoriteBtn.querySelector('#favoriteLabel').textContent =
+      favorite ? 'Favoritado' : 'Favoritar';
+  });
+
+
+  // ===== ANOTAÇÕES =====
+
+  const noteBtn = overlayEl.querySelector('#btnVerseNote');
+  const noteEditor = overlayEl.querySelector('#verseNoteEditor');
+  const noteInput = overlayEl.querySelector('#verseNoteInput');
+  const saveNoteBtn = overlayEl.querySelector('#btnSaveVerseNote');
+  const cancelNoteBtn = overlayEl.querySelector('#btnCancelVerseNote');
+
+  noteBtn.addEventListener('click', () => {
+    noteEditor.hidden = false;
+    noteInput.focus();
+  });
+
+  cancelNoteBtn.addEventListener('click', () => {
+    noteEditor.hidden = true;
+    noteInput.value = savedNote;
+  });
+
+  saveNoteBtn.addEventListener('click', () => {
+    favoritesRepository.saveNote(
+      {
+        bookIndex,
+        bookName,
+        chapterIndex,
+        verseIndex,
+        verseText
+      },
+      noteInput.value
+    );
+
+    const hasNote = noteInput.value.trim().length > 0;
+
+    overlayEl.querySelector('#noteLabel').textContent =
+      hasNote ? 'Editar anotação' : 'Adicionar anotação';
+
+    noteEditor.hidden = true;
+  });
+
 
   const externalBtn = overlayEl.querySelector('#btnExternalExplain');
   if (externalBtn) {

@@ -10,6 +10,7 @@
 
 import { AUDIO_TRACKS } from '../../data/audioTracks.js';
 import { formatTime } from '../utils/format.js';
+import { statsRepository } from '../data-access/statsRepository.js';
 import { speak, stopSpeech } from '../utils/speech.js';
 
 const listeners = new Set();
@@ -27,6 +28,7 @@ let audioEl = null;
 let audioCtx = null;
 let oscillator = null;
 let toneProgressTimer = null;
+let lastStatsTime = 0;
 
 function emit() {
   listeners.forEach((fn) => fn({ ...state }));
@@ -52,7 +54,19 @@ function ensureAudioEl() {
   audioEl = new Audio();
   audioEl.crossOrigin = 'anonymous';
   audioEl.addEventListener('timeupdate', () => {
-    state.currentTime = audioEl.currentTime;
+    const current = audioEl.currentTime || 0;
+
+    if (current > lastStatsTime) {
+      const delta = current - lastStatsTime;
+
+      // Ignora saltos grandes, seeks e mudanças bruscas.
+      if (delta > 0 && delta <= 2) {
+        statsRepository.addAudioSeconds(delta);
+      }
+    }
+
+    lastStatsTime = current;
+    state.currentTime = current;
     state.duration = audioEl.duration || 0;
     emit();
   });
@@ -186,6 +200,7 @@ function loadTrack(index) {
   state.mode = null;
   state.currentTime = 0;
   state.duration = 0;
+  lastStatsTime = 0;
   setStatus('Toque em ▶ para iniciar');
 }
 

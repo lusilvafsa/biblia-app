@@ -17,6 +17,7 @@ import { toast } from '../../utils/toast.js';
 import { navigateTo } from '../../router.js';
 import { getBook, getChapter } from '../../data-access/bibleRepository.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
+import { statsRepository } from '../../data-access/statsRepository.js';
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { speak, stopSpeech, isSpeechSupported } from '../../utils/speech.js';
 import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js';
@@ -118,6 +119,14 @@ export const readerPage = {
         verseEls.forEach((v, i) => {
           v.classList.toggle('selected', i === idx);
         });
+
+        // Registra este versículo como lido.
+        // O repositório evita contar o mesmo versículo duas vezes.
+        statsRepository.markVerseRead(
+          bookIndex,
+          chapterIndex,
+          idx
+        );
 
         // Ao tocar em um versículo, inicia a leitura exatamente dele.
         readingIndex = idx;
@@ -270,6 +279,14 @@ export const readerPage = {
       speak(text, {
         onEnd: () => {
           if (readingState !== 'playing') return; // foi pausado/parado durante a fala
+          // Conta o versículo como áudio ouvido somente após
+          // a narração daquele versículo terminar.
+          statsRepository.markAudioVerse(
+            bookIndex,
+            chapterIndex,
+            readingIndex
+          );
+
           readingIndex++;
           persistVerseProgress();
           setTimeout(readLoop, VERSE_PAUSE_MS);
@@ -394,6 +411,30 @@ export const readerPage = {
         continueReading();
       }
     });
+    // Permite abrir diretamente um versículo vindo da tela Favoritos
+    function openVerseFromFavorite(event) {
+      const verseIndex = Number(event.detail?.verseIndex);
+
+      if (!Number.isInteger(verseIndex)) return;
+      if (verseIndex < 0 || verseIndex >= verseEls.length) return;
+
+      readingIndex = verseIndex;
+
+      verseEls.forEach((verse, index) => {
+        verse.classList.toggle('selected', index === verseIndex);
+        verse.classList.remove('reading');
+      });
+
+      if (verseEls[verseIndex]) {
+        verseEls[verseIndex].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+
+    window.addEventListener('open-verse', openVerseFromFavorite);
+
     // Controle de velocidade da narração
     const speedBtn = qs('#btnSpeed', container);
     const speedLabel = qs('#btnSpeedLabel', container);
