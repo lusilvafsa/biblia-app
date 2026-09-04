@@ -13,3 +13,9 @@ node_modules/
 
 # APKs gerados localmente
 *.apk
+
+# Ferramentas e backups locais de diagnóstico
+android/tools/
+android/tts-classes.jar
+github-backup/
+www/js/utils/speech.js.antes-*
