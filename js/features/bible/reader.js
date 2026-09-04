@@ -394,6 +394,33 @@ export const readerPage = {
       }
     }
 
+    // Controle de capítulo pela notificação do Android.
+    function changeNotificationChapter(delta) {
+      if (!book || !Number.isInteger(book.chapterCount)) return;
+
+      const targetChapter = chapterIndex + delta;
+
+      if (targetChapter < 0 || targetChapter >= book.chapterCount) return;
+
+      const wasPlaying = readingState === 'playing';
+
+      stopSpeech();
+      readingIndex = 0;
+
+      if (wasPlaying) {
+        requestAutoStart(0);
+      }
+
+      progressRepository.saveProgress({
+        book: bookIndex,
+        chapter: targetChapter,
+        verse: 0
+      });
+
+      navigateTo(`/biblia/${bookIndex}/${targetChapter}`);
+    }
+
+
     window.addEventListener('media-notification-prev', () => {
       changeNotificationVerse(-1);
     });
@@ -536,6 +563,17 @@ export const readerPage = {
       }
     };
 
+    const nativeMediaPrevChapter = () => {
+      changeNotificationChapter(-1);
+    };
+
+    const nativeMediaNextChapter = () => {
+      changeNotificationChapter(1);
+    };
+
+    window.addEventListener('media-notification-prev-chapter', nativeMediaPrevChapter);
+    window.addEventListener('media-notification-next-chapter', nativeMediaNextChapter);
+
     const nativeMediaPause = () => {
       if (readingState === 'playing') {
         pauseReading();
@@ -627,6 +665,8 @@ export const readerPage = {
       stopSpeech();
 
       window.removeEventListener('media-notification-play', nativeMediaPlay);
+      window.removeEventListener('media-notification-prev-chapter', nativeMediaPrevChapter);
+      window.removeEventListener('media-notification-next-chapter', nativeMediaNextChapter);
       window.removeEventListener('media-notification-pause', nativeMediaPause);
       window.removeEventListener('media-notification-stop', nativeMediaStop);
 

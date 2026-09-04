@@ -6,16 +6,30 @@ const synth = window.speechSynthesis || null;
 // No navegador normal, permanece indisponível e usamos o fallback web.
 const TextToSpeech = (() => {
   try {
-    if (
-      typeof window !== 'undefined' &&
-      window.Capacitor &&
-      typeof window.Capacitor.registerPlugin === 'function'
-    ) {
-      return window.Capacitor.registerPlugin('TextToSpeech');
+    if (typeof window === 'undefined' || !window.Capacitor) {
+      return null;
     }
+
+    // Capacitor antigo/runtime atual do aplicativo:
+    // os plugins nativos ficam disponíveis em Capacitor.Plugins.
+    if (window.Capacitor.Plugins?.TextToSpeech) {
+      return window.Capacitor.Plugins.TextToSpeech;
+    }
+
+    // Compatibilidade com runtimes que possuem registerPlugin().
+    if (typeof window.Capacitor.registerPlugin === 'function') {
+      const plugin = window.Capacitor.registerPlugin('TextToSpeech');
+
+      if (plugin) {
+        return plugin;
+      }
+    }
+
+    console.error('[BIBLIA-TTS] Plugin TextToSpeech não encontrado');
   } catch (e) {
-    console.warn('TTS Capacitor indisponível:', e);
+    console.error('[BIBLIA-TTS] Erro ao obter plugin:', e);
   }
+
   return null;
 })();
 
@@ -33,10 +47,26 @@ const isNative = () =>
      window.Capacitor.isNativePlatform());
 
 async function loadNativeVoices() {
-  if (!isNative()) return [];
+  console.log('[BIBLIA-TTS] loadNativeVoices() chamada');
+  console.log('[BIBLIA-TTS] isNative =', isNative());
+  console.log('[BIBLIA-TTS] TextToSpeech =', TextToSpeech);
+
+  if (!isNative()) {
+    console.log('[BIBLIA-TTS] NÃO está em plataforma nativa');
+    return [];
+  }
+
+  if (!TextToSpeech) {
+    console.error('[BIBLIA-TTS] TextToSpeech é NULL');
+    return [];
+  }
 
   try {
+    console.log('[BIBLIA-TTS] chamando getSupportedVoices()...');
+
     const result = await TextToSpeech.getSupportedVoices();
+
+    console.log('[BIBLIA-TTS] getSupportedVoices OK:', result);
     allVoices = result?.voices || [];
 
     if (allVoices.length > 0) {
@@ -240,19 +270,31 @@ export async function speak(
     try {
       await ensureReady();
 
+      let voiceIndex;
+
+      if (voiceURI && allVoices.length) {
+        const index = allVoices.findIndex(
+          v => v.voiceURI === voiceURI
+        );
+
+        if (index >= 0) {
+          voiceIndex = index;
+        }
+      }
+
+      const selectedVoice =
+        voiceURI
+          ? allVoices.find(v => v.voiceURI === voiceURI)
+          : ptVoice;
+
       const lang =
-        (settings.lang || 'pt-BR').toString();
+        selectedVoice?.lang ||
+        settings.lang ||
+        'pt-BR';
 
       if (onStart) onStart();
 
       speaking = true;
-
-      console.log('[TTS] falando:', {
-        text: text.trim(),
-        lang,
-        rate,
-        pitch
-      });
 
       await TextToSpeech.speak({
         text: text.trim(),
@@ -260,23 +302,25 @@ export async function speak(
         rate,
         pitch,
         volume: 1,
+        ...(voiceIndex !== undefined
+          ? { voice: voiceIndex }
+          : {}),
         queueStrategy: 0
       });
 
       speaking = false;
 
-      console.log('[TTS] fala concluída');
-
       if (onEnd) onEnd();
 
       return true;
-
     } catch (error) {
       speaking = false;
 
-      console.error('[TTS] ERRO NATIVO:', error);
+      console.error('Erro no TTS nativo:', error);
 
       if (onError) onError(error);
+
+      if (onEnd) onEnd();
 
       return false;
     }

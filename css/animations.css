@@ -44,3 +44,598 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* =========================================================
+   MENU — 4 QUADRADOS GRANDES
+   CORREÇÃO DEFINITIVA
+   ========================================================= */
+
+.bottom-nav.compact-menu .menu-toggle {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border-radius: 50% !important;
+}
+
+/* Área dos 4 quadrados */
+.bottom-nav.compact-menu .menu-toggle-icon {
+  width: 38px !important;
+  height: 38px !important;
+
+  min-width: 38px !important;
+  min-height: 38px !important;
+
+  max-width: 38px !important;
+  max-height: 38px !important;
+
+  display: grid !important;
+
+  grid-template-columns: 16px 16px !important;
+  grid-template-rows: 16px 16px !important;
+
+  gap: 6px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  font-size: 0 !important;
+  line-height: 0 !important;
+
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* Os 4 quadrados */
+.bottom-nav.compact-menu .menu-toggle-icon .quad {
+  display: block !important;
+
+  width: 16px !important;
+  height: 16px !important;
+
+  min-width: 16px !important;
+  min-height: 16px !important;
+
+  max-width: 16px !important;
+  max-height: 16px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  background: var(--text-primary) !important;
+
+  border: 0 !important;
+  border-radius: 4px !important;
+
+  box-shadow: none !important;
+}
+
+/* Remove qualquer pseudo-ícone antigo */
+.bottom-nav.compact-menu .menu-toggle-icon::before,
+.bottom-nav.compact-menu .menu-toggle-icon::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* =========================================================
+   MENU INFERIOR — PROPORÇÃO FINAL DOS 4 QUADRADOS
+   Botão: 52x52
+   Grade: 38x38
+   Quadrados: 16x16
+   Espaçamento: 6px
+   ========================================================= */
+
+/* BOTÃO CIRCULAR */
+.bottom-nav.compact-menu .menu-toggle {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  box-sizing: border-box !important;
+  border-radius: 50% !important;
+}
+
+/* ÁREA DOS 4 QUADRADOS */
+.bottom-nav.compact-menu .menu-toggle-icon {
+  position: relative !important;
+
+  width: 38px !important;
+  height: 38px !important;
+
+  min-width: 38px !important;
+  min-height: 38px !important;
+
+  max-width: 38px !important;
+  max-height: 38px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: grid !important;
+
+  grid-template-columns: 16px 16px !important;
+  grid-template-rows: 16px 16px !important;
+
+  gap: 6px !important;
+
+  box-sizing: border-box !important;
+
+  font-size: 0 !important;
+  line-height: 0 !important;
+
+  background: transparent !important;
+  border: 0 !important;
+
+  overflow: visible !important;
+}
+
+/* CADA QUADRADO */
+.bottom-nav.compact-menu .menu-toggle-icon .quad {
+  display: block !important;
+
+  width: 16px !important;
+  height: 16px !important;
+
+  min-width: 16px !important;
+  min-height: 16px !important;
+
+  max-width: 16px !important;
+  max-height: 16px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  box-sizing: border-box !important;
+
+  background: var(--text-primary) !important;
+
+  border: 0 !important;
+  border-radius: 4px !important;
+
+  box-shadow: none !important;
+}
+
+/* GARANTE QUE NÃO EXISTE ÍCONE ANTIGO */
+.bottom-nav.compact-menu .menu-toggle-icon::before,
+.bottom-nav.compact-menu .menu-toggle-icon::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* GARANTE QUE OS QUADRADOS ANTIGOS NÃO APAREÇAM */
+.bottom-nav.compact-menu .menu-toggle-icon i:not(.quad) {
+  display: none !important;
+}
+
+
+/* =========================================================
+   ÍCONE MENU — SVG 4 QUADRADOS
+   SEM DEPENDÊNCIA DAS REGRAS ANTIGAS
+   ========================================================= */
+
+.bottom-nav.compact-menu .menu-toggle {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  box-sizing: border-box !important;
+  border-radius: 50% !important;
+}
+
+/* ZERA O SPAN */
+.bottom-nav.compact-menu .menu-toggle-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 40px !important;
+  height: 40px !important;
+
+  min-width: 40px !important;
+  min-height: 40px !important;
+
+  max-width: 40px !important;
+  max-height: 40px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  font-size: 0 !important;
+  line-height: 0 !important;
+
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* SVG — TAMANHO EXATO */
+.bottom-nav.compact-menu .menu-four-squares {
+  display: block !important;
+
+  width: 40px !important;
+  height: 40px !important;
+
+  min-width: 40px !important;
+  min-height: 40px !important;
+
+  max-width: 40px !important;
+  max-height: 40px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: visible !important;
+}
+
+/* OS 4 QUADRADOS */
+.bottom-nav.compact-menu .menu-four-squares rect {
+  fill: var(--text-primary) !important;
+  stroke: none !important;
+}
+
+/* DESATIVA QUALQUER ÍCONE ANTIGO */
+.bottom-nav.compact-menu .menu-toggle-icon i {
+  display: none !important;
+}
+
+.bottom-nav.compact-menu .menu-toggle-icon::before,
+.bottom-nav.compact-menu .menu-toggle-icon::after {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* =========================================================
+   VELOCIDADE — MENU ABAIXO DOS BOTÕES
+   NÃO ALTERA O FUNCIONAMENTO DO TTS
+   ========================================================= */
+
+/* O container dos botões vira a referência do menu */
+.reader-controls,
+.reading-controls,
+.audio-controls,
+.tool-controls {
+  position: relative !important;
+}
+
+/* Menu de velocidades */
+.speed-selection-menu {
+  position: absolute !important;
+
+  top: calc(100% + 10px) !important;
+  left: 50% !important;
+
+  right: auto !important;
+  bottom: auto !important;
+
+  transform: translateX(-50%) !important;
+
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 6px !important;
+
+  width: max-content !important;
+  min-width: 0 !important;
+
+  padding: 5px !important;
+
+  z-index: 9999 !important;
+}
+
+/* Cada velocidade */
+.speed-selection-menu .speed-option {
+  position: static !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: auto !important;
+  min-width: 42px !important;
+  height: 34px !important;
+
+  padding: 0 7px !important;
+  margin: 0 !important;
+
+  white-space: nowrap !important;
+
+  box-sizing: border-box !important;
+}
+
+/* Remove qualquer posicionamento vertical antigo */
+.speed-selection-menu .speed-option {
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
+/* =========================================================
+   FIM — VELOCIDADE ABAIXO DOS BOTÕES
+   ========================================================= */
+
+/* =========================================================
+   VELOCIDADES — MESMO VISUAL DOS BOTÕES DO LEITOR
+   Mantém posição e funcionamento atuais
+   ========================================================= */
+
+/* Caixa do menu */
+.speed-selection-menu {
+  background: var(--surface-2, #2f3f68) !important;
+  border: 1px solid var(--border-color, rgba(255,255,255,0.18)) !important;
+  border-radius: 14px !important;
+  padding: 6px !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35) !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+
+  box-sizing: border-box !important;
+}
+
+/* Cada velocidade */
+.speed-selection-menu .speed-option {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+
+  background: #34466f !important;
+  color: #f2f0e8 !important;
+
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-radius: 10px !important;
+
+  min-height: 36px !important;
+  height: 36px !important;
+  min-width: 72px !important;
+
+  padding: 0 10px !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+
+  box-sizing: border-box !important;
+}
+
+/* Ao tocar/pressionar */
+.speed-selection-menu .speed-option:active {
+  transform: scale(0.97) !important;
+}
+
+/* Velocidade selecionada */
+.speed-selection-menu .speed-option.active,
+.speed-selection-menu .speed-option[aria-selected="true"] {
+  background: #3f527f !important;
+  color: #d6b76a !important;
+  border-color: #d6b76a !important;
+  font-weight: 700 !important;
+}
+
+/* Mantém o menu acima dos demais elementos */
+.speed-selection-menu {
+  z-index: 9999 !important;
+}
+
+/* Tema claro */
+[data-theme="light"] .speed-selection-menu,
+body.light .speed-selection-menu {
+  background: #e8ebf2 !important;
+  border-color: rgba(40,50,70,0.18) !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.18) !important;
+}
+
+[data-theme="light"] .speed-selection-menu .speed-option,
+body.light .speed-selection-menu .speed-option {
+  background: #dce2ee !important;
+  color: #26334f !important;
+  border-color: rgba(40,50,70,0.14) !important;
+}
+
+[data-theme="light"] .speed-selection-menu .speed-option.active,
+[data-theme="light"] .speed-selection-menu .speed-option[aria-selected="true"],
+body.light .speed-selection-menu .speed-option.active,
+body.light .speed-selection-menu .speed-option[aria-selected="true"] {
+  background: #d9dce5 !important;
+  color: #9a762d !important;
+  border-color: #b9954b !important;
+}
+
+
+/* =========================================================
+   COR DEFINITIVA — BOTÕES DE VELOCIDADE
+   SOMENTE CORES — NÃO ALTERA POSIÇÃO
+   ========================================================= */
+
+.speed-selection-menu .speed-option,
+.speed-selection-menu button.speed-option,
+div.speed-selection-menu button {
+  background: var(--button-bg, #34466f) !important;
+  color: var(--button-text, #ffffff) !important;
+  border: 1px solid var(--button-border, rgba(255,255,255,0.18)) !important;
+
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+
+/* Ao passar/tocar */
+.speed-selection-menu .speed-option:hover,
+.speed-selection-menu .speed-option:focus,
+.speed-selection-menu button.speed-option:hover,
+.speed-selection-menu button.speed-option:focus {
+  background: var(--button-hover, #40547f) !important;
+  color: #ffffff !important;
+}
+
+/* Velocidade atualmente selecionada */
+.speed-selection-menu .speed-option.active,
+.speed-selection-menu .speed-option.selected,
+.speed-selection-menu .speed-option[aria-selected="true"],
+.speed-selection-menu .speed-option[aria-pressed="true"] {
+  background: var(--accent-color, #c9a85c) !important;
+  color: #ffffff !important;
+  border-color: var(--accent-color, #c9a85c) !important;
+  font-weight: 700 !important;
+}
+
+/* Tema escuro */
+html[data-theme="dark"] .speed-selection-menu .speed-option,
+body.dark .speed-selection-menu .speed-option {
+  background: #34466f !important;
+  color: #ffffff !important;
+  border-color: rgba(255,255,255,0.18) !important;
+}
+
+html[data-theme="dark"] .speed-selection-menu .speed-option:hover,
+html[data-theme="dark"] .speed-selection-menu .speed-option:focus,
+body.dark .speed-selection-menu .speed-option:hover,
+body.dark .speed-selection-menu .speed-option:focus {
+  background: #40547f !important;
+  color: #ffffff !important;
+}
+
+/* Tema claro */
+html[data-theme="light"] .speed-selection-menu .speed-option,
+body.light .speed-selection-menu .speed-option {
+  background: #e0e5ef !important;
+  color: #26334f !important;
+  border-color: rgba(38,51,79,0.18) !important;
+}
+
+html[data-theme="light"] .speed-selection-menu .speed-option:hover,
+html[data-theme="light"] .speed-selection-menu .speed-option:focus,
+body.light .speed-selection-menu .speed-option:hover,
+body.light .speed-selection-menu .speed-option:focus {
+  background: #cfd7e6 !important;
+  color: #26334f !important;
+}
+
+/* Selecionado — funciona nos dois temas */
+.speed-selection-menu .speed-option.active,
+.speed-selection-menu .speed-option.selected,
+.speed-selection-menu .speed-option[aria-selected="true"],
+.speed-selection-menu .speed-option[aria-pressed="true"] {
+  background: #c9a85c !important;
+  color: #ffffff !important;
+  border-color: #c9a85c !important;
+}
+
+
+/* =========================================================
+   AJUSTE FINAL — BOTÕES DE VELOCIDADE
+   Mantém abaixo dos controles e evita sair da tela
+   ========================================================= */
+
+.speed-selection-menu {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  gap: 6px !important;
+  padding: 6px 4px !important;
+  margin: 0 !important;
+
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.speed-selection-menu > .speed-option {
+  flex: 1 1 0 !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 76px !important;
+
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+
+  padding: 0 4px !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  box-sizing: border-box !important;
+
+  border-radius: 9px !important;
+
+  font-size: 15px !important;
+  font-weight: 500 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
+/* Telas menores */
+@media (max-width: 420px) {
+  .speed-selection-menu {
+    gap: 4px !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+
+  .speed-selection-menu > .speed-option {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+
+    font-size: 14px !important;
+    border-radius: 8px !important;
+  }
+}
+
+/* Telas muito estreitas */
+@media (max-width: 360px) {
+  .speed-selection-menu {
+    gap: 2px !important;
+  }
+
+  .speed-selection-menu > .speed-option {
+    font-size: 13px !important;
+    padding: 0 2px !important;
+  }
+}
+

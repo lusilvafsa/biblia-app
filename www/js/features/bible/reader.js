@@ -17,6 +17,7 @@ import { toast } from '../../utils/toast.js';
 import { navigateTo } from '../../router.js';
 import { getBook, getChapter } from '../../data-access/bibleRepository.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
+import { statsRepository } from '../../data-access/statsRepository.js';
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { speak, stopSpeech, isSpeechSupported } from '../../utils/speech.js';
 import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js';
@@ -62,12 +63,12 @@ function template() {
     <div class="read-header">
       <div class="read-subtitle" id="readSubtitle"></div>
       <div class="read-toolbar">
-        <button class="tool-btn" id="btnPlayPause" title="Iniciar leitura">${icons.listen}</button>
-        <button class="tool-btn" id="btnStop" title="Parar leitura" disabled>${icons.stop}</button>
-        <button class="tool-btn" id="btnSpeed" title="Velocidade da narração" aria-label="Velocidade da narração">
-          <span id="btnSpeedLabel">0.85x</span> ⚡
+        <button class="tool-btn" id="btnPlayPause" title="Iniciar leitura" aria-label="Iniciar leitura">${icons.listen}</button>
+        <button class="tool-btn" id="btnStop" title="Parar leitura" aria-label="Parar leitura" disabled>${icons.stop}</button>
+        <button class="tool-btn speed-icon-only" id="btnSpeed" title="Velocidade da narração" aria-label="Velocidade da narração">
+          ⚡ <span id="btnSpeedLabel" aria-hidden="true"></span>
         </button>
-        <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A−</button>
+        <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A-</button>
         <button class="tool-btn" id="btnFontPlus" aria-label="Aumentar fonte">A+</button>
       </div>
     </div>
@@ -98,10 +99,7 @@ export const readerPage = {
 
     container.innerHTML = template();
     setHeaderTitle(book.name);
-  const readSubtitle = qs('#readSubtitle', container);
-  if (readSubtitle) {
-    readSubtitle.textContent = `${book.name} - Capítulo ${chapterIndex + 1}`;
-  }
+    qs('#readSubtitle', container).textContent = `${book.name} — Capítulo ${chapterIndex + 1}`;
 
     const readContent = qs('#readContent', container);
     const verseEls = [];
@@ -114,10 +112,46 @@ export const readerPage = {
       p.style.lineHeight = String(settings.lineHeight);
       p.addEventListener('click', () => {
         // Evita conflitar com uma seleção de texto (arrastar para
-        // selecionar um trecho): só abre a explicação se não há seleção.
+        // selecionar um trecho).
         if (window.getSelection().toString().length > 0) return;
-        verseEls.forEach((v, i) => v.classList.toggle('selected', i === idx));
-        showVerseExplanation({ bookIndex, bookName: book.name, chapterIndex, verseIndex: idx, verseText: text });
+
+        // Marca o versículo selecionado.
+        verseEls.forEach((v, i) => {
+          v.classList.toggle('selected', i === idx);
+        });
+
+        // Registra este versículo como lido.
+        // O repositório evita contar o mesmo versículo duas vezes.
+        statsRepository.markVerseRead(
+          bookIndex,
+          chapterIndex,
+          idx
+        );
+
+        // Ao tocar em um versículo, inicia a leitura exatamente dele.
+        readingIndex = idx;
+        readingState = 'playing';
+
+        updateControlsUI();
+        syncBackgroundPlayback(true);
+        persistVerseProgress();
+
+        // Cancela qualquer fala anterior e começa o versículo escolhido.
+        stopSpeech();
+
+        setTimeout(() => {
+          if (readingState === 'playing') {
+            readLoop();
+          }
+        }, 100);
+
+        showVerseExplanation({
+          bookIndex,
+          bookName: book.name,
+          chapterIndex,
+          verseIndex: idx,
+          verseText: text
+        });
       });
       readContent.appendChild(p);
       verseEls.push(p);
@@ -183,14 +217,17 @@ export const readerPage = {
       stopBtn.disabled = readingState === 'idle';
       playPauseBtn.classList.toggle('active-audio', readingState === 'playing');
       if (readingState === 'playing') {
-        playPauseBtn.innerHTML = `${icons.pause}<span id="btnPlayPauseLabel">Pausar</span>`;
+        playPauseBtn.innerHTML = `${icons.pause}`;
+        playPauseBtn.setAttribute("aria-label", "Pausar leitura");
         playPauseBtn.title = 'Pausar leitura';
       } else if (readingState === 'paused') {
         playPauseBtn.innerHTML = `${icons.listen}`;
+        playPauseBtn.setAttribute("aria-label", "Continuar leitura");
         playPauseBtn.title = 'Continuar leitura';
       } else {
         const label = readingIndex > 0 ? 'Continuar' : 'Iniciar';
         playPauseBtn.innerHTML = `${icons.listen}`;
+        playPauseBtn.setAttribute("aria-label", label + " leitura");
         playPauseBtn.title = readingIndex > 0 ? 'Continuar leitura' : 'Iniciar leitura';
       }
     }
@@ -242,6 +279,14 @@ export const readerPage = {
       speak(text, {
         onEnd: () => {
           if (readingState !== 'playing') return; // foi pausado/parado durante a fala
+          // Conta o versículo como áudio ouvido somente após
+          // a narração daquele versículo terminar.
+          statsRepository.markAudioVerse(
+            bookIndex,
+            chapterIndex,
+            readingIndex
+          );
+
           readingIndex++;
           persistVerseProgress();
           setTimeout(readLoop, VERSE_PAUSE_MS);
@@ -325,6 +370,65 @@ export const readerPage = {
       progressRepository.saveProgress({ book: bookIndex, chapter: chapterIndex, verse: 0 });
     }
 
+    // Controle de versículo pela notificação do Android
+    function changeNotificationVerse(delta) {
+      if (!verses.length) return;
+
+      // Interrompe imediatamente a fala do versículo atual.
+      stopSpeech();
+
+      // Calcula o novo versículo sem sair dos limites do capítulo.
+      readingIndex = Math.max(
+        0,
+        Math.min(verses.length - 1, readingIndex + delta)
+      );
+
+      persistVerseProgress();
+      highlightVerse(readingIndex);
+
+      // Se estava lendo, começa imediatamente o novo versículo.
+      if (readingState === 'playing') {
+        readLoop();
+      } else {
+        updateControlsUI();
+      }
+    }
+
+    // Controle de capítulo pela notificação do Android.
+    function changeNotificationChapter(delta) {
+      if (!book || !Number.isInteger(book.chapterCount)) return;
+
+      const targetChapter = chapterIndex + delta;
+
+      if (targetChapter < 0 || targetChapter >= book.chapterCount) return;
+
+      const wasPlaying = readingState === 'playing';
+
+      stopSpeech();
+      readingIndex = 0;
+
+      if (wasPlaying) {
+        requestAutoStart(0);
+      }
+
+      progressRepository.saveProgress({
+        book: bookIndex,
+        chapter: targetChapter,
+        verse: 0
+      });
+
+      navigateTo(`/biblia/${bookIndex}/${targetChapter}`);
+    }
+
+
+    window.addEventListener('media-notification-prev', () => {
+      changeNotificationVerse(-1);
+    });
+
+    window.addEventListener('media-notification-next', () => {
+      changeNotificationVerse(1);
+    });
+
     playPauseBtn.addEventListener('click', () => {
       if (readingState === 'idle') {
         startFresh(readingIndex); // readingIndex já é 0 ou o versículo salvo
@@ -334,39 +438,112 @@ export const readerPage = {
         continueReading();
       }
     });
-    // Controle de velocidade da narração
-  const speedBtn = qs('#btnSpeed', container);
-  const speedLabel = qs('#btnSpeedLabel', container);
+    // Permite abrir diretamente um versículo vindo da tela Favoritos
+    function openVerseFromFavorite(event) {
+      const verseIndex = Number(event.detail?.verseIndex);
 
-  const speedOptions = [0.5, 0.75, 0.85, 1.0, 1.15, 1.25, 1.5];
+      if (!Number.isInteger(verseIndex)) return;
+      if (verseIndex < 0 || verseIndex >= verseEls.length) return;
 
-  function updateSpeedLabel() {
-    const rate = Number(getVoiceSettings().rate) || 0.85;
-    if (speedLabel) speedLabel.textContent = `${rate}x`;
-    if (speedBtn) speedBtn.title = `Velocidade: ${rate}x`;
-    if (speedBtn) speedBtn.setAttribute('aria-label', `Velocidade da narração: ${rate}x`);
-  }
+      readingIndex = verseIndex;
 
-  speedBtn.addEventListener('click', () => {
-    const current = Number(getVoiceSettings().rate) || 0.85;
+      verseEls.forEach((verse, index) => {
+        verse.classList.toggle('selected', index === verseIndex);
+        verse.classList.remove('reading');
+      });
 
-    let index = speedOptions.findIndex(
-      value => Math.abs(value - current) < 0.01
-    );
-
-    index = (index + 1) % speedOptions.length;
-
-    const rate = speedOptions[index];
-
-    setVoiceSettings({ rate });
-    updateSpeedLabel();
-
-    // Se estiver narrando, reinicia para aplicar imediatamente
-    if (readingState !== 'idle') {
-      stopSpeech();
-      startFresh(readingIndex);
+      if (verseEls[verseIndex]) {
+        verseEls[verseIndex].scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
     }
-  });
+
+    window.addEventListener('open-verse', openVerseFromFavorite);
+
+    // Controle de velocidade da narração
+    const speedBtn = qs('#btnSpeed', container);
+    const speedLabel = qs('#btnSpeedLabel', container);
+
+    const speedOptions = [0.5, 0.75, 0.85, 1.0, 1.15, 1.25, 1.5];
+
+    let speedMenu = null;
+
+    function updateSpeedLabel() {
+      const rate = Number(getVoiceSettings().rate) || 0.85;
+      speedLabel.textContent = '';
+      speedBtn.title = `Velocidade: ${rate}x`;
+      speedBtn.setAttribute('aria-label', `Velocidade da narração: ${rate}x`);
+    }
+
+    function closeSpeedMenu() {
+      if (speedMenu) {
+        speedMenu.remove();
+        speedMenu = null;
+      }
+    }
+
+    function openSpeedMenu() {
+      closeSpeedMenu();
+
+      speedMenu = document.createElement('div');
+      speedMenu.className = 'speed-selection-menu';
+
+      const current = Number(getVoiceSettings().rate) || 0.85;
+
+      speedOptions.forEach((rate) => {
+        const option = document.createElement('button');
+
+        option.type = 'button';
+        option.className = 'speed-option';
+        option.textContent = `${rate}x`;
+
+        if (Math.abs(rate - current) < 0.01) {
+          option.classList.add('selected');
+        }
+
+        option.addEventListener('click', (event) => {
+          event.stopPropagation();
+
+          setVoiceSettings({ rate });
+          updateSpeedLabel();
+          closeSpeedMenu();
+
+          // Aplica imediatamente se estiver lendo
+          if (readingState !== 'idle') {
+            stopSpeech();
+            startFresh(readingIndex);
+          }
+        });
+
+        speedMenu.appendChild(option);
+      });
+
+      speedBtn.parentElement.appendChild(speedMenu);
+    }
+
+    speedBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+
+      if (speedMenu) {
+        closeSpeedMenu();
+      } else {
+        openSpeedMenu();
+      }
+    });
+
+    document.addEventListener('click', (event) => {
+      if (
+        speedMenu &&
+        !speedMenu.contains(event.target) &&
+        event.target !== speedBtn
+      ) {
+        closeSpeedMenu();
+      }
+    });
+
+    updateSpeedLabel();
 
   updateSpeedLabel();
 
@@ -374,6 +551,44 @@ export const readerPage = {
       stopReading();
       toast.info('Leitura parada');
     });
+
+    // ============================================================
+    // CONTROLES DA NOTIFICAÇÃO NATIVA DO ANDROID
+    // ============================================================
+    const nativeMediaPlay = () => {
+      if (readingState === 'idle') {
+        startFresh(readingIndex);
+      } else if (readingState === 'paused') {
+        continueReading();
+      }
+    };
+
+    const nativeMediaPrevChapter = () => {
+      changeNotificationChapter(-1);
+    };
+
+    const nativeMediaNextChapter = () => {
+      changeNotificationChapter(1);
+    };
+
+    window.addEventListener('media-notification-prev-chapter', nativeMediaPrevChapter);
+    window.addEventListener('media-notification-next-chapter', nativeMediaNextChapter);
+
+    const nativeMediaPause = () => {
+      if (readingState === 'playing') {
+        pauseReading();
+      }
+    };
+
+    const nativeMediaStop = () => {
+      if (readingState !== 'idle') {
+        stopReading();
+      }
+    };
+
+    window.addEventListener('media-notification-play', nativeMediaPlay);
+    window.addEventListener('media-notification-pause', nativeMediaPause);
+    window.addEventListener('media-notification-stop', nativeMediaStop);
 
     // Controles de mídia na tela de bloqueio / central de notificações.
     setMediaSessionHandlers({
@@ -448,6 +663,13 @@ export const readerPage = {
     // texto ao sair da tela.
     return () => {
       stopSpeech();
+
+      window.removeEventListener('media-notification-play', nativeMediaPlay);
+      window.removeEventListener('media-notification-prev-chapter', nativeMediaPrevChapter);
+      window.removeEventListener('media-notification-next-chapter', nativeMediaNextChapter);
+      window.removeEventListener('media-notification-pause', nativeMediaPause);
+      window.removeEventListener('media-notification-stop', nativeMediaStop);
+
       detachSelectionToolbar();
       detachWakeLockReacquire();
       releaseWakeLock();

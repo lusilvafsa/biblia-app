@@ -12,13 +12,26 @@ const MediaNotification = (() => {
   return null;
 })();
 
-async function syncNativeNotification(playing, title = 'Bíblia de Estudo', artist = 'Bíblia em Áudio') {
+let nativeNotificationTitle = 'Bíblia de Estudo';
+let nativeNotificationArtist = 'Bíblia em Áudio';
+let nativeNotificationPlaying = false;
+
+async function syncNativeNotification(
+  playing = nativeNotificationPlaying,
+  title = nativeNotificationTitle,
+  artist = nativeNotificationArtist
+) {
+  nativeNotificationPlaying = !!playing;
+  nativeNotificationTitle = title || 'Bíblia de Estudo';
+  nativeNotificationArtist = artist || 'Bíblia em Áudio';
+
   if (!MediaNotification) return;
+
   try {
     await MediaNotification.update({
-      title,
-      artist,
-      playing: !!playing
+      title: nativeNotificationTitle,
+      artist: nativeNotificationArtist,
+      playing: nativeNotificationPlaying
     });
   } catch (err) {
     console.warn('MediaNotification indisponível:', err);
@@ -36,16 +49,28 @@ export function isMediaSessionSupported() {
 }
 
 export function setMediaSessionMetadata({ title, artist, album }) {
-  if (!isMediaSessionSupported()) return;
-  try {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: title || 'Bíblia de Estudo',
-      artist: artist || '',
-      album: album || 'Bíblia de Estudo',
-    });
-  } catch (_err) {
-    /* ignora */
+  const nextTitle = title || 'Bíblia de Estudo';
+  const nextArtist = artist || 'Bíblia em Áudio';
+
+  if (isMediaSessionSupported()) {
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: nextTitle,
+        artist: nextArtist,
+        album: album || 'Bíblia de Estudo',
+      });
+    } catch (_err) {
+      /* ignora */
+    }
   }
+
+  // A notificação nativa deve ser atualizada mesmo quando
+  // o WebView não oferece navigator.mediaSession.
+  syncNativeNotification(
+    nativeNotificationPlaying,
+    nextTitle,
+    nextArtist
+  );
 }
 
 /** 'playing' | 'paused' | 'none' */
@@ -60,8 +85,8 @@ export function setMediaSessionPlaybackState(state) {
 
   syncNativeNotification(
     state === 'playing',
-    'Bíblia de Estudo',
-    'Bíblia em Áudio'
+    nativeNotificationTitle,
+    nativeNotificationArtist
   );
 }
 

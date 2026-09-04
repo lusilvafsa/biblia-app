@@ -1441,639 +1441,316 @@
   display: none !important;
 }
 
-/* ===== CONTROLES DE ÁUDIO SOMENTE COM ÍCONES ===== */
+/* =========================================================
+   MENU V3 — BOTÃO 4 QUADRINHOS
+   REGRA FINAL
+   ========================================================= */
 
-#btnPlayPause,
-#btnStop,
-#btnSpeed {
-  font-size: 0 !important;
-  white-space: nowrap !important;
-}
-
-#btnPlayPause span,
-#btnStop span,
-#btnSpeed span {
-  display: none !important;
-}
-
-/* Mantém os ícones visíveis */
-#btnPlayPause svg,
-#btnStop svg,
-#btnSpeed svg,
-#btnPlayPause i,
-#btnStop i,
-#btnSpeed i {
-  display: block !important;
-  width: 24px !important;
-  height: 24px !important;
-  font-size: 24px !important;
-}
-
-/* Velocidade: somente o ⚡ */
-#btnSpeed {
-  min-width: 44px !important;
-  width: 44px !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
-/* ===== CONTROLES DO LEITOR - TAMANHO COMPACTO ===== */
-
-#btnPlayPause,
-#btnStop,
-#btnSpeed,
-#btnFontMinus,
-#btnFontPlus {
-  width: 64px !important;
-  min-width: 64px !important;
-  height: 64px !important;
-  padding: 8px !important;
-  box-sizing: border-box;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-}
-
-#btnPlayPause svg,
-#btnStop svg {
-  width: 24px !important;
-  height: 24px !important;
-}
-
-#btnSpeed {
-  font-size: 24px !important;
-  line-height: 1 !important;
-}
-
-#btnSpeedLabel {
-  display: none !important;
-}
-
-#btnFontMinus,
-#btnFontPlus {
-  font-size: 24px !important;
-  line-height: 1 !important;
-}
-
-
-/* ===== AJUSTE FINAL - CONTROLES DO LEITOR ===== */
-
-/* Tamanho dos 5 botões */
-#btnPlayPause,
-#btnStop,
-#btnSpeed,
-#btnFontMinus,
-#btnFontPlus {
-  width: 48px !important;
-  min-width: 48px !important;
-  max-width: 48px !important;
-  height: 48px !important;
-  min-height: 48px !important;
-  max-height: 48px !important;
-  padding: 4px !important;
-  box-sizing: border-box !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Ícone de áudio e parar */
-#btnPlayPause svg,
-#btnStop svg {
-  width: 24px !important;
-  height: 24px !important;
-}
-
-/* Raio */
-#btnSpeed {
-  font-size: 22px !important;
-  line-height: 1 !important;
-}
-
-/* Esconde somente o número da velocidade */
-#btnSpeedLabel {
-  display: none !important;
-}
-
-/* A- e A+ */
-#btnFontMinus,
-#btnFontPlus {
-  font-size: 22px !important;
-  line-height: 1 !important;
-}
-
-/* Evita que os controles fiquem grandes */
-#btnPlayPause *,
-#btnStop *,
-#btnSpeed *,
-#btnFontMinus *,
-#btnFontPlus * {
-  max-width: 100% !important;
-  max-height: 100% !important;
-}
-
-
-/* ===== BOTÃO DE MENU - 52 x 52 ===== */
-
-#btnMenu {
-  width: 52px !important;
-  min-width: 52px !important;
-  max-width: 52px !important;
-  height: 52px !important;
-  min-height: 52px !important;
-  max-height: 52px !important;
-  padding: 0 !important;
-  box-sizing: border-box !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Ícone do menu */
-#btnMenu svg,
-#btnMenu i {
-  width: 24px !important;
-  height: 24px !important;
-  font-size: 24px !important;
-  display: block !important;
-}
-
-/* Caso o ícone seja formado por quadrados */
-#btnMenu span {
-  font-size: 24px !important;
-}
-
-
-/* ===== BOTÃO FLUTUANTE DO MENU - 52 x 52 ===== */
-
-.bottom-nav.compact-menu .menu-toggle,
-#bottomMenuToggle {
-  width: 52px !important;
-  min-width: 52px !important;
-  max-width: 52px !important;
-  height: 52px !important;
-  min-height: 52px !important;
-  max-height: 52px !important;
-  padding: 0 !important;
-  box-sizing: border-box !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Desenho do botão */
-.bottom-nav.compact-menu .menu-toggle-icon,
-#bottomMenuToggle .menu-toggle-icon {
-  width: 24px !important;
-  height: 24px !important;
-  font-size: 24px !important;
-  line-height: 24px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-
-/* ===== ÍCONE DO MENU: 4 QUADRADOS ===== */
-
-.bottom-nav.compact-menu .menu-toggle-icon {
-  display: grid !important;
-  grid-template-columns: 14px 14px !important;
-  grid-template-rows: 14px 14px !important;
-  gap: 5px !important;
-  width: 33px !important;
-  height: 33px !important;
-  font-size: 0 !important;
-  line-height: 0 !important;
-  flex-shrink: 0 !important;
-}
-
-.bottom-nav.compact-menu .menu-toggle-icon::before {
-  content: "" !important;
-  display: block !important;
-  width: 14px !important;
-  height: 14px !important;
-  border-radius: 3px !important;
-  background: var(--text-primary) !important;
-  box-shadow:
-    19px 0 0 var(--text-primary),
-    0 19px 0 var(--text-primary),
-    19px 19px 0 var(--text-primary) !important;
-}
-
-.bottom-nav.compact-menu .menu-toggle {
-  width: 52px !important;
-  height: 52px !important;
-  min-width: 52px !important;
-  min-height: 52px !important;
-  max-width: 52px !important;
-  max-height: 52px !important;
-  padding: 0 !important;
-}
-
-
-/* ===== CORREÇÃO FINAL DO ÍCONE DO MENU ===== */
-
-.bottom-nav.compact-menu .menu-toggle-icon {
-  display: block !important;
-  position: relative !important;
-  width: 26px !important;
-  height: 26px !important;
-  min-width: 26px !important;
-  min-height: 26px !important;
-  font-size: 0 !important;
-  line-height: 0 !important;
-  color: transparent !important;
-  background: none !important;
-  border: 0 !important;
-}
-
-.bottom-nav.compact-menu .menu-toggle-icon::before {
-  content: "" !important;
-  position: absolute !important;
-  left: 1px !important;
-  top: 1px !important;
-  width: 10px !important;
-  height: 10px !important;
-  background:
-    linear-gradient(var(--text-primary), var(--text-primary)) 0 0 / 10px 10px no-repeat,
-    linear-gradient(var(--text-primary), var(--text-primary)) 15px 0 / 10px 10px no-repeat,
-    linear-gradient(var(--text-primary), var(--text-primary)) 0 15px / 10px 10px no-repeat,
-    linear-gradient(var(--text-primary), var(--text-primary)) 15px 15px / 10px 10px no-repeat !important;
-  box-shadow: none !important;
-  border: 0 !important;
-}
-
-.bottom-nav.compact-menu .menu-toggle-icon::after {
-  content: none !important;
-}
-
-/* Mantém o botão exatamente 52 x 52 */
-.bottom-nav.compact-menu .menu-toggle,
-#bottomMenuToggle {
-  width: 52px !important;
-  min-width: 52px !important;
-  max-width: 52px !important;
-  height: 52px !important;
-  min-height: 52px !important;
-  max-height: 52px !important;
-  padding: 0 !important;
-}
-
-
-/* ===== ÍCONE MENU 4 QUADRADOS - CORREÇÃO ===== */
-
-.bottom-nav.compact-menu .menu-toggle-icon {
-  display: block !important;
-  position: relative !important;
-  width: 25px !important;
-  height: 25px !important;
-  min-width: 25px !important;
-  min-height: 25px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  font-size: 0 !important;
-  line-height: 0 !important;
-  color: transparent !important;
-  background: none !important;
-  border: 0 !important;
-  box-shadow: none !important;
-}
-
-.bottom-nav.compact-menu .menu-toggle-icon::before {
-  content: "" !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 25px !important;
-  height: 25px !important;
-  background:
-    linear-gradient(var(--text-primary), var(--text-primary)) 0 0 / 10px 10px no-repeat,
-    linear-gradient(var(--text-primary), var(--text-primary)) 15px 0 / 10px 10px no-repeat,
-    linear-gradient(var(--text-primary), var(--text-primary)) 0 15px / 10px 10px no-repeat,
-    linear-gradient(var(--text-primary), var(--text-primary)) 15px 15px / 10px 10px no-repeat !important;
-  box-shadow: none !important;
-  border: 0 !important;
-}
-
-.bottom-nav.compact-menu .menu-toggle-icon::after {
-  content: none !important;
-}
-
-.bottom-nav.compact-menu .menu-toggle,
-#bottomMenuToggle {
-  width: 52px !important;
-  height: 52px !important;
-  min-width: 52px !important;
-  min-height: 52px !important;
-  max-width: 52px !important;
-  max-height: 52px !important;
-  padding: 0 !important;
-}
-
-
-/* ===== MENU DE SELEÇÃO DE VELOCIDADE ===== */
-
-.speed-selection-menu {
-  position: absolute;
-  right: 0;
-  bottom: 100%;
-  margin-bottom: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 6px;
-  min-width: 72px;
-  background: var(--navy);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.4);
-  z-index: 2000;
-}
-
-.speed-option {
-  width: 60px !important;
-  min-width: 60px !important;
-  height: 32px !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  border-radius: 8px !important;
-  background: transparent !important;
-  color: var(--text-primary) !important;
-  font-size: 14px !important;
-  line-height: 1 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.speed-option:hover,
-.speed-option.selected {
-  background: var(--gold-soft) !important;
-  color: var(--gold) !important;
-}
-
-
-/* ===== MENU DE VELOCIDADE - CORREÇÃO APK ===== */
-
-.speed-selection-menu {
+.bottom-nav.compact-menu {
   position: fixed !important;
-  right: 12px !important;
-  bottom: 78px !important;
+  right: 10px !important;
+  bottom: 18px !important;
+  left: auto !important;
+
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
 
   display: flex !important;
   flex-direction: column !important;
-  gap: 3px !important;
+  align-items: flex-end !important;
+  justify-content: flex-end !important;
 
-  width: 76px !important;
-  min-width: 76px !important;
-  padding: 6px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+
+  background: transparent !important;
+  border: 0 !important;
+
+  overflow: visible !important;
+  z-index: 1000 !important;
+}
+
+/* BOTÃO PRINCIPAL — 4 QUADRINHOS */
+.bottom-nav.compact-menu .menu-toggle {
+  order: 2 !important;
+
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border: 1px solid var(--border) !important;
+  border-radius: 50% !important;
 
   background: var(--navy) !important;
+
+  box-shadow: 0 4px 16px rgba(0,0,0,.35) !important;
+
+  cursor: pointer !important;
+}
+
+/* ÍCONE DOS 4 QUADRINHOS */
+.bottom-nav.compact-menu .menu-toggle-icon {
+  display: block !important;
+
+  width: auto !important;
+  height: auto !important;
+
+  font-size: 25px !important;
+  line-height: 1 !important;
+
+  color: var(--text-primary) !important;
+}
+
+/* MENU FECHADO */
+.bottom-nav.compact-menu .bottom-menu-items {
+  order: 1 !important;
+
+  display: none !important;
+
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 6px !important;
+
+  width: 54px !important;
+  height: auto !important;
+
+  margin: 0 0 8px 0 !important;
+  padding: 8px !important;
+
   border: 1px solid var(--border) !important;
-  border-radius: 12px !important;
+  border-radius: 28px !important;
 
-  box-shadow: 0 6px 20px rgba(0,0,0,.5) !important;
+  background: var(--navy) !important;
 
-  z-index: 99999 !important;
+  box-shadow: 0 5px 20px rgba(0,0,0,.4) !important;
+
   overflow: visible !important;
 }
 
-.speed-selection-menu .speed-option {
+/* MENU ABERTO */
+.bottom-nav.compact-menu.menu-open .bottom-menu-items {
+  display: flex !important;
+}
+
+/* BOTÕES INTERNOS */
+.bottom-nav.compact-menu .bottom-menu-items .nav-item {
   display: flex !important;
 
-  width: 64px !important;
-  min-width: 64px !important;
-  height: 32px !important;
-  min-height: 32px !important;
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
 
-  margin: 0 !important;
-  padding: 0 !important;
+  flex: 0 0 42px !important;
 
   align-items: center !important;
   justify-content: center !important;
 
-  border: 0 !important;
-  border-radius: 8px !important;
+  flex-direction: column !important;
 
-  background: transparent !important;
-  color: var(--text-primary) !important;
+  margin: 0 !important;
+  padding: 2px !important;
 
-  font-size: 14px !important;
-  font-weight: 600 !important;
+  gap: 1px !important;
+
+  border-radius: 50% !important;
 }
 
-.speed-selection-menu .speed-option.selected {
-  background: var(--gold-soft) !important;
-  color: var(--gold) !important;
+/* ÍCONES INTERNOS */
+.bottom-nav.compact-menu .bottom-menu-items .nav-icon {
+  display: flex !important;
+
+  width: 22px !important;
+  height: 22px !important;
+
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-.speed-selection-menu .speed-option:active {
-  background: var(--gold-soft) !important;
-  color: var(--gold) !important;
+.bottom-nav.compact-menu .bottom-menu-items svg {
+  width: 21px !important;
+  height: 21px !important;
+}
+
+/* ESCONDE OS NOMES */
+.bottom-nav.compact-menu .bottom-menu-items .nav-item span:not(.nav-icon) {
+  display: none !important;
 }
 
 
 /* =========================================================
-   TELA FAVORITOS
+   MENU V3 — CORREÇÃO FINAL DOS 4 QUADRADOS
+   ESTA REGRA FICA NO ÚLTIMO CSS CARREGADO
    ========================================================= */
 
-.favorites-page {
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 16px;
-  box-sizing: border-box;
+.bottom-nav.compact-menu .menu-toggle-icon {
+  position: relative !important;
+  display: block !important;
+
+  width: 36px !important;
+  height: 36px !important;
+
+  min-width: 36px !important;
+  min-height: 36px !important;
+
+  max-width: 36px !important;
+  max-height: 36px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 0 !important;
+  line-height: 0 !important;
+
+  background: transparent !important;
+  border: 0 !important;
 }
 
-.favorites-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
+/* Não usar os quadrinhos antigos */
+.bottom-nav.compact-menu .menu-toggle-icon i {
+  display: none !important;
 }
 
-.favorites-header h2 {
-  margin: 0;
-  font-size: 24px;
-  color: var(--text-primary);
+/* 4 QUADRADOS GRANDES */
+.bottom-nav.compact-menu .menu-toggle-icon::before {
+  content: "" !important;
+
+  position: absolute !important;
+  left: 1px !important;
+  top: 1px !important;
+
+  width: 15px !important;
+  height: 15px !important;
+
+  background: var(--text-primary) !important;
+  border-radius: 4px !important;
+
+  box-shadow:
+    20px 0 0 var(--text-primary),
+    0 20px 0 var(--text-primary),
+    20px 20px 0 var(--text-primary) !important;
+
+  display: block !important;
 }
 
-.favorites-header p {
-  margin: 5px 0 0;
-  font-size: 13px;
-  color: var(--text-tertiary);
+.bottom-nav.compact-menu .menu-toggle-icon::after {
+  content: none !important;
+  display: none !important;
 }
 
-.favorites-section {
-  margin-bottom: 24px;
-}
+/* BOTÃO CIRCULAR */
+.bottom-nav.compact-menu .menu-toggle {
+  width: 52px !important;
+  height: 52px !important;
 
-.favorites-section h3 {
-  margin: 0 0 12px;
-  font-size: 17px;
-  color: var(--text-primary);
-}
+  min-width: 52px !important;
+  min-height: 52px !important;
 
-.favorites-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+  max-width: 52px !important;
+  max-height: 52px !important;
 
-.favorite-card {
-  position: relative;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface);
-  box-shadow: 0 2px 8px rgba(0,0,0,.12);
-}
+  padding: 0 !important;
+  margin: 0 !important;
 
-.favorite-verse {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  background: transparent;
-  color: var(--text-primary);
-  text-align: left;
-  cursor: pointer;
-}
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 
-.favorite-verse strong {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 15px;
-  color: var(--gold);
-}
-
-.favorite-verse span {
-  display: block;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--text-primary);
-}
-
-.favorite-card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 12px;
-}
-
-.favorite-card-actions button {
-  min-height: 34px;
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--surface-alt, var(--surface));
-  color: var(--text-primary);
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.favorite-card-actions button:active {
-  transform: scale(.97);
-}
-
-.favorite-remove-btn {
-  color: var(--gold) !important;
-}
-
-.favorite-note {
-  margin-top: 10px;
-  padding: 9px 11px;
-  border-left: 3px solid var(--gold);
-  border-radius: 7px;
-  background: rgba(255,255,255,.04);
-}
-
-.favorite-note strong {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 12px;
-  color: var(--gold);
-}
-
-.favorite-note p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-  white-space: pre-wrap;
-}
-
-.favorite-card.note-card {
-  padding-bottom: 12px;
-}
-
-.favorites-empty {
-  padding: 45px 20px;
-  text-align: center;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface);
-}
-
-.favorites-empty-icon {
-  margin-bottom: 10px;
-  font-size: 48px;
-  line-height: 1;
-  color: var(--gold);
-}
-
-.favorites-empty h3 {
-  margin: 0 0 8px;
-  font-size: 18px;
-  color: var(--text-primary);
-}
-
-.favorites-empty p {
-  max-width: 420px;
-  margin: 0 auto;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--text-tertiary);
-}
-
-@media (max-width: 480px) {
-  .favorites-page {
-    padding: 12px;
-  }
-
-  .favorites-header h2 {
-    font-size: 21px;
-  }
-
-  .favorite-card {
-    padding: 11px;
-  }
-
-  .favorite-verse span {
-    font-size: 14px;
-  }
-
-  .favorite-card-actions button {
-    font-size: 11px;
-  }
+  border-radius: 50% !important;
 }
 
 
-/* ===== AÇÕES DO MEU PERFIL ===== */
+/* =========================================================
+   CORREÇÃO FINAL — ÍCONE MENU 4 QUADRADOS GRANDES
+   ESTA REGRA FICA NO FINAL DO COMPONENTS.CSS
+   ========================================================= */
 
-.profile-action-item {
-  width: 100%;
-  border: 0;
-  font: inherit;
-  text-align: center;
-  cursor: pointer;
+.bottom-nav.compact-menu .menu-toggle-icon {
+  position: relative !important;
+  display: block !important;
+
+  width: 38px !important;
+  height: 38px !important;
+
+  min-width: 38px !important;
+  min-height: 38px !important;
+  max-width: 38px !important;
+  max-height: 38px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 0 !important;
+  line-height: 0 !important;
+
+  background: transparent !important;
+  border: 0 !important;
 }
 
-.profile-action-item:active {
-  transform: scale(0.98);
+/* Remove os quadrinhos antigos */
+.bottom-nav.compact-menu .menu-toggle-icon i {
+  display: none !important;
+}
+
+/* Remove qualquer conteúdo antigo */
+.bottom-nav.compact-menu .menu-toggle-icon::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* DESENHA OS 4 QUADRADOS GRANDES */
+.bottom-nav.compact-menu .menu-toggle-icon::before {
+  content: "" !important;
+
+  position: absolute !important;
+
+  left: 1px !important;
+  top: 1px !important;
+
+  width: 16px !important;
+  height: 16px !important;
+
+  background: var(--text-primary) !important;
+
+  border-radius: 4px !important;
+
+  box-shadow:
+    20px 0 0 var(--text-primary),
+    0 20px 0 var(--text-primary),
+    20px 20px 0 var(--text-primary) !important;
+
+  display: block !important;
+}
+
+/* BOTÃO CIRCULAR */
+.bottom-nav.compact-menu .menu-toggle {
+  width: 52px !important;
+  height: 52px !important;
+
+  min-width: 52px !important;
+  min-height: 52px !important;
+
+  max-width: 52px !important;
+  max-height: 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border-radius: 50% !important;
 }
 

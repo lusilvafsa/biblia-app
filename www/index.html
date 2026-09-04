@@ -36,7 +36,14 @@
 
   <nav class="bottom-nav compact-menu" aria-label="Navegação principal">
     <button class="menu-toggle" id="bottomMenuToggle" type="button" aria-label="Abrir menu" aria-expanded="false">
-      <span class="menu-toggle-icon">▦</span>
+      <span class="menu-toggle-icon">
+      <svg class="menu-four-squares" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="2" y="2" width="16" height="16" rx="4"></rect>
+        <rect x="22" y="2" width="16" height="16" rx="4"></rect>
+        <rect x="2" y="22" width="16" height="16" rx="4"></rect>
+        <rect x="22" y="22" width="16" height="16" rx="4"></rect>
+      </svg>
+    </span>
     </button>
 
     <div class="bottom-menu-items">
@@ -60,6 +67,17 @@
 
   <div class="home-indicator"></div>
 </div>
+
+<script>
+window.addEventListener("error", function(e) {
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    '<div style="position:fixed;z-index:99999;top:0;left:0;right:0;background:#900;color:#fff;padding:20px;font-size:14px;">ERRO: ' +
+    e.message + '</div>'
+  );
+});
+</script>
+
 
 <script type="module" src="js/main.js"></script>
 </body>

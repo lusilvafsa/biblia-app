@@ -17,6 +17,7 @@ function template() {
   const notesCount = favoritesRepository.getNotes().length;
   const readVersesCount = statsRepository.getReadVersesCount();
   const audioVersesCount = statsRepository.getAudioVersesCount();
+  const prayerCount = statsRepository.getPrayerCount();
 
   const badgesHtml = BADGES.map(
     (b) => `
@@ -72,7 +73,7 @@ function template() {
         id="btnProfilePrayer"
       >
         <div class="menu-icon">${icons.prayer}</div>
-        <div class="menu-title">45</div>
+        <div class="menu-title">${prayerCount}</div>
         <div class="menu-desc">Orações feitas</div>
       </button>
 

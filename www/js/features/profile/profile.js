@@ -1,11 +1,7 @@
-// Tela: Perfil — sequência de leitura, insígnias de fé e estatísticas.
-//
-// Nota: no protótipo original esses números (sequência, versículos lidos,
-// horas de áudio, orações, favoritos) eram valores fixos de exemplo, sem
-// nenhum cálculo por trás. Mantivemos o mesmo conteúdo estático aqui —
-// quando o app passar a registrar essas métricas de verdade, é só trocar
-// os valores abaixo pela leitura do estado real (progresso, favoritos etc.).
 import { icons } from '../../components/icons.js';
+import { favoritesRepository } from '../../data-access/favoritesRepository.js';
+import { navigateTo } from '../../router.js';
+import { statsRepository } from '../../data-access/statsRepository.js';
 
 const BADGES = [
   { icon: icons.badgeFirst, name: 'Primeira Leitura', unlocked: true },
@@ -16,29 +12,20 @@ const BADGES = [
   { icon: icons.badgeFull, name: 'Bíblia Completa', unlocked: false },
 ];
 
-const STATS = [
-  { icon: icons.bible, value: '124', label: 'Versículos lidos' },
-  { icon: icons.audio, value: '18h', label: 'Áudio ouvido' },
-  { icon: icons.prayer, value: '45', label: 'Orações feitas' },
-  { icon: icons.bookmark, value: '32', label: 'Favoritos' },
-];
-
 function template() {
+  const favoritesCount = favoritesRepository.getFavorites().length;
+  const notesCount = favoritesRepository.getNotes().length;
+  const readVersesCount = statsRepository.getReadVersesCount();
+  const audioVersesCount = statsRepository.getAudioVersesCount();
+  const prayerCount = statsRepository.getPrayerCount();
+
   const badgesHtml = BADGES.map(
     (b) => `
       <div class="badge-item ${b.unlocked ? 'unlocked' : ''}">
         <div class="badge-icon">${b.icon}</div>
         <div class="badge-name">${b.name}</div>
-      </div>`
-  ).join('');
-
-  const statsHtml = STATS.map(
-    (s) => `
-      <div class="menu-item menu-item--static">
-        <div class="menu-icon">${s.icon}</div>
-        <div class="menu-title">${s.value}</div>
-        <div class="menu-desc">${s.label}</div>
-      </div>`
+      </div>
+    `
   ).join('');
 
   return `
@@ -49,15 +36,108 @@ function template() {
         <p>Melhor: 14 dias</p>
       </div>
     </div>
+
     <div class="section-title">Insígnias de Fé</div>
-    <div class="badge-grid">${badgesHtml}</div>
+
+    <div class="badge-grid">
+      ${badgesHtml}
+    </div>
+
     <div class="section-title">Estatísticas</div>
-    <div class="menu-grid">${statsHtml}</div>
+
+    <div class="menu-grid">
+
+      <button
+        type="button"
+        class="menu-item profile-action-item"
+        id="btnProfileBible"
+      >
+        <div class="menu-icon">${icons.bible}</div>
+        <div class="menu-title">${readVersesCount}</div>
+        <div class="menu-desc">Versículos lidos</div>
+      </button>
+
+      <button
+        type="button"
+        class="menu-item profile-action-item"
+        id="btnProfileAudio"
+      >
+        <div class="menu-icon">${icons.audio}</div>
+        <div class="menu-title">${audioVersesCount}</div>
+        <div class="menu-desc">Áudio ouvido</div>
+      </button>
+
+      <button
+        type="button"
+        class="menu-item profile-action-item"
+        id="btnProfilePrayer"
+      >
+        <div class="menu-icon">${icons.prayer}</div>
+        <div class="menu-title">${prayerCount}</div>
+        <div class="menu-desc">Orações feitas</div>
+      </button>
+
+      <button
+        type="button"
+        class="menu-item profile-action-item"
+        id="btnProfileFavorites"
+      >
+        <div class="menu-icon">♥</div>
+        <div class="menu-title">${favoritesCount}</div>
+        <div class="menu-desc">Favoritos</div>
+      </button>
+
+      <button
+        type="button"
+        class="menu-item profile-action-item"
+        id="btnProfileNotes"
+      >
+        <div class="menu-icon">📝</div>
+        <div class="menu-title">${notesCount}</div>
+        <div class="menu-desc">Anotações</div>
+      </button>
+
+    </div>
   `;
 }
 
 export const profilePage = {
   render(container) {
     container.innerHTML = template();
+
+    const bibleBtn = container.querySelector('#btnProfileBible');
+    if (bibleBtn) {
+      bibleBtn.addEventListener('click', () => {
+        navigateTo('/biblia');
+      });
+    }
+
+    const audioBtn = container.querySelector('#btnProfileAudio');
+    if (audioBtn) {
+      audioBtn.addEventListener('click', () => {
+        navigateTo('/audio');
+      });
+    }
+
+    const prayerBtn = container.querySelector('#btnProfilePrayer');
+    if (prayerBtn) {
+      prayerBtn.addEventListener('click', () => {
+        navigateTo('/oracao');
+      });
+    }
+
+    const favoritesBtn = container.querySelector('#btnProfileFavorites');
+    if (favoritesBtn) {
+      favoritesBtn.addEventListener('click', () => {
+        navigateTo('/favoritos');
+      });
+    }
+
+    const notesBtn = container.querySelector('#btnProfileNotes');
+    if (notesBtn) {
+      notesBtn.addEventListener('click', () => {
+        navigateTo('/anotacoes');
+      });
+    }
   },
 };

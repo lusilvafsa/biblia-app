@@ -36,7 +36,14 @@
 
   <nav class="bottom-nav compact-menu" aria-label="Navegação principal">
     <button class="menu-toggle" id="bottomMenuToggle" type="button" aria-label="Abrir menu" aria-expanded="false">
-      <span class="menu-toggle-icon">▦</span>
+      <span class="menu-toggle-icon">
+      <svg class="menu-four-squares" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="2" y="2" width="16" height="16" rx="4"></rect>
+        <rect x="22" y="2" width="16" height="16" rx="4"></rect>
+        <rect x="2" y="22" width="16" height="16" rx="4"></rect>
+        <rect x="22" y="22" width="16" height="16" rx="4"></rect>
+      </svg>
+    </span>
     </button>
 
     <div class="bottom-menu-items">
@@ -55,9 +62,6 @@
       <button class="nav-item" data-nav-key="profile" data-route="/perfil">
         <span class="nav-icon"></span><span>Perfil</span>
       </button>
-      <button class="nav-item" data-nav-key="favorites" data-route="/favoritos">
-        <span class="nav-icon">♥</span><span>Favoritos</span>
-      </button>
     </div>
   </nav>
 
@@ -73,6 +77,8 @@ window.addEventListener("error", function(e) {
   );
 });
 </script>
+
+
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

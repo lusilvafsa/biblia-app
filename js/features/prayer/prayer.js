@@ -3,6 +3,7 @@ import { el } from '../../utils/dom.js';
 import { icons } from '../../components/icons.js';
 import { toast } from '../../utils/toast.js';
 import { PRAYERS } from '../../../data/prayers.js';
+import { statsRepository } from '../../data-access/statsRepository.js';
 
 export const prayerPage = {
   render(container) {
@@ -13,6 +14,7 @@ export const prayerPage = {
         html: `${icons.check} Orar Amém`,
       });
       amenBtn.addEventListener('click', () => {
+          statsRepository.incrementPrayerCount();
         amenBtn.classList.add('prayed');
         amenBtn.innerHTML = `${icons.check} Amém orado`;
         amenBtn.disabled = true;
