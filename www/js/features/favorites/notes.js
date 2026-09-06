@@ -116,7 +116,7 @@ export const notesPage = {
         note
       );
 
-      render(container);
+      notesPage.render(container);
     }
 
     container.querySelectorAll('.favorite-verse').forEach(button => {
@@ -154,7 +154,7 @@ export const notesPage = {
           item.verseIndex
         );
 
-        render(container);
+        notesPage.render(container);
       });
     });
   }

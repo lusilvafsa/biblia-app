@@ -1,3 +1,4 @@
+import { auth, db } from './firebase/firebaseConfig.js';
 // Ponto de entrada da aplicação.
 // Monta a casca do app (splash, relógio, tema, navegação) e registra as
 // rotas que o roteador (router.js) usa para decidir o que renderizar
