@@ -12,6 +12,7 @@ import { getTheme, toggleTheme, onThemeChange } from './state/theme.js';
 import { homePage } from './features/home/home.js';
 import { bookListPage } from './features/bible/bookList.js';
 import { chapterGridPage } from './features/bible/chapterGrid.js';
+import { verseGridPage } from './features/bible/verseGrid.js';
 import { readerPage } from './features/bible/reader.js';
 import { searchPage } from './features/bible/search.js';
 import { audioPage } from './features/audio/audio.js';
@@ -100,7 +101,8 @@ function initRoutes() {
   registerRoute('/biblia', bookListPage, { title: 'Bíblia Sagrada', navKey: 'bible', showSearch: true, showSettings: true });
   registerRoute('/biblia/busca', searchPage, { title: 'Buscar na Bíblia', navKey: 'bible', showBack: true });
   registerRoute('/biblia/:book', chapterGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
-  registerRoute('/biblia/:book/:chapter', readerPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
+  registerRoute('/biblia/:book/:chapter', verseGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
+  registerRoute('/biblia/:book/:chapter/versiculo/:verse', readerPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
   registerRoute('/audio', audioPage, { title: 'Bíblia em Áudio', navKey: 'audio', showSettings: true });
   registerRoute('/oracao', prayerPage, { title: 'Oração Diária', navKey: 'prayer', showSettings: true });
   registerRoute('/quiz', quizPage, { title: 'Quiz Bíblico', navKey: null, showBack: true });

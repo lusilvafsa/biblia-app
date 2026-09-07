@@ -2,7 +2,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
@@ -122,6 +124,38 @@ export async function entrar(email, senha) {
 
   console.log(
     "[Firebase] Login realizado:",
+    user.uid
+  );
+
+  return user;
+}
+
+export async function entrarComGoogle() {
+  const provider = new GoogleAuthProvider();
+
+  provider.setCustomParameters({
+    prompt: "select_account"
+  });
+
+  const resultado = await signInWithPopup(auth, provider);
+  const user = resultado.user;
+
+  await setDoc(
+    doc(db, "users", user.uid),
+    {
+      uid: user.uid,
+      email: user.email || "",
+      displayName: user.displayName || "",
+      photoURL: user.photoURL || "",
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+
+  lembrarConta(user.email || "");
+
+  console.log(
+    "[Firebase] Login com Google realizado:",
     user.uid
   );
 

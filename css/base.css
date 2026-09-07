@@ -1293,20 +1293,20 @@ svg {
 
   position: absolute !important;
 
-  left: 1px !important;
-  top: 1px !important;
+  left: 2px !important;
+  top: 2px !important;
 
-  width: 15px !important;
-  height: 15px !important;
+  width: 9px !important;
+  height: 9px !important;
 
   background: var(--text-primary) !important;
 
   border-radius: 4px !important;
 
   box-shadow:
-    20px 0 0 var(--text-primary),
-    0 20px 0 var(--text-primary),
-    20px 20px 0 var(--text-primary) !important;
+    12px 0 0 var(--text-primary),
+    0 12px 0 var(--text-primary),
+    12px 12px 0 var(--text-primary) !important;
 
   display: block !important;
 }

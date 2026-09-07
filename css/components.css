@@ -928,272 +928,229 @@
 
 
 /* =========================================================
-   LEITURA EM TELA CHEIA — MODO PAISAGEM
+   LEITOR — RESPONSIVO
+   Usa somente as classes reais do reader.js
    ========================================================= */
 
-@media (orientation: landscape) and (max-height: 600px) {
+/* Área principal do leitor */
+.read-content {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
 
-  /* Aproveita melhor a altura disponível */
-  .reader,
-  .bible-reader,
-  .reader-container {
-    min-height: calc(100vh - 38px);
+/* Cabeçalho da leitura */
+.read-header {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Barra superior de ferramentas */
+.read-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Botões superiores */
+.read-toolbar .tool-btn {
+  min-width: 40px;
+  min-height: 40px;
+  box-sizing: border-box;
+}
+
+/* Texto */
+.verse-line {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Navegação anterior / capítulos / próximo */
+.read-controls {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   TELAS MENORES — RETRATO
+   ========================================================= */
+
+@media (max-width: 600px) and (orientation: portrait) {
+
+  .read-header {
+    padding: 10px 8px !important;
   }
 
-  /* Cabeçalho mais compacto */
-  .reader-header {
-    padding: 4px 16px;
-    min-height: 34px;
+  .read-subtitle {
+    font-size: 12px !important;
+    margin-top: 2px !important;
   }
 
-  /* Área principal da leitura */
-  .reader-content,
-  .bible-content,
-  .chapter-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 8px 5vw 45px;
+  .read-toolbar {
+    gap: 6px !important;
+    padding: 7px 4px !important;
+    flex-wrap: nowrap !important;
   }
 
-  /* Texto dos versículos ocupa mais largura */
-  .verse,
-  .verse-text {
-    max-width: 1300px;
+  .read-toolbar .tool-btn {
+    min-width: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    font-size: 12px !important;
   }
 
-  /* Barra de controles da leitura:
-     fica na região superior */
-  .reader .toolbar,
-  .bible-reader .toolbar,
-  .reader-controls {
-    position: relative;
-    z-index: 20;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin: 2px auto 8px;
-    padding: 4px;
+  .read-toolbar .speed-icon-only {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
   }
 
-  /* Botões de leitura menores */
-  .reader .toolbar button,
-  .bible-reader .toolbar button,
-  .reader-controls button,
-  .tool-btn {
-    min-height: 36px;
-    padding: 6px 12px;
-    font-size: 14px;
+  .read-content {
+    padding: 16px 12px 28px !important;
   }
 
-  /* Navegação inferior compacta */
-  .bottom-nav,
-  .bottom-navigation,
-  nav.bottom-nav {
-    height: 42px !important;
+  .verse-line {
+    margin-bottom: 11px !important;
+  }
+
+  .read-controls {
+    padding: 10px 8px 6px !important;
+    gap: 6px !important;
+  }
+
+  .read-btn {
     min-height: 42px !important;
-    padding: 2px 8px !important;
-  }
-
-  .bottom-nav button,
-  .bottom-navigation button,
-  nav.bottom-nav button {
-    padding: 2px 8px !important;
-    min-height: 38px !important;
-    gap: 1px !important;
-  }
-
-  .bottom-nav svg,
-  .bottom-navigation svg,
-  nav.bottom-nav svg {
-    width: 20px !important;
-    height: 20px !important;
-  }
-
-  .bottom-nav span,
-  .bottom-navigation span,
-  nav.bottom-nav span {
-    font-size: 10px !important;
-    line-height: 11px !important;
-  }
-
-  /* Mais espaço para o texto */
-  .verse-list,
-  .verses {
-    padding-bottom: 50px;
+    padding: 9px 6px !important;
+    font-size: 12px !important;
   }
 }
 
 /* =========================================================
-   TELA PAISAGEM EM CELULARES
-   ========================================================= */
-
-@media (orientation: landscape) and (max-width: 900px) {
-
-  .selection-toolbar {
-    max-width: 90vw;
-  }
-
-  .reader-content,
-  .bible-content,
-  .chapter-content {
-    padding-left: 4vw;
-    padding-right: 4vw;
-  }
-
-  .verse,
-  .verse-text {
-    font-size: 18px;
-    line-height: 1.45;
-  }
-}
-
-/* =========================================================
-   AJUSTE FINAL - LEITURA EM PAISAGEM NO CELULAR
+   CELULAR — PAISAGEM
    ========================================================= */
 
 @media (orientation: landscape) and (max-height: 700px) {
 
-  /* Aproveita melhor a altura da tela */
-  .reader,
-  .bible-reader,
-  .reader-container {
-    min-height: calc(100vh - 42px) !important;
+  .read-header {
+    position: sticky;
+    top: 0;
+    padding: 5px 12px !important;
+    min-height: 0 !important;
   }
 
-  /* Cabeçalho mais compacto */
-  .reader-header {
-    padding: 3px 12px !important;
-    min-height: 30px !important;
+  .read-subtitle {
+    font-size: 11px !important;
+    margin: 0 0 2px !important;
   }
 
-  /* Área de leitura */
-  .reader-content,
-  .bible-content,
-  .chapter-content {
-    padding-top: 4px !important;
-    padding-bottom: 130px !important;
-    margin-bottom: 0 !important;
+  .read-toolbar {
+    gap: 6px !important;
+    padding: 4px 4px !important;
+    flex-wrap: nowrap !important;
   }
 
-  /* Versículos ocupam melhor a largura */
-  .verse,
-  .verse-text {
-    font-size: 18px !important;
-    line-height: 1.45 !important;
-  }
-
-  /* Barra de controles compacta */
-  .reader .toolbar,
-  .bible-reader .toolbar,
-  .reader-controls {
-    margin: 2px auto 4px !important;
-    padding: 2px !important;
-    gap: 5px !important;
-  }
-
-  .reader .toolbar button,
-  .bible-reader .toolbar button,
-  .reader-controls button,
-  .tool-btn {
-    min-height: 34px !important;
-    padding: 4px 10px !important;
-    font-size: 13px !important;
-  }
-
-  /* Navegação inferior */
-  .bottom-nav,
-  .bottom-navigation,
-  nav.bottom-nav {
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 1px 4px !important;
-    z-index: 1000 !important;
-  }
-
-  .bottom-nav button,
-  .bottom-navigation button,
-  nav.bottom-nav button {
-    min-height: 30px !important;
-    padding: 1px 6px !important;
-  }
-
-  .bottom-nav svg,
-  .bottom-navigation svg,
-  nav.bottom-nav svg {
-    width: 16px !important;
-    height: 16px !important;
-  }
-
-  .bottom-nav span,
-  .bottom-navigation span,
-  nav.bottom-nav span {
-    font-size: 8px !important;
-    line-height: 9px !important;
-  }
-
-  /* Impede a barra inferior de esconder o último versículo */
-  .verse-list,
-  .verses {
-    padding-bottom: 130px !important;
-  }
-}
-
-/* ===== AJUSTE FINAL - CONTROLES SUPERIORES ===== */
-
-@media (orientation: landscape) and (max-width: 900px) {
-
-  /* Cabeçalho */
-  .reader-header {
-    position: relative;
-    min-height: 70px !important;
-    padding: 4px 16px !important;
-  }
-
-  /* Nome do livro à esquerda */
-  .reader-header .book-title,
-  .reader-header .chapter-title {
-    align-self: flex-start;
-  }
-
-  /* Menu superior centralizado */
-  .reader .toolbar,
-  .bible-reader .toolbar,
-  .reader-controls {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 8px !important;
-
-    position: absolute !important;
-    top: 4px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-
-    margin: 0 !important;
+  .read-toolbar .tool-btn {
+    min-width: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
     padding: 0 !important;
-    z-index: 30 !important;
+    justify-content: center !important;
+    font-size: 11px !important;
   }
 
-  /* Botões do menu superior */
-  .reader .toolbar button,
-  .bible-reader .toolbar button,
-  .reader-controls button,
-  .tool-btn {
-    min-height: 36px !important;
-    padding: 6px 12px !important;
-    font-size: 14px !important;
+  .read-toolbar .speed-icon-only {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
   }
 
-  /* Conteúdo começa logo abaixo do cabeçalho */
-  .reader-content,
-  .bible-content,
-  .chapter-content {
-    padding-top: 8px !important;
+  .read-content {
+    max-width: 1200px !important;
+    padding: 10px 5vw 90px !important;
+  }
+
+  .verse-line {
+    margin-bottom: 9px !important;
+  }
+
+  .read-controls {
+    max-width: 1200px !important;
+    padding: 6px 5vw 4px !important;
+    gap: 8px !important;
+  }
+
+  .read-btn {
+    min-height: 40px !important;
+    padding: 7px 8px !important;
+    font-size: 12px !important;
   }
 }
 
-/* ===== FIM DO AJUSTE ===== */
+/* =========================================================
+   TELAS GRANDES EM PAISAGEM
+   ========================================================= */
+
+@media (orientation: landscape) and (min-width: 901px) {
+
+  .read-content {
+    max-width: 1100px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .read-controls {
+    max-width: 1100px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+/* =========================================================
+   SEGURANÇA PARA TELAS MUITO ESTREITAS
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .read-toolbar {
+    gap: 4px !important;
+  }
+
+  .read-toolbar .tool-btn,
+  .read-toolbar .speed-icon-only {
+    width: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+
+  .read-controls {
+    gap: 4px !important;
+  }
+
+  .read-btn {
+    font-size: 11px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+}
+
+/* =========================================================
+   FIM — LEITOR RESPONSIVO
+   ========================================================= */
+
+
 
 
 /* =========================================================
@@ -1333,7 +1290,7 @@
 /* ÍCONE DO BOTÃO */
 .bottom-nav.compact-menu .menu-toggle-icon {
   display: block !important;
-  font-size: 25px !important;
+  font-size: 21px !important;
   line-height: 1 !important;
 }
 
@@ -1378,7 +1335,7 @@
   min-width: 42px !important;
   min-height: 42px !important;
 
-  flex: 0 0 42px !important;
+  flex: 0 0 40px !important;
 
   flex-direction: column !important;
   align-items: center !important;
@@ -1421,17 +1378,17 @@
 
 /* ===== BOTÃO DE VELOCIDADE SOMENTE COM ÍCONE ===== */
 .speed-icon-only {
-  width: 42px !important;
-  min-width: 42px !important;
-  max-width: 42px !important;
-  height: 42px !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  height: 40px !important;
   padding: 0 !important;
   margin-left: 2px !important;
   margin-right: 2px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  flex: 0 0 42px !important;
+  flex: 0 0 40px !important;
   font-size: 20px !important;
   line-height: 1 !important;
   white-space: nowrap !important;
@@ -1754,3 +1711,157 @@
   border-radius: 50% !important;
 }
 
+
+/* =========================================================
+   GRADE DE VERSÍCULOS
+   ========================================================= */
+
+.verse-grid-title {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 4px 0 14px;
+}
+
+.verse-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  padding: 4px;
+}
+
+.verse-grid-btn {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--navy-light);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.verse-grid-btn:hover {
+  background: var(--navy-lighter);
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.verse-grid-btn:active {
+  transform: scale(0.96);
+}
+
+/* Celulares */
+@media (max-width: 600px) {
+  .verse-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    padding: 4px;
+  }
+
+  .verse-grid-btn {
+    border-radius: 12px;
+    font-size: 15px;
+  }
+
+  .verse-grid-title {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+}
+
+/* Telas muito estreitas */
+@media (max-width: 380px) {
+  .verse-grid {
+    gap: 6px;
+  }
+
+  .verse-grid-btn {
+    border-radius: 10px;
+    font-size: 14px;
+  }
+}
+
+/* Paisagem */
+@media (orientation: landscape) {
+  .verse-grid {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+}
+
+/* Paisagem em telas grandes */
+@media (orientation: landscape) and (min-width: 901px) {
+  .verse-grid {
+    grid-template-columns: repeat(10, 1fr);
+    max-width: 1100px;
+    gap: 10px;
+  }
+}
+
+/* =========================================================
+   FIM — GRADE DE VERSÍCULOS
+   ========================================================= */
+
+
+/* --- CAPÍTULOS: REDUZIR NO MODO PAISAGEM --- */
+@media (orientation: landscape) {
+  .chapter-grid {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+    padding: 4px;
+  }
+
+  .chapter-btn {
+    border-radius: 12px;
+    font-size: 15px;
+  }
+}
+
+/* --- AJUSTE FINAL — CAPÍTULOS EM PAISAGEM --- */
+@media (orientation: landscape) {
+  .chapter-grid {
+    grid-template-columns: repeat(10, 1fr);
+    gap: 7px;
+  }
+
+  .chapter-btn {
+    border-radius: 10px;
+    font-size: 14px;
+  }
+}
+
+/* --- VERSÍCULOS — MESMO TAMANHO DOS CAPÍTULOS EM PAISAGEM --- */
+@media (orientation: landscape) {
+  .verse-grid {
+    grid-template-columns: repeat(10, 1fr);
+    gap: 7px;
+  }
+
+  .verse-grid-btn {
+    border-radius: 10px;
+    font-size: 14px;
+  }
+}
+
+/* --- VERSÍCULOS — MESMO TAMANHO DOS CAPÍTULOS EM RETRATO --- */
+@media (orientation: portrait) {
+  .verse-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    padding: 4px;
+  }
+
+  .verse-grid-btn {
+    border-radius: 14px;
+    font-size: 16px;
+  }
+}

@@ -7,6 +7,7 @@ import { statsRepository } from '../../data-access/statsRepository.js';
 import {
   criarConta,
   entrar,
+  entrarComGoogle,
   sair,
   observarUsuario,
   contasLembradas
@@ -443,6 +444,36 @@ function createAuthModal({
             margin-top:20px;
           "
         >
+        <div
+          style="
+            margin-top:18px;
+            padding-top:16px;
+            border-top:1px solid rgba(127,127,127,.2);
+          "
+        >
+          <button
+            type="button"
+            id="btnGoogleLogin"
+            style="
+              width:100%;
+              padding:12px;
+              border:1px solid rgba(127,127,127,.4);
+              border-radius:10px;
+              cursor:pointer;
+              font-weight:600;
+              background:var(--bg,#fff);
+              color:inherit;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              gap:10px;
+            "
+          >
+            <img src="./assets/icons/google.svg" width="18" height="18" alt="Google" style="vertical-align:middle;margin-right:8px;">
+            Continuar com Google
+          </button>
+        </div>
+
           <button
             type="button"
             id="btnAuthCancel"
@@ -494,6 +525,9 @@ function createAuthModal({
   const cancel =
     modal.querySelector('#btnAuthCancel');
 
+  const googleLogin =
+    modal.querySelector('#btnGoogleLogin');
+
   const errorBox =
     modal.querySelector('#bibliaAuthError');
 
@@ -515,6 +549,69 @@ function createAuthModal({
           ? 'Mostrar senha'
           : 'Ocultar senha'
       );
+    }
+  );
+
+  googleLogin.addEventListener(
+    'click',
+    async () => {
+      googleLogin.disabled = true;
+      googleLogin.textContent = 'Abrindo Google...';
+      errorBox.style.display = 'none';
+
+      try {
+        await entrarComGoogle();
+
+        modal.remove();
+        renderCurrentUser();
+
+        showMessage(
+          'Login com Google realizado com sucesso.'
+        );
+      } catch (error) {
+        console.error(
+          '[Firebase Auth Google]',
+          error
+        );
+
+        googleLogin.disabled = false;
+        googleLogin.innerHTML =
+          '<img src="./assets/icons/google.svg" width="18" height="18" alt="Google" style="vertical-align:middle;margin-right:8px;"> Continuar com Google';
+
+        let message =
+          'Não foi possível entrar com Google.';
+
+        if (error.code === 'auth/popup-closed-by-user') {
+          message =
+            'A janela do Google foi fechada antes do login.';
+        } else if (error.code === 'auth/popup-blocked') {
+          message =
+            'O navegador bloqueou a janela do Google.';
+        } else if (
+          error.code === 'auth/cancelled-popup-request'
+        ) {
+          message =
+            'A tentativa de login com Google foi cancelada.';
+        } else if (
+          error.code === 'auth/account-exists-with-different-credential'
+        ) {
+          message =
+            'Este e-mail já possui uma conta usando outro método de login.';
+        } else if (
+          error.code === 'auth/unauthorized-domain'
+        ) {
+          message =
+            'Este endereço do aplicativo ainda não está autorizado no Firebase.';
+        } else if (
+          error.code === 'auth/operation-not-allowed'
+        ) {
+          message =
+            'O login com Google ainda não está habilitado no Firebase.';
+        }
+
+        errorBox.textContent = message;
+        errorBox.style.display = 'block';
+      }
     }
   );
 

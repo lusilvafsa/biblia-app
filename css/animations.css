@@ -639,3 +639,26 @@ body.light .speed-selection-menu .speed-option:focus {
   }
 }
 
+
+/* CENTRALIZA O ÍCONE DOS 4 QUADRADOS NO BOTÃO CIRCULAR */
+.bottom-nav.compact-menu .menu-toggle-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.bottom-nav.compact-menu .menu-four-squares {
+  display: block !important;
+  width: 40px !important;
+  height: 40px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+
+/* AJUSTE FINO — CENTRALIZAÇÃO DO ÍCONE NO CÍRCULO */
+.bottom-nav.compact-menu .menu-four-squares {
+  transform: translate(3px, 3px) !important;
+}
+

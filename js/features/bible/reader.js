@@ -85,6 +85,7 @@ export const readerPage = {
   async render(container, params) {
     const bookIndex = Number(params.book);
     const chapterIndex = Number(params.chapter);
+    const requestedVerse = Number(params.verse);
     let settings = loadReaderSettings();
 
     container.innerHTML = '<div class="state-message">Carregando capítulo...</div>';
@@ -205,7 +206,15 @@ export const readerPage = {
     const stopBtn = qs('#btnStop', container);
 
     let readingState = 'idle'; // 'idle' | 'playing' | 'paused'
-    let readingIndex = hasResumableProgress ? savedProgress.verse : 0;
+
+    const hasRequestedVerse =
+      Number.isInteger(requestedVerse) &&
+      requestedVerse >= 0 &&
+      requestedVerse < verses.length;
+
+    let readingIndex = hasRequestedVerse
+      ? requestedVerse
+      : (hasResumableProgress ? savedProgress.verse : 0);
 
     if (!isSpeechSupported()) {
       playPauseBtn.disabled = true;
@@ -243,6 +252,14 @@ export const readerPage = {
         title: `${book.name} ${chapterIndex + 1}:${idx + 1}`,
         artist: 'Narrativa em voz alta',
         album: 'Bíblia de Estudo',
+      });
+    }
+
+    // Se o leitor foi aberto diretamente por um versículo,
+    // posiciona a tela nesse versículo imediatamente.
+    if (hasRequestedVerse) {
+      requestAnimationFrame(() => {
+        highlightVerse(readingIndex);
       });
     }
 
