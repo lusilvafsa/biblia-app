@@ -27,10 +27,16 @@ jobs:
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
 
+      - name: Preparar site para publicação
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp -R www/. _site/
+
       - name: Empacotar site estático
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "./www"
+          path: "./_site"
 
       - name: Publicar no GitHub Pages
         id: deployment
