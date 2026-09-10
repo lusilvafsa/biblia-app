@@ -1865,3 +1865,319 @@
     font-size: 16px;
   }
 }
+
+/* Botões compactos da conta — somente perfil */
+.profile-action-item.profile-account-action {
+  flex: 1 1 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 7px 4px !important;
+  box-sizing: border-box;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.profile-action-item.profile-account-action .menu-icon {
+  font-size: 17px !important;
+  line-height: 19px !important;
+  margin-right: 3px !important;
+}
+
+.profile-action-item.profile-account-action .menu-title {
+  font-size: 10px !important;
+  line-height: 13px !important;
+  white-space: nowrap;
+}
+
+.profile-action-item.profile-account-action .menu-desc {
+  display: none !important;
+}
+
+/* Contêiner dos botões da conta */
+.profile-account-actions {
+  display: flex !important;
+  width: 100%;
+  gap: 6px;
+  align-items: stretch;
+  justify-content: space-between;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+.profile-account-actions .profile-account-action {
+  flex: 1 1 0 !important;
+  width: 0 !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+
+
+/* Ícone Sair — aumentar somente o desenho */
+#btnProfileLogout .menu-icon {
+  font-size: 21px !important;
+  line-height: 21px !important;
+}
+
+
+/* Ícone Sair — ajuste final de tamanho */
+#btnProfileLogout .menu-icon {
+  font-size: 26px !important;
+  line-height: 26px !important;
+}
+
+
+/* Ícone Sair — maior e mais visível */
+#btnProfileLogout .menu-icon {
+  font-size: 30px !important;
+  line-height: 28px !important;
+  font-weight: 900 !important;
+  transform: scale(1.08);
+  transform-origin: center;
+}
+
+
+/* Centralizar o ícone Sair dentro do botão */
+#btnProfileLogout .menu-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 3px 0 0 !important;
+  transform: scale(1.08) translateY(0) !important;
+  transform-origin: center center !important;
+}
+
+
+/* Ajuste vertical do ícone Sair */
+#btnProfileLogout .menu-icon {
+  transform: scale(1.08) translateY(-2px) !important;
+}
+
+
+/* Corrigir: manter o botão Sair parado e ajustar somente o desenho */
+#btnProfileLogout {
+  transform: none !important;
+}
+
+#btnProfileLogout .menu-icon {
+  transform: scale(1.08) !important;
+  position: relative;
+  top: -2px;
+}
+
+
+/* Igualar a altura dos três botões da conta */
+.profile-account-actions .profile-account-action {
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  align-self: stretch !important;
+  box-sizing: border-box !important;
+}
+
+/* O conteúdo do Sair não altera a altura do botão */
+#btnProfileLogout .menu-icon {
+  position: relative !important;
+  top: 0 !important;
+}
+
+
+/* Ajuste final dos desenhos dentro dos botões da conta */
+.profile-account-actions .profile-account-action {
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 4px !important;
+  box-sizing: border-box !important;
+}
+
+.profile-account-actions .profile-account-action .menu-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 20px !important;
+  margin: 0 3px 0 0 !important;
+  transform: none !important;
+  position: static !important;
+}
+
+#btnProfileLogout .menu-icon {
+  font-size: 30px !important;
+  line-height: 28px !important;
+  transform: scale(1.08) !important;
+}
+
+
+/* Aumentar o fundo azul dos três botões da conta */
+.profile-account-actions .profile-account-action {
+  height: 50px !important;
+  min-height: 50px !important;
+  max-height: 50px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+
+/* Aumentar mais um pouco a altura dos fundos azuis */
+.profile-account-actions .profile-account-action {
+  height: 56px !important;
+  min-height: 56px !important;
+  max-height: 56px !important;
+}
+
+
+/* Altura final dos fundos azuis */
+.profile-account-actions .profile-account-action {
+  height: 62px !important;
+  min-height: 62px !important;
+  max-height: 62px !important;
+}
+
+
+/* Teste de altura maior para os fundos dos botões */
+.profile-account-actions .profile-account-action {
+  height: 72px !important;
+  min-height: 72px !important;
+  max-height: 72px !important;
+}
+
+
+/* CORREÇÃO FINAL — botões quando há conta logada */
+.profile-account-actions {
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.profile-account-actions .profile-account-action {
+  flex: 1 1 0 !important;
+  width: 0 !important;
+  height: 72px !important;
+  min-height: 72px !important;
+  max-height: 72px !important;
+  margin: 0 !important;
+  padding: 6px 4px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.profile-account-actions .profile-account-action .menu-icon {
+  position: static !important;
+  top: auto !important;
+  margin: 0 4px 0 0 !important;
+  line-height: 22px !important;
+  transform: none !important;
+}
+
+.profile-account-actions .profile-account-action .menu-title {
+  line-height: 14px !important;
+}
+
+#btnProfileLogout .menu-icon {
+  font-size: 30px !important;
+  line-height: 30px !important;
+  transform: none !important;
+}
+
+
+/* Aumentar somente a altura do fundo azul — conta logada */
+.profile-account-actions .profile-account-action {
+  height: 82px !important;
+  min-height: 82px !important;
+  max-height: 82px !important;
+}
+
+
+/* Centralizar somente a seta dentro do botão Sair */
+#btnProfileLogout .menu-icon {
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transform: none !important;
+}
+
+
+/* Subir somente a seta do botão Sair */
+#btnProfileLogout .menu-icon {
+  position: relative !important;
+  top: -2px !important;
+}
+
+
+/* Subir somente a seta do botão Sair */
+#btnProfileLogout .menu-icon {
+  position: relative !important;
+  top: -3px !important;
+}
+
+
+/* Subir somente a seta do botão Sair */
+#btnProfileLogout .menu-icon {
+  position: relative !important;
+  top: -4px !important;
+}
+
+
+/* Corrigir posição do quadrado cinza do Sair */
+#btnProfileLogout .menu-icon {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+}
+
+/* Manter o conteúdo do Sair centralizado */
+#btnProfileLogout {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+
+/* Mover somente o desenho da seta do Sair */
+#btnProfileLogout .menu-icon {
+  font-size: 0 !important;
+}
+
+#btnProfileLogout .menu-icon::after {
+  content: "↪";
+  display: block;
+  font-size: 30px !important;
+  line-height: 30px !important;
+  position: relative;
+  top: -3px;
+}
+
+
+/* Aumentar somente o coração do botão Favoritos no Perfil */
+.profile-menu-item-favorites .menu-icon {
+  font-size: 30px !important;
+  line-height: 30px !important;
+}
+
+
+/* Aumentar somente o coração do botão Favoritos */
+#btnProfileFavorites .menu-icon {
+  font-size: 30px !important;
+  line-height: 30px !important;
+}
+

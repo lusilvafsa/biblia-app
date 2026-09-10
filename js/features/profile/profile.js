@@ -52,12 +52,13 @@ function accountTemplate(user = null) {
         </div>
       </div>
 
+        <div class="profile-account-actions">
       ${
         accounts.length > 1
           ? `
             <button
               type="button"
-              class="menu-item profile-action-item"
+              class="menu-item profile-action-item profile-account-action"
               id="btnProfileSwitch"
               style="width:100%;border:none;cursor:pointer;margin-bottom:10px;"
             >
@@ -73,7 +74,7 @@ function accountTemplate(user = null) {
 
       <button
         type="button"
-        class="menu-item profile-action-item"
+        class="menu-item profile-action-item profile-account-action"
         id="btnProfileAddAccount"
         style="width:100%;border:none;cursor:pointer;margin-bottom:10px;"
       >
@@ -86,7 +87,7 @@ function accountTemplate(user = null) {
 
       <button
         type="button"
-        class="menu-item profile-action-item"
+        class="menu-item profile-action-item profile-account-action"
         id="btnProfileLogout"
         style="width:100%;border:none;cursor:pointer;"
       >
@@ -96,6 +97,7 @@ function accountTemplate(user = null) {
           Encerrar todas as sessões neste dispositivo
         </div>
       </button>
+        </div>
     `;
   }
 
@@ -579,7 +581,10 @@ function createAuthModal({
           '<img src="./assets/icons/google.svg" width="18" height="18" alt="Google" style="vertical-align:middle;margin-right:8px;"> Continuar com Google';
 
         let message =
-          'Não foi possível entrar com Google.';
+          'Google: ' +
+          (error?.code || 'sem código') +
+          '\n' +
+          (error?.message || error?.name || 'Erro desconhecido');
 
         if (error.code === 'auth/popup-closed-by-user') {
           message =
