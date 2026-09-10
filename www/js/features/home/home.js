@@ -234,13 +234,19 @@ async function renderContinueReadingCard(container) {
   slot.appendChild(card);
 
   qs('#btnContinueReading', card).addEventListener('click', () => {
-    if (progress.verse > 0) requestAutoStart(progress.verse);
-    navigateTo(`/biblia/${progress.book}/${progress.chapter}`);
+    navigateTo(
+      `/biblia/${progress.book}/${progress.chapter}/versiculo/${progress.verse}`
+    );
   });
-  qs('#btnRestartReading', card).addEventListener('click', () => {
-    progressRepository.saveProgress({ book: progress.book, chapter: progress.chapter, verse: 0 });
-    navigateTo(`/biblia/${progress.book}/${progress.chapter}`);
-  });
+  qs('#btnRestartReading', card).addEventListener('click', async () => {
+    await progressRepository.saveProgress({
+        book: 0,
+        chapter: 0,
+        verse: 0
+    });
+
+    navigateTo('/biblia/0/0/versiculo/0');
+});
 }
 
 export const homePage = {

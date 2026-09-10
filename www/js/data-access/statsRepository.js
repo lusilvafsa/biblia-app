@@ -6,7 +6,6 @@ const DEFAULT_STATS = {
   readVerses: [],
   audioVerses: [],
   prayerCount: 0,
-  audioSeconds: 0,
 };
 
 function readStats() {
@@ -29,11 +28,6 @@ function readStats() {
       typeof saved.prayerCount === 'number' && saved.prayerCount >= 0
         ? saved.prayerCount
         : 0,
-
-    audioSeconds:
-      typeof saved.audioSeconds === 'number' && saved.audioSeconds >= 0
-        ? saved.audioSeconds
-        : 0,
   };
 }
 
@@ -46,6 +40,7 @@ function verseId(bookIndex, chapterIndex, verseIndex) {
 }
 
 export const statsRepository = {
+
   getStats() {
     return readStats();
   },
@@ -88,28 +83,6 @@ export const statsRepository = {
     }
 
     return stats.audioVerses.length;
-  },
-
-  // =========================
-  // TEMPO DE ÁUDIO
-  // =========================
-
-  addAudioSeconds(seconds) {
-    const value = Number(seconds);
-
-    if (!Number.isFinite(value) || value <= 0) {
-      return readStats().audioSeconds;
-    }
-
-    const stats = readStats();
-    stats.audioSeconds += value;
-    writeStats(stats);
-
-    return stats.audioSeconds;
-  },
-
-  getAudioSeconds() {
-    return readStats().audioSeconds;
   },
 
   // =========================

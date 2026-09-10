@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "373152141681",
+    "project_id": "biblia-de-estudos",
+    "storage_bucket": "biblia-de-estudos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:373152141681:android:2e361d18db0a3a189926d0",
+        "android_client_info": {
+          "package_name": "com.biblia.deestudo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "373152141681-0eqtlltdod6s6jb7s3c250448gshtpmn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.biblia.deestudo",
+            "certificate_hash": "9d22aa7db036ec6c98afba5bfcee57ff50757611"
+          }
+        },
+        {
+          "client_id": "373152141681-l1mpj4tis4ij0mc0pl92isnn43u02bic.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkQVPm22id5jQ4zAb9WmA_3l0fzdIMVz8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "373152141681-l1mpj4tis4ij0mc0pl92isnn43u02bic.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

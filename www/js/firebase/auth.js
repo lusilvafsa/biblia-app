@@ -2,7 +2,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithCredential
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
 import {
@@ -122,6 +125,99 @@ export async function entrar(email, senha) {
 
   console.log(
     "[Firebase] Login realizado:",
+    user.uid
+  );
+
+  return user;
+}
+
+export async function entrarComGoogle() {
+  let user;
+
+  const capacitor =
+    typeof window !== "undefined"
+      ? window.Capacitor
+      : null;
+
+  const isNative =
+    !!(
+      capacitor &&
+      typeof capacitor.isNativePlatform === "function" &&
+      capacitor.isNativePlatform()
+    );
+
+  const firebaseAuthentication =
+    capacitor?.Plugins?.FirebaseAuthentication || null;
+
+  if (isNative && firebaseAuthentication) {
+    console.log(
+      "[Firebase Auth] Android detectado. Usando Google Sign-In nativo."
+    );
+
+    const resultado =
+      await firebaseAuthentication.signInWithGoogle({
+        skipNativeAuth: true,
+        useCredentialManager: false
+      });
+
+    console.log("[Firebase Auth] Resultado bruto Google nativo:", resultado);
+
+      const idToken = resultado?.credential?.idToken;
+
+    if (!idToken) {
+      throw new Error(
+        "O login Google nativo não retornou um ID token válido."
+      );
+    }
+
+    const credential =
+      GoogleAuthProvider.credential(idToken);
+
+    const webResultado =
+      await signInWithCredential(auth, credential);
+
+    user = webResultado.user;
+
+    if (!user?.uid) {
+      throw new Error(
+        "O Firebase Web não retornou um usuário válido."
+      );
+    }
+  } else {
+    console.log(
+      "[Firebase Auth] Web detectada. Usando signInWithPopup."
+    );
+
+    const provider = new GoogleAuthProvider();
+
+    provider.setCustomParameters({
+      prompt: "select_account"
+    });
+
+    const resultado = await signInWithPopup(
+      auth,
+      provider
+    );
+
+    user = resultado.user;
+  }
+
+  await setDoc(
+    doc(db, "users", user.uid),
+    {
+      uid: user.uid,
+      email: user.email || "",
+      displayName: user.displayName || "",
+      photoURL: user.photoURL || "",
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+
+  lembrarConta(user.email || "");
+
+  console.log(
+    "[Firebase] Login com Google realizado:",
     user.uid
   );
 
