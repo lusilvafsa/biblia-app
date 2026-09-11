@@ -9,6 +9,7 @@ import { DAILY_VERSES } from '../../../data/verses.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { getBook } from '../../data-access/bibleRepository.js';
 import { requestAutoStart } from '../bible/reader.js';
+import { aguardarAuthInicial } from '../../firebase/auth.js';
 
 let verseIndex = 0;
 let isSpeakingVerse = false;
@@ -202,6 +203,10 @@ function toggleVerseAudio(container) {
 async function renderContinueReadingCard(container) {
   const slot = qs('#continueReadingSlot', container);
   if (!slot) return;
+
+  // Aguarda o Firebase restaurar a sessão antes de consultar o progresso.
+  await aguardarAuthInicial();
+  if (!document.body.contains(slot)) return;
 
   const progress = await progressRepository.getProgress();
   const hasProgress = !(progress.book === 0 && progress.chapter === 0 && progress.verse === 0);

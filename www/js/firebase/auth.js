@@ -18,6 +18,25 @@ import { auth, db } from "./firebaseConfig.js";
 
 const REMEMBERED_ACCOUNTS_KEY = "biblia:remembered-accounts";
 
+// O Firebase restaura a sessão de forma assíncrona.
+// Esta promessa resolve uma única vez, quando o primeiro
+// estado de autenticação estiver disponível.
+let authInicializadoResolve;
+const authInicializado = new Promise((resolve) => {
+  authInicializadoResolve = resolve;
+});
+
+onAuthStateChanged(auth, (user) => {
+  if (authInicializadoResolve) {
+    authInicializadoResolve(user);
+    authInicializadoResolve = null;
+  }
+});
+
+export function aguardarAuthInicial() {
+  return authInicializado;
+}
+
 function readRememberedAccounts() {
   try {
     const raw = window.localStorage.getItem(
