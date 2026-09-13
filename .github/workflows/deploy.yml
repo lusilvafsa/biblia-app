@@ -35,6 +35,12 @@ jobs:
             echo "=== VERIFICANDO ARQUIVOS SUPABASE ==="
             find _site/js/supabase -maxdepth 1 -type f -printf "%p %s bytes\n" | sort
             echo "=== FIM DA VERIFICAÇÃO ==="
+          echo "=== TESTE DE ESTRUTURA JS ==="
+          echo "--- arquivos diretamente em js ---"
+          find _site/js -maxdepth 1 -type f -printf "%p %s bytes\\n" | sort
+          echo "--- arquivos em subdiretórios de js ---"
+          find _site/js -mindepth 2 -maxdepth 3 -type f -printf "%p %s bytes\\n" | sort | grep -E 'testfolder|supabase|features/bible' || true
+          echo "=== FIM TESTE DE ESTRUTURA JS ==="
 
       - name: Empacotar site estático
         uses: actions/upload-pages-artifact@v3
