@@ -32,6 +32,9 @@ jobs:
           rm -rf _site
           mkdir -p _site
           cp -R www/. _site/
+            echo "=== VERIFICANDO ARQUIVOS SUPABASE ==="
+            find _site/js/supabase -maxdepth 1 -type f -printf "%p %s bytes\n" | sort
+            echo "=== FIM DA VERIFICAÇÃO ==="
 
       - name: Empacotar site estático
         uses: actions/upload-pages-artifact@v3
