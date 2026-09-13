@@ -294,6 +294,16 @@ function template(user = null) {
         <div class="menu-desc">Anotações</div>
       </button>
 
+      <button
+        type="button"
+        class="menu-item profile-action-item"
+        id="btnProfileAssistant"
+      >
+        <div class="menu-icon">${icons.explain}</div>
+        <div class="menu-title">Assistente Bíblico</div>
+        <div class="menu-desc">Estude, pesquise e crie ministrações com IA</div>
+      </button>
+
     </div>
   `;
 }
@@ -1075,6 +1085,18 @@ function bindNavigationEvents(container) {
     notesBtn.addEventListener(
       'click',
       () => navigateTo('/anotacoes')
+    );
+  }
+
+  const assistantBtn =
+    container.querySelector(
+      '#btnProfileAssistant'
+    );
+
+  if (assistantBtn) {
+    assistantBtn.addEventListener(
+      'click',
+      () => navigateTo('/assistente')
     );
   }
 }

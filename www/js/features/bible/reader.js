@@ -129,23 +129,12 @@ export const readerPage = {
           idx
         );
 
-        // Ao tocar em um versículo, inicia a leitura exatamente dele.
+        // Ao tocar no texto, apenas seleciona o versículo.
         readingIndex = idx;
-        readingState = 'playing';
-
-        updateControlsUI();
-        syncBackgroundPlayback(true);
-        persistVerseProgress();
-
-        // Cancela qualquer fala anterior e começa o versículo escolhido.
-        stopSpeech();
-
-        setTimeout(() => {
-          if (readingState === 'playing') {
-            readLoop();
-          }
-        }, 100);
-
+    
+            
+        
+                    
         showVerseExplanation({
           bookIndex,
           bookName: book.name,

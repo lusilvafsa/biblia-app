@@ -24,6 +24,7 @@ import { ministryDetailPage } from './features/ministry/ministryDetail.js';
 import { notFoundPage } from './features/notFound.js';
 import { favoritesPage } from './features/favorites/favorites.js';
 import { notesPage } from './features/favorites/notes.js';
+import { assistantPage } from './features/assistant/assistant.js';
 
 const NAV_ICONS = {
   home: icons.home,
@@ -31,7 +32,8 @@ const NAV_ICONS = {
   audio: icons.audio,
   prayer: icons.prayer,
   profile: icons.profile,
-  favorites: '♥'
+  favorites: '♥',
+  assistant: icons.explain
 };
 
 function initSplashScreen() {
@@ -110,6 +112,7 @@ function initRoutes() {
   registerRoute('/perfil', profilePage, { title: 'Meu Perfil', navKey: 'profile', showSettings: true });
   registerRoute('/favoritos', favoritesPage, { title: 'Favoritos', navKey: null, showBack: true });
   registerRoute('/anotacoes', notesPage, { title: 'Anotações', navKey: null, showBack: true });
+registerRoute('/assistente', assistantPage, { title: 'Assistente Bíblico', navKey: null, showBack: true });
   registerRoute('/configuracoes', settingsPage, { title: 'Configurações', navKey: null, showBack: true });
   setNotFound(notFoundPage);
 
