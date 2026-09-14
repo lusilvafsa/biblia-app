@@ -17,6 +17,7 @@ import { toast } from '../../utils/toast.js';
 import { navigateTo } from '../../router.js';
 import { getBook, getChapter } from '../../data-access/bibleRepository.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
+import { aguardarAuthInicial } from '../../supabaseAuth.js';
 import { statsRepository } from '../../data-access/statsRepository.js';
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { speak, stopSpeech, isSpeechSupported } from '../../utils/speech.js';
@@ -83,6 +84,9 @@ function template() {
 
 export const readerPage = {
   async render(container, params) {
+    // Aguarda o Supabase restaurar a sessão antes de consultar ou salvar o progresso.
+    await aguardarAuthInicial();
+
     const bookIndex = Number(params.book);
     const chapterIndex = Number(params.chapter);
     const requestedVerse = Number(params.verse);

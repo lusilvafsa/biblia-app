@@ -4,17 +4,9 @@ import {
   STORAGE_KEYS
 } from '../utils/storage.js';
 
-import {
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js';
+import { supabase } from '../supabaseClient.js';
 
-import {
-  auth,
-  db
-} from '../firebase/firebaseConfig.js';
+import { usuarioAtual } from '../supabaseAuth.js';
 
 const DEFAULT_PROGRESS = {
   book: 0,
@@ -23,7 +15,7 @@ const DEFAULT_PROGRESS = {
 };
 
 function getUser() {
-  return auth.currentUser;
+  return usuarioAtual();
 }
 
 function getStorageKey() {
@@ -33,7 +25,7 @@ function getStorageKey() {
     return null;
   }
 
-  return `${STORAGE_KEYS.bibleProgress}:${user.uid}`;
+  return `${STORAGE_KEYS.bibleProgress}:${user.id}`;
 }
 
 function normalizeProgress(progress) {
@@ -42,9 +34,7 @@ function normalizeProgress(progress) {
     typeof progress.book !== 'number' ||
     typeof progress.chapter !== 'number'
   ) {
-    return {
-      ...DEFAULT_PROGRESS
-    };
+    return { ...DEFAULT_PROGRESS };
   }
 
   return {
@@ -61,14 +51,10 @@ function readLocalProgress() {
   const key = getStorageKey();
 
   if (!key) {
-    return {
-      ...DEFAULT_PROGRESS
-    };
+    return { ...DEFAULT_PROGRESS };
   }
 
-  return normalizeProgress(
-    getItem(key, null)
-  );
+  return normalizeProgress(getItem(key, null));
 }
 
 function writeLocalProgress(progress) {
@@ -84,16 +70,6 @@ function writeLocalProgress(progress) {
   );
 }
 
-function progressRef(uid) {
-  return doc(
-    db,
-    'users',
-    uid,
-    'progress',
-    'current'
-  );
-}
-
 async function saveCloudProgress(progress) {
   const user = getUser();
 
@@ -101,29 +77,37 @@ async function saveCloudProgress(progress) {
     return;
   }
 
+  const normalized = normalizeProgress(progress);
+
   try {
-    await setDoc(
-      progressRef(user.uid),
-      {
-        book: progress.book,
-        chapter: progress.chapter,
-        verse: progress.verse,
-        updatedAt: serverTimestamp()
-      },
-      {
-        merge: true
-      }
-    );
+    const { error } = await supabase
+      .from('reading_progress')
+      .upsert(
+        {
+          user_id: user.id,
+          book: normalized.book,
+          chapter: normalized.chapter,
+          verse: normalized.verse,
+          bible_version: 'ARC',
+          updated_at: new Date().toISOString()
+        },
+        {
+          onConflict: 'user_id'
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
 
     console.log(
-      '[Firebase Progress] Progresso salvo:',
-      user.uid,
-      progress
+      '[Supabase Progress] Progresso salvo:',
+      user.id,
+      normalized
     );
-
   } catch (error) {
     console.error(
-      '[Firebase Progress] Erro ao salvar progresso:',
+      '[Supabase Progress] Erro ao salvar progresso:',
       error
     );
   }
@@ -137,21 +121,26 @@ async function loadCloudProgress() {
   }
 
   try {
-    const snapshot = await getDoc(
-      progressRef(user.uid)
-    );
+    const { data, error } = await supabase
+      .from('reading_progress')
+      .select(
+        'book, chapter, verse, bible_version, updated_at'
+      )
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-    if (!snapshot.exists()) {
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
       return null;
     }
 
-    const data = snapshot.data();
-
     return normalizeProgress(data);
-
   } catch (error) {
     console.error(
-      '[Firebase Progress] Erro ao carregar progresso:',
+      '[Supabase Progress] Erro ao carregar progresso:',
       error
     );
 
@@ -160,80 +149,45 @@ async function loadCloudProgress() {
 }
 
 export const LocalStorageProgressRepository = {
-
   async getProgress() {
     const user = getUser();
 
-    /*
-     * Sem usuário:
-     * não compartilhamos o progresso de uma conta
-     * com outra conta.
-     */
     if (!user) {
-      return {
-        ...DEFAULT_PROGRESS
-      };
+      return { ...DEFAULT_PROGRESS };
     }
 
-    const localProgress =
-      readLocalProgress();
+    const localProgress = readLocalProgress();
 
-    /*
-     * O localStorage funciona como cache.
-     * O Firestore é consultado para recuperar
-     * o progresso pertencente à conta atual.
-     */
-    const cloudProgress =
-      await loadCloudProgress();
+    const cloudProgress = await loadCloudProgress();
 
     if (cloudProgress) {
-      writeLocalProgress(
-        cloudProgress
-      );
-
+      writeLocalProgress(cloudProgress);
       return cloudProgress;
     }
 
-    /*
-     * Se a conta ainda não possui progresso
-     * na nuvem, preservamos o progresso local
-     * daquela conta, se existir, e enviamos
-     * para o Firestore.
-     */
     if (
       localProgress.book !== 0 ||
       localProgress.chapter !== 0 ||
       localProgress.verse !== 0
     ) {
-      await saveCloudProgress(
-        localProgress
-      );
-
+      await saveCloudProgress(localProgress);
       return localProgress;
     }
 
-    return {
-      ...DEFAULT_PROGRESS
-    };
+    return { ...DEFAULT_PROGRESS };
   },
 
   async saveProgress(progress) {
     const user = getUser();
 
-    /*
-     * Nunca gravar progresso compartilhado
-     * quando não existe usuário autenticado.
-     */
     if (!user) {
       console.warn(
-        '[Firebase Progress] Progresso ignorado: usuário não autenticado.'
+        '[Supabase Progress] Progresso ignorado: usuário não autenticado.'
       );
-
       return;
     }
 
-    const current =
-      readLocalProgress();
+    const current = readLocalProgress();
 
     const nextProgress = {
       book:
@@ -252,51 +206,33 @@ export const LocalStorageProgressRepository = {
           : current.verse
     };
 
-    writeLocalProgress(
-      nextProgress
-    );
+    writeLocalProgress(nextProgress);
 
-    /*
-     * Salva imediatamente no Firestore,
-     * mas não bloqueia a leitura caso a rede
-     * esteja indisponível.
-     */
-    void saveCloudProgress(
-      nextProgress
-    );
+    void saveCloudProgress(nextProgress);
   },
 
   async syncWithCloud() {
     const user = getUser();
 
     if (!user) {
-      return {
-        ...DEFAULT_PROGRESS
-      };
+      return { ...DEFAULT_PROGRESS };
     }
 
-    const cloudProgress =
-      await loadCloudProgress();
+    const cloudProgress = await loadCloudProgress();
 
     if (cloudProgress) {
-      writeLocalProgress(
-        cloudProgress
-      );
-
+      writeLocalProgress(cloudProgress);
       return cloudProgress;
     }
 
-    const localProgress =
-      readLocalProgress();
+    const localProgress = readLocalProgress();
 
     if (
       localProgress.book !== 0 ||
       localProgress.chapter !== 0 ||
       localProgress.verse !== 0
     ) {
-      await saveCloudProgress(
-        localProgress
-      );
+      await saveCloudProgress(localProgress);
     }
 
     return localProgress;

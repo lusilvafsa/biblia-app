@@ -10,10 +10,9 @@ import {
   entrarComGoogle,
   sair,
   observarUsuario,
-  contasLembradas
-} from '../../firebase/auth.js';
-
-import { auth } from '../../firebase/firebaseConfig.js';
+  contasLembradas,
+  usuarioAtual
+} from '../../supabaseAuth.js';
 
 const BADGES = [
   { icon: icons.badgeFirst, name: 'Primeira Leitura', unlocked: true },
@@ -463,7 +462,36 @@ function createAuthModal({
             border-top:1px solid rgba(127,127,127,.2);
           "
         >
-          <button
+                    <div
+            style="
+              margin-top:16px;
+              text-align:center;
+              font-size:14px;
+              opacity:.8;
+            "
+          >
+            ${
+              isCreate
+                ? 'Já tem uma conta?'
+                : 'Ainda não tem uma conta?'
+            }
+            <button
+              type="button"
+              id="btnAuthSwitchMode"
+              style="
+                border:none;
+                background:transparent;
+                padding:4px;
+                cursor:pointer;
+                font-weight:700;
+                color:inherit;
+              "
+            >
+              ${isCreate ? 'Entrar' : 'Criar conta'}
+            </button>
+          </div>
+
+<button
             type="button"
             id="btnGoogleLogin"
             style="
@@ -531,11 +559,35 @@ function createAuthModal({
   const togglePassword =
     modal.querySelector('#btnTogglePassword');
 
+  const switchMode =
+    modal.querySelector('#btnAuthSwitchMode');
   const submit =
     modal.querySelector('#btnAuthSubmit');
 
   const cancel =
     modal.querySelector('#btnAuthCancel');
+
+  if (switchMode) {
+    switchMode.addEventListener(
+      'click',
+      () => {
+        const nextMode = isCreate
+          ? 'login'
+          : 'create';
+
+        const currentEmail =
+          emailInput.value.trim();
+
+        modal.remove();
+
+        createAuthModal({
+          mode: nextMode,
+          email: currentEmail
+        });
+      }
+    );
+  }
+
 
   const googleLogin =
     modal.querySelector('#btnGoogleLogin');
@@ -582,7 +634,7 @@ function createAuthModal({
         );
       } catch (error) {
         console.error(
-          '[Firebase Auth Google]',
+          '[Supabase Auth Google]',
           error
         );
 
@@ -693,7 +745,7 @@ function createAuthModal({
 
       } catch (error) {
         console.error(
-          '[Firebase Auth]',
+          '[Supabase Auth]',
           error
         );
 
@@ -703,34 +755,54 @@ function createAuthModal({
             ? 'Criar conta'
             : 'Entrar';
 
+        const errorCode =
+          String(error?.code || '').toLowerCase();
+
+        const errorMessage =
+          String(error?.message || '').trim();
+
+        const errorText =
+          errorMessage.toLowerCase();
+
         let message =
           'Não foi possível concluir a operação.';
 
         if (
-          error.code ===
-          'auth/invalid-credential'
+          errorCode === 'invalid_credentials' ||
+          errorText.includes('invalid login credentials')
         ) {
           message =
             'E-mail ou senha incorretos.';
         } else if (
-          error.code ===
-          'auth/invalid-email'
+          errorCode === 'invalid_email' ||
+          errorText.includes('invalid email')
         ) {
           message =
             'Digite um e-mail válido.';
         } else if (
-          error.code ===
-          'auth/email-already-in-use'
-        ) {
-          message =
-            'Este e-mail já possui uma conta.';
-        } else if (
-          error.code ===
-          'auth/weak-password'
+          errorCode === 'weak_password' ||
+          errorText.includes('password should be at least')
         ) {
           message =
             'A senha precisa ter pelo menos 6 caracteres.';
+        } else if (
+          errorCode === 'user_already_exists' ||
+          errorText.includes('already registered')
+        ) {
+          message =
+            'Este e-mail já possui uma conta.';
+        } else if (errorMessage) {
+          message = errorMessage;
         }
+
+        console.error(
+          '[Supabase Auth] Detalhes do erro:',
+          {
+            code: error?.code || null,
+            status: error?.status || null,
+            message: error?.message || null
+          }
+        );
 
         errorBox.textContent = message;
         errorBox.style.display = 'block';
@@ -804,7 +876,7 @@ function bindAccountEvents(container) {
           contasLembradas();
 
         const currentEmail =
-          auth.currentUser?.email
+          usuarioAtual()?.email
             ?.trim()
             .toLowerCase();
 
@@ -998,7 +1070,7 @@ function bindAccountEvents(container) {
 
         } catch (error) {
           console.error(
-            '[Firebase Auth] Erro ao sair:',
+            '[Supabase Auth] Erro ao sair:',
             error
           );
 
@@ -1015,7 +1087,7 @@ function renderCurrentUser() {
   if (!currentContainer) return;
 
   currentContainer.innerHTML =
-    template(auth.currentUser);
+    template(usuarioAtual());
 
   bindAccountEvents(
     currentContainer
@@ -1107,7 +1179,7 @@ export const profilePage = {
     currentContainer = container;
 
     container.innerHTML =
-      template(auth.currentUser);
+      template(usuarioAtual());
 
     bindAccountEvents(container);
     bindNavigationEvents(container);
@@ -1121,18 +1193,18 @@ observarUsuario(async (user) => {
       await favoritesRepository.syncWithCloud();
 
       console.log(
-        '[Firebase Sync] Favoritos sincronizados após login.'
+        '[Cloud Sync] Favoritos sincronizados após login.'
       );
 
       await progressRepository.syncWithCloud();
 
       console.log(
-        '[Firebase Sync] Progresso de leitura sincronizado após login.'
+        '[Cloud Sync] Progresso de leitura sincronizado após login.'
       );
 
     } catch (error) {
       console.error(
-        '[Firebase Sync] Falha após login:',
+        '[Cloud Sync] Falha após login:',
         error
       );
     }

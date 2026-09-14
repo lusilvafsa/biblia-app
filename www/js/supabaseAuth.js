@@ -2,7 +2,9 @@ import { supabase } from "./supabaseClient.js";
 
 const REMEMBERED_ACCOUNTS_KEY = "biblia:remembered-accounts";
 
+let usuarioAtualEmMemoria = null;
 let authInicializadoResolve;
+
 const authInicializado = new Promise((resolve) => {
   authInicializadoResolve = resolve;
 });
@@ -10,11 +12,13 @@ const authInicializado = new Promise((resolve) => {
 let primeiroEstadoRecebido = false;
 
 supabase.auth.onAuthStateChange((event, session) => {
+  usuarioAtualEmMemoria = session?.user ?? null;
+
   if (!primeiroEstadoRecebido) {
     primeiroEstadoRecebido = true;
 
     if (authInicializadoResolve) {
-      authInicializadoResolve(session?.user ?? null);
+      authInicializadoResolve(usuarioAtualEmMemoria);
       authInicializadoResolve = null;
     }
   }
@@ -22,7 +26,7 @@ supabase.auth.onAuthStateChange((event, session) => {
   console.log(
     "[Supabase Auth] Estado:",
     event,
-    session?.user?.id || null
+    usuarioAtualEmMemoria?.id || null
   );
 });
 
@@ -96,13 +100,17 @@ export function contasLembradas() {
 }
 
 export async function criarConta(email, senha) {
+  const normalizedEmail = String(email || "")
+    .trim()
+    .toLowerCase();
+
   const { data, error } =
     await supabase.auth.signUp({
-      email: String(email || "").trim(),
+      email: normalizedEmail,
       password: senha,
       options: {
         data: {
-          email: String(email || "").trim().toLowerCase(),
+          email: normalizedEmail,
         },
       },
     });
@@ -123,22 +131,30 @@ export async function criarConta(email, senha) {
     );
   }
 
-  lembrarConta(
-    user.email || email
-  );
+  lembrarConta(user.email || normalizedEmail);
 
   console.log(
     "[Supabase Auth] Usuário criado:",
     user.id
   );
 
+  if (!data.session) {
+    console.log(
+      "[Supabase Auth] Cadastro criado. Confirmação de e-mail pode ser necessária."
+    );
+  }
+
   return user;
 }
 
 export async function entrar(email, senha) {
+  const normalizedEmail = String(email || "")
+    .trim()
+    .toLowerCase();
+
   const { data, error } =
     await supabase.auth.signInWithPassword({
-      email: String(email || "").trim(),
+      email: normalizedEmail,
       password: senha,
     });
 
@@ -158,9 +174,7 @@ export async function entrar(email, senha) {
     );
   }
 
-  lembrarConta(
-    user.email || email
-  );
+  lembrarConta(user.email || normalizedEmail);
 
   console.log(
     "[Supabase Auth] Login realizado:",
@@ -168,6 +182,108 @@ export async function entrar(email, senha) {
   );
 
   return user;
+}
+
+export async function entrarComGoogle() {
+  const capacitor =
+    typeof window !== "undefined"
+      ? window.Capacitor
+      : null;
+
+  const isNative =
+    !!(
+      capacitor &&
+      typeof capacitor.isNativePlatform === "function" &&
+      capacitor.isNativePlatform()
+    );
+
+  if (isNative) {
+    const firebaseAuthentication =
+      capacitor?.Plugins?.FirebaseAuthentication || null;
+
+    if (!firebaseAuthentication) {
+      throw new Error(
+        "O login Google nativo não está disponível neste aplicativo."
+      );
+    }
+
+    console.log(
+      "[Supabase Auth] Android detectado. Obtendo credencial Google nativa."
+    );
+
+    const resultado =
+      await firebaseAuthentication.signInWithGoogle({
+        skipNativeAuth: true,
+        useCredentialManager: false,
+      });
+
+    const idToken =
+      resultado?.credential?.idToken;
+
+    if (!idToken) {
+      throw new Error(
+        "O login Google nativo não retornou um ID token válido."
+      );
+    }
+
+    const { data, error } =
+      await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: idToken,
+      });
+
+    if (error) {
+      console.error(
+        "[Supabase Auth] Erro no login Google:",
+        error
+      );
+      throw error;
+    }
+
+    const user = data?.user;
+
+    if (!user) {
+      throw new Error(
+        "O Supabase não retornou um usuário após o login Google."
+      );
+    }
+
+    lembrarConta(user.email || "");
+
+    console.log(
+      "[Supabase Auth] Login Google realizado:",
+      user.id
+    );
+
+    return user;
+  }
+
+  console.log(
+    "[Supabase Auth] Web detectada. Iniciando OAuth Google."
+  );
+
+  const { data, error } =
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
+  if (error) {
+    console.error(
+      "[Supabase Auth] Erro ao iniciar Google OAuth:",
+      error
+    );
+    throw error;
+  }
+
+  console.log(
+    "[Supabase Auth] Redirecionamento Google iniciado:",
+    data?.url || null
+  );
+
+  return null;
 }
 
 export async function sair() {
@@ -198,9 +314,7 @@ export function observarUsuario(callback) {
 }
 
 export function usuarioAtual() {
-  return supabase.auth.getUser().then(
-    ({ data }) => data?.user ?? null
-  );
+  return usuarioAtualEmMemoria;
 }
 
 export async function sessaoAtual() {

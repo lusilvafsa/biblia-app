@@ -1,12 +1,6 @@
 import { getItem, setItem, STORAGE_KEYS } from '../utils/storage.js';
-
-import {
-  sincronizarFavoritos,
-  enviarFavoritoParaNuvem,
-  removerFavoritoDaNuvem
-} from '../firebase/favoritesSync.js';
-
-import { auth } from '../firebase/firebaseConfig.js';
+import { supabase } from '../supabaseClient.js';
+import { usuarioAtual } from '../supabaseAuth.js';
 
 function makeId(bookIndex, chapterIndex, verseIndex) {
   return `${bookIndex}-${chapterIndex}-${verseIndex}`;
@@ -16,12 +10,12 @@ function makeId(bookIndex, chapterIndex, verseIndex) {
  * Cada usuário possui seu próprio armazenamento local.
  *
  * Exemplo:
- * biblia:favorites:UID_DO_USUARIO
+ * biblia:favorites:ID_DO_USUARIO
  *
  * Sem usuário autenticado, não existe lista de favoritos.
  */
 function getUser() {
-  return auth.currentUser;
+  return usuarioAtual();
 }
 
 function getStorageKey() {
@@ -31,7 +25,7 @@ function getStorageKey() {
     return null;
   }
 
-  return `${STORAGE_KEYS.favorites}:${user.uid}`;
+  return `${STORAGE_KEYS.favorites}:${user.id}`;
 }
 
 /*
@@ -42,11 +36,15 @@ function getStorageKey() {
 function migrateLegacyFavorites() {
   const user = getUser();
 
-  if (!user) return;
+  if (!user) {
+    return;
+  }
 
   const userKey = getStorageKey();
 
-  if (!userKey) return;
+  if (!userKey) {
+    return;
+  }
 
   const existingUserItems = getItem(userKey, null);
 
@@ -65,7 +63,7 @@ function migrateLegacyFavorites() {
 
   console.log(
     '[Favoritos] Dados antigos migrados para o usuário:',
-    user.uid
+    user.id
   );
 }
 
@@ -96,10 +94,44 @@ function writeAll(items) {
     console.warn(
       '[Favoritos] Tentativa de gravar favoritos sem usuário autenticado.'
     );
+
     return false;
   }
 
   return setItem(key, items);
+}
+
+function itemToRow(item, userId) {
+  return {
+    user_id: userId,
+    id: item.id,
+    book_index: item.bookIndex,
+    book_name: item.bookName,
+    chapter_index: item.chapterIndex,
+    verse_index: item.verseIndex,
+    reference: item.reference,
+    text: item.text,
+    favorite: !!item.favorite,
+    note: item.note || '',
+    created_at: item.createdAt,
+    updated_at: item.updatedAt,
+  };
+}
+
+function rowToItem(row) {
+  return {
+    id: row.id,
+    bookIndex: row.book_index,
+    bookName: row.book_name,
+    chapterIndex: row.chapter_index,
+    verseIndex: row.verse_index,
+    reference: row.reference,
+    text: row.text,
+    favorite: !!row.favorite,
+    note: row.note || '',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 function syncItem(item) {
@@ -113,18 +145,32 @@ function syncItem(item) {
   }
 
   if (!item?.id) {
-    console.warn(
-      '[Favoritos] Item sem ID.'
-    );
+    console.warn('[Favoritos] Item sem ID.');
     return;
   }
 
-  void enviarFavoritoParaNuvem(item).catch((error) => {
-    console.error(
-      '[Firebase Sync] Erro ao enviar favorito/anotação:',
-      error
-    );
-  });
+  void supabase
+    .from('user_favorites')
+    .upsert(
+      itemToRow(item, user.id),
+      {
+        onConflict: 'user_id,id',
+      }
+    )
+    .then(({ error }) => {
+      if (error) {
+        console.error(
+          '[Supabase] Erro ao enviar favorito/anotação:',
+          error
+        );
+      }
+    })
+    .catch((error) => {
+      console.error(
+        '[Supabase] Erro inesperado ao enviar favorito/anotação:',
+        error
+      );
+    });
 }
 
 function deleteItem(id) {
@@ -134,12 +180,25 @@ function deleteItem(id) {
     return;
   }
 
-  void removerFavoritoDaNuvem(id).catch((error) => {
-    console.error(
-      '[Firebase Sync] Erro ao remover favorito/anotação:',
-      error
-    );
-  });
+  void supabase
+    .from('user_favorites')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('id', id)
+    .then(({ error }) => {
+      if (error) {
+        console.error(
+          '[Supabase] Erro ao remover favorito/anotação:',
+          error
+        );
+      }
+    })
+    .catch((error) => {
+      console.error(
+        '[Supabase] Erro inesperado ao remover favorito/anotação:',
+        error
+      );
+    });
 }
 
 function createEntry(info) {
@@ -165,13 +224,12 @@ function createEntry(info) {
 }
 
 export const favoritesRepository = {
-
   async syncWithCloud() {
     const user = getUser();
 
     if (!user) {
       console.log(
-        '[Firebase Sync] Nenhum usuário autenticado. Favoritos isolados.'
+        '[Supabase] Nenhum usuário autenticado. Favoritos isolados.'
       );
 
       return [];
@@ -180,15 +238,75 @@ export const favoritesRepository = {
     const localItems = readAll();
 
     try {
-      const mergedItems = await sincronizarFavoritos(localItems);
+      const { data, error } = await supabase
+        .from('user_favorites')
+        .select(
+          'id, book_index, book_name, chapter_index, verse_index, reference, text, favorite, note, created_at, updated_at'
+        )
+        .eq('user_id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      const cloudItems = Array.isArray(data)
+        ? data.map(rowToItem)
+        : [];
+
+      const mergedById = new Map();
+
+      for (const item of cloudItems) {
+        mergedById.set(item.id, item);
+      }
+
+      for (const item of localItems) {
+        const cloudItem = mergedById.get(item.id);
+
+        if (!cloudItem) {
+          mergedById.set(item.id, item);
+          continue;
+        }
+
+        const localTime = new Date(
+          item.updatedAt || item.createdAt || 0
+        ).getTime();
+
+        const cloudTime = new Date(
+          cloudItem.updatedAt || cloudItem.createdAt || 0
+        ).getTime();
+
+        if (localTime >= cloudTime) {
+          mergedById.set(item.id, item);
+        }
+      }
+
+      const mergedItems = Array.from(mergedById.values());
 
       writeAll(mergedItems);
 
-      return mergedItems;
+      if (mergedItems.length > 0) {
+        const rows = mergedItems.map(item =>
+          itemToRow(item, user.id)
+        );
 
+        const { error: upsertError } = await supabase
+          .from('user_favorites')
+          .upsert(rows, {
+            onConflict: 'user_id,id',
+          });
+
+        if (upsertError) {
+          console.error(
+            '[Supabase] Erro ao enviar favoritos mesclados:',
+            upsertError
+          );
+        }
+      }
+
+      return mergedItems;
     } catch (error) {
       console.error(
-        '[Firebase Sync] Erro ao sincronizar favoritos:',
+        '[Supabase] Erro ao sincronizar favoritos:',
         error
       );
 
@@ -228,7 +346,11 @@ export const favoritesRepository = {
     );
   },
 
-  isFavorite(bookIndex, chapterIndex, verseIndex) {
+  isFavorite(
+    bookIndex,
+    chapterIndex,
+    verseIndex
+  ) {
     const item = this.get(
       bookIndex,
       chapterIndex,
@@ -269,7 +391,6 @@ export const favoritesRepository = {
       item = createEntry(info);
       item.favorite = true;
       items.push(item);
-
     } else {
       item.favorite = !item.favorite;
       item.updatedAt = new Date().toISOString();
@@ -288,14 +409,12 @@ export const favoritesRepository = {
       items.splice(index, 1);
 
       writeAll(items);
-
       deleteItem(id);
 
       return false;
     }
 
     writeAll(items);
-
     syncItem(item);
 
     return item.favorite;
@@ -349,14 +468,12 @@ export const favoritesRepository = {
       items.splice(index, 1);
 
       writeAll(items);
-
       deleteItem(id);
 
       return item;
     }
 
     writeAll(items);
-
     syncItem(item);
 
     return item;
@@ -401,7 +518,6 @@ export const favoritesRepository = {
       item.updatedAt = new Date().toISOString();
 
       writeAll(items);
-
       syncItem(item);
 
       return;
@@ -463,7 +579,6 @@ export const favoritesRepository = {
     }
 
     writeAll(items);
-
     syncItem(item);
-  }
+  },
 };

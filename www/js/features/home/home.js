@@ -9,7 +9,7 @@ import { DAILY_VERSES } from '../../../data/verses.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { getBook } from '../../data-access/bibleRepository.js';
 import { requestAutoStart } from '../bible/reader.js';
-import { aguardarAuthInicial } from '../../firebase/auth.js';
+import { aguardarAuthInicial } from '../../supabaseAuth.js';
 
 let verseIndex = 0;
 let isSpeakingVerse = false;
@@ -204,7 +204,7 @@ async function renderContinueReadingCard(container) {
   const slot = qs('#continueReadingSlot', container);
   if (!slot) return;
 
-  // Aguarda o Firebase restaurar a sessão antes de consultar o progresso.
+  // Aguarda o Supabase restaurar a sessão antes de consultar o progresso.
   await aguardarAuthInicial();
   if (!document.body.contains(slot)) return;
 
