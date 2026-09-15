@@ -1,4 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
+const LIMITE_DIARIO = 40;
 
 const SYSTEM_INSTRUCTION = String.raw`
 Você é o Assistente Bíblico do aplicativo Bíblia de Estudo.
@@ -146,6 +149,58 @@ Deno.serve(async (req: Request) => {
       { status: 400, headers: corsHeaders },
     );
   }
+
+  // ===== IDENTIFICAR O USUÁRIO E CONTROLAR O LIMITE DIÁRIO =====
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const { data: userData, error: userError } = await userClient.auth.getUser();
+
+  if (userError || !userData?.user) {
+    return Response.json(
+      { erro: "Sessão inválida. Entre novamente na sua conta." },
+      { status: 401, headers: corsHeaders },
+    );
+  }
+
+  const userId = userData.user.id;
+  const adminClient = createClient(supabaseUrl, serviceRoleKey);
+  const hoje = new Date().toISOString().slice(0, 10);
+
+  const { data: usoAtual } = await adminClient
+    .from("assistente_uso")
+    .select("contagem")
+    .eq("user_id", userId)
+    .eq("dia", hoje)
+    .maybeSingle();
+
+  if (usoAtual && usoAtual.contagem >= LIMITE_DIARIO) {
+    return Response.json(
+      {
+        erro: `Você atingiu o limite de ${LIMITE_DIARIO} perguntas por hoje. Tente novamente amanhã.`,
+      },
+      { status: 429, headers: corsHeaders },
+    );
+  }
+
+  await adminClient
+    .from("assistente_uso")
+    .upsert(
+      {
+        user_id: userId,
+        dia: hoje,
+        contagem: (usoAtual?.contagem ?? 0) + 1,
+      },
+      { onConflict: "user_id,dia" },
+    );
+
+  // ===== CHAMAR O GEMINI =====
 
   const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
 
