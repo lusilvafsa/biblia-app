@@ -19,3 +19,7 @@ android/tools/
 android/tts-classes.jar
 github-backup/
 www/js/utils/speech.js.antes-*
+backups/
+www-backup*/
+*backup*
+*.BACKUP-*
