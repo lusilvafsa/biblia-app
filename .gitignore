@@ -23,3 +23,7 @@ backups/
 www-backup*/
 *backup*
 *.BACKUP-*
+backups/
+www-backup*/
+*backup*
+*.BACKUP-*
