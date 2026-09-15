@@ -5,6 +5,8 @@ import { icons } from '../../components/icons.js';
 import { getVerseCommentary } from '../../../data/verseCommentary.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
 import { favoritesRepository } from '../../data-access/favoritesRepository.js';
+import { supabase } from '../../supabaseClient.js';
+import { usuarioAtual } from '../../supabaseAuth.js';
 
 let overlayEl = null;
 
@@ -22,6 +24,27 @@ function sectionHtml(icon, title, text) {
       <p>${text}</p>
     </div>
   `;
+}
+
+function escaparHtml(texto) {
+  return String(texto)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// Formatação simples: parágrafos e **negrito**, sem depender do
+// parser de markdown do Assistente (mantém este arquivo independente).
+function formatarRespostaIa(texto) {
+  return String(texto || '')
+    .split(/\r?\n/)
+    .filter((linha) => linha.trim().length > 0)
+    .map((linha) => {
+      const escapada = escaparHtml(linha.trim())
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      return `<p>${escapada}</p>`;
+    })
+    .join('');
 }
 
 /**
@@ -114,9 +137,12 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
     `
     : `
       <div class="verse-explain-fallback">
-        <p>Ainda não temos uma explicação detalhada preparada para este versículo específico.</p>
-        <p>Este app não tem um serviço de IA por trás (é 100% local, sem servidor), então não dá para gerar uma explicação nova sob demanda — mas você pode buscar comentários bíblicos confiáveis sobre este trecho.</p>
-        <button type="button" id="btnExternalExplain">${icons.explain} Buscar comentário bíblico</button>
+        <p>Ainda não temos uma explicação curada para este versículo específico.</p>
+        <button type="button" id="btnAiExplain" class="btn-primary">
+          ${icons.sparkles || '✨'} Pedir explicação ao Assistente
+        </button>
+        <div class="verse-explain-ai-result" id="aiExplainResult" hidden></div>
+        <button type="button" id="btnExternalExplain">${icons.explain} Buscar comentário bíblico externo</button>
       </div>
     `;
 
@@ -202,9 +228,56 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
   });
 
 
+  // ===== EXPLICAÇÃO EXTERNA (busca fora do app) =====
+
   const externalBtn = overlayEl.querySelector('#btnExternalExplain');
   if (externalBtn) {
     externalBtn.addEventListener('click', () => openExternalExplanation(`${verseText} (${ref})`));
+  }
+
+  // ===== EXPLICAÇÃO PELO ASSISTENTE BÍBLICO (IA) =====
+
+  const aiBtn = overlayEl.querySelector('#btnAiExplain');
+  const aiResultEl = overlayEl.querySelector('#aiExplainResult');
+
+  if (aiBtn) {
+    aiBtn.addEventListener('click', async () => {
+      const usuario = usuarioAtual();
+
+      if (!usuario) {
+        aiResultEl.hidden = false;
+        aiResultEl.innerHTML = '<p>Entre na sua conta para usar o Assistente Bíblico.</p>';
+        return;
+      }
+
+      aiBtn.disabled = true;
+      const textoOriginalBtn = aiBtn.textContent;
+      aiBtn.textContent = 'Consultando...';
+      aiResultEl.hidden = false;
+      aiResultEl.innerHTML = '<p>Consultando o Assistente Bíblico...</p>';
+
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          'assistente-biblico',
+          {
+            body: {
+              mensagem: `Explique o versículo ${ref}, que diz: "${verseText}". Traga o contexto histórico, o significado principal e uma aplicação prática para a vida hoje.`,
+            },
+          }
+        );
+
+        if (error || !data?.sucesso || !data?.mensagem) {
+          throw new Error(data?.erro || error?.message || 'Sem resposta.');
+        }
+
+        aiResultEl.innerHTML = formatarRespostaIa(data.mensagem);
+      } catch (err) {
+        aiResultEl.innerHTML = '<p>Não foi possível obter a explicação agora. Tente novamente.</p>';
+      } finally {
+        aiBtn.disabled = false;
+        aiBtn.textContent = textoOriginalBtn;
+      }
+    });
   }
 }
 
