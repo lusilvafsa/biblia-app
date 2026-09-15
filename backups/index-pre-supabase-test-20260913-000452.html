@@ -20,6 +20,8 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/animations.css">
+
+
 </head>
 <body>
 <div class="phone-frame" id="phoneFrame">
@@ -68,6 +70,17 @@
 
   <div class="home-indicator"></div>
 </div>
+
+<script>
+window.addEventListener("error", function(e) {
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    '<div style="position:fixed;z-index:99999;top:0;left:0;right:0;background:#900;color:#fff;padding:20px;font-size:14px;">ERRO: ' +
+    e.message + '</div>'
+  );
+});
+</script>
+
 
 <script type="module" src="js/main.js"></script>
 </body>

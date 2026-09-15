@@ -1,0 +1,1340 @@
+/* ==========================================================================
+   Reset & layout base
+   ========================================================================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background: #000;
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 16px;
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+/* Tamanho padrão para qualquer SVG sem uma regra mais específica
+   (ex.: ícones inseridos inline em títulos, rótulos e botões de texto).
+   Contêineres de ícone dedicados (.menu-icon svg, .icon-btn svg etc.)
+   têm regras mais específicas abaixo e continuam vencendo esta. */
+svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  vertical-align: -0.125em;
+}
+
+/* Mesmo comportamento do svg acima, mas para ícones que são imagem
+   (ex.: o ícone da Bíblia, assets/icons/bible-icon.png) em vez de SVG. */
+.icon-glyph {
+  width: 1em;
+  height: 1em;
+  object-fit: contain;
+  flex-shrink: 0;
+  vertical-align: -0.125em;
+  display: inline-block;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Focus visível para navegação por teclado (acessibilidade) */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.phone-frame {
+  width: 100%;
+  max-width: 400px;
+  height: 100vh;
+  min-height: 100vh;
+  background: var(--navy-deep);
+  border-radius: 32px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border);
+  box-shadow: 0 0 0 4px var(--navy), 0 20px 60px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  transition: background 0.4s ease;
+}
+
+.app-header {
+  padding: 22px 20px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.app-header h1 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--gold);
+}
+.header-actions { display: flex; gap: 10px; align-items: center; }
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--navy-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+.icon-btn:hover, .icon-btn:active {
+  background: var(--navy-lighter);
+  color: var(--gold);
+  transform: scale(0.96);
+  border-color: var(--gold);
+}
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--navy-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--gold);
+  transition: all 0.3s ease;
+}
+.theme-toggle:hover { background: var(--navy-lighter); transform: scale(0.96); }
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 90px;
+  scrollbar-width: none;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+}
+.app-content::-webkit-scrollbar { display: none; }
+
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn 0.35s ease; }
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 24px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-primary);
+}
+.section-title .see-all {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gold);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0 10px;
+  border-top: 1px solid var(--border);
+  background: var(--navy);
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 400px;
+  z-index: 50;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: all 0.2s ease;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+.nav-item:hover { color: var(--text-secondary); }
+.nav-item.active { color: var(--gold); }
+.nav-item svg, .nav-item .icon-glyph { width: 22px; height: 22px; }
+.nav-item span { font-size: 10px; font-weight: 600; }
+
+.toast {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--gold);
+  color: var(--navy-deep);
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  z-index: 100;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--danger); color: #2a0e0e; }
+.toast.success { background: var(--success); color: #0e2a0e; }
+
+.home-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 4px;
+  background: var(--text-tertiary);
+  border-radius: 2px;
+  opacity: 0.3;
+  z-index: 60;
+}
+
+/* Estado de carregamento / vazio / erro, reutilizáveis */
+.state-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+.state-message.error { color: var(--danger); }
+
+/* "Modo celular" (tela cheia, sem moldura arredondada): dispara tanto por
+   largura pequena (retrato) quanto por altura pequena (paisagem — um
+   celular deitado tem largura grande mas altura pequena, então só olhar a
+   largura fazia a tela de paisagem virar por engano o "mockup" de
+   desktop). O teto de largura evita disparar em janelas de desktop
+   apenas baixas. */
+@media (max-width: 420px), (max-height: 430px) and (max-width: 950px) {
+  body { padding: 0; }
+  .phone-frame {
+    border-radius: 0;
+    max-width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    border: none;
+    box-shadow: none;
+  }
+  .home-indicator { display: none; }
+}
+
+/* Paisagem em tela baixa: encolhe splash/cabeçalho/nav pra caber sem
+   cortar conteúdo nem exigir rolagem da tela inteira. */
+@media (max-height: 430px) and (orientation: landscape) {
+  .splash-media { width: 130px; height: 130px; }
+  .splash-title { font-size: 19px; margin-top: 10px; }
+  .splash-subtitle { font-size: 10px; margin-top: 3px; }
+  .splash-loading { margin-top: 12px; }
+  .app-header { padding: 8px 20px 4px; }
+  .app-header h1 { font-size: 18px; }
+  .bottom-nav { padding: 4px 0 8px; }
+  .nav-item span { font-size: 9px; }
+
+  /* Leitor de capítulo: a toolbar (6 botões) + cabeçalho não pode tomar
+     tanto espaço vertical a ponto de cobrir o texto do capítulo. */
+  .read-header { padding: 6px 0; position: static; }
+  .read-subtitle { font-size: 11px; margin-top: 0; }
+  .read-toolbar { gap: 6px; padding: 6px 8px; }
+  .tool-btn { padding: 5px 8px; font-size: 11px; gap: 3px; }
+  .read-content { padding: 8px 16px 16px; }
+}
+
+/* Desktop: expandir a interface de forma inteligente em vez de um
+   "container de celular" isolado no meio da tela */
+@media (min-width: 860px) {
+  body { align-items: center; padding: 40px; }
+  .phone-frame {
+    max-width: 420px;
+    height: min(900px, 94vh);
+    min-height: 0;
+    box-shadow: 0 0 0 4px var(--navy), 0 30px 80px rgba(0, 0, 0, 0.7);
+  }
+}
+
+/* =========================================================
+   AJUSTE VISUAL FINAL — LEITOR DA BÍBLIA
+   ========================================================= */
+
+/* Ícones da navegação inferior */
+.bottom-nav .nav-item svg,
+.bottom-nav .nav-item .icon-glyph {
+  width: 40px;
+  height: 40px;
+}
+
+/* Remove o texto dos botões inferiores */
+.bottom-nav .nav-item span {
+  display: none;
+}
+
+/* Botões inferiores somente com ícones */
+.bottom-nav {
+  padding: 5px 0 8px;
+  min-height: 52px;
+}
+
+.bottom-nav .nav-item {
+  padding: 4px 10px;
+  gap: 0;
+}
+
+/* =========================================================
+   TELA DE LEITURA
+   ========================================================= */
+
+.read-toolbar {
+  gap: 6px;
+}
+
+/* Ícones dos botões da barra do leitor */
+.read-toolbar .tool-btn svg,
+.read-toolbar .tool-btn .icon-glyph {
+  width: 40px;
+  height: 40px;
+}
+
+/* =========================================================
+   PAISAGEM — MAIS ESPAÇO PARA O TEXTO
+   ========================================================= */
+
+@media (orientation: landscape) {
+
+  .bottom-nav {
+    padding: 2px 0 5px;
+    min-height: 48px;
+  }
+
+  .bottom-nav .nav-item {
+    padding: 2px 10px;
+  }
+
+  .bottom-nav .nav-item svg,
+  .bottom-nav .nav-item .icon-glyph {
+    width: 40px;
+    height: 40px;
+  }
+
+  .read-header {
+    padding: 4px 0;
+  }
+
+  .read-toolbar {
+    padding: 4px 8px;
+    gap: 5px;
+  }
+
+  .read-content {
+    padding: 6px 18px 12px;
+  }
+}
+
+/* =========================================================
+   TELAS BAIXAS EM PAISAGEM
+   ========================================================= */
+
+@media (max-height: 430px) and (orientation: landscape) {
+
+  .bottom-nav {
+    padding: 1px 0 4px;
+    min-height: 46px;
+  }
+
+  .bottom-nav .nav-item {
+    padding: 1px 8px;
+  }
+
+  .bottom-nav .nav-item svg,
+  .bottom-nav .nav-item .icon-glyph {
+    width: 40px;
+    height: 40px;
+  }
+
+  .read-header {
+    padding: 3px 0;
+  }
+
+  .read-toolbar {
+    padding: 3px 6px;
+    gap: 4px;
+  }
+
+  .read-content {
+    padding: 4px 16px 10px;
+  }
+}
+
+
+/* =========================================================
+   AJUSTE DOS BOTÕES — PADRÃO 52x52
+   ========================================================= */
+
+.bottom-nav .nav-item {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.bottom-nav .nav-item svg,
+.bottom-nav .nav-item .icon-glyph {
+  width: 52px;
+  height: 52px;
+}
+
+.read-toolbar .tool-btn {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.read-toolbar .tool-btn svg,
+.read-toolbar .tool-btn .icon-glyph {
+  width: 40px;
+  height: 40px;
+}
+
+/* Mantém 52x52 também em paisagem */
+@media (orientation: landscape) {
+  .bottom-nav .nav-item {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+  }
+
+  .bottom-nav .nav-item svg,
+  .bottom-nav .nav-item .icon-glyph {
+    width: 52px;
+    height: 52px;
+  }
+
+  .read-toolbar .tool-btn {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+  }
+}
+
+
+/* Ajuste dos controles de tamanho do texto */
+.font-size-controls {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.font-size-controls button {
+  width: 48px;
+  min-width: 48px;
+  max-width: 48px;
+  height: 52px;
+  padding: 0 4px;
+  flex: 0 0 48px;
+}
+
+
+/* A- e A+ sempre na mesma linha */
+#btnFontMinus,
+#btnFontPlus {
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  height: 52px !important;
+  padding: 0 !important;
+  flex: 0 0 48px !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* =========================================================
+   AJUSTE VISUAL — LEITOR / CONTROLES 52x52
+   ========================================================= */
+
+.bottom-nav .nav-item {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.bottom-nav .nav-item span {
+  display: none;
+}
+
+.bottom-nav .nav-item svg,
+.bottom-nav .nav-item .icon-glyph {
+  width: 40px;
+  height: 40px;
+}
+
+/* Controles principais do leitor */
+.read-toolbar .tool-btn {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.read-toolbar .tool-btn svg,
+.read-toolbar .tool-btn .icon-glyph {
+  width: 40px;
+  height: 40px;
+}
+
+/* A- e A+ mais estreitos e sempre na mesma linha */
+#btnFontMinus,
+#btnFontPlus {
+  width: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  padding: 0 !important;
+  flex: 0 0 48px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  font-size: 20px !important;
+  box-sizing: border-box !important;
+}
+
+/* Mantém A- e A+ juntos */
+.font-size-controls {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+}
+
+/* Paisagem */
+@media (orientation: landscape) {
+  .bottom-nav .nav-item {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+  }
+
+  .read-toolbar .tool-btn {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+  }
+
+  .read-content {
+    padding: 6px 18px 12px;
+  }
+}
+
+/* Telas baixas em paisagem */
+@media (max-height: 430px) and (orientation: landscape) {
+  .bottom-nav .nav-item {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+  }
+
+  .read-toolbar {
+    gap: 4px;
+    padding: 3px 6px;
+  }
+
+  .read-content {
+    padding: 4px 16px 10px;
+  }
+}
+
+
+/* ===== CORREÇÃO: BOTÕES DO LEITOR ===== */
+
+.read-toolbar {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+  align-items: center !important;
+}
+
+.read-toolbar .tool-btn {
+  width: 52px !important;
+  min-width: 52px !important;
+  max-width: 52px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  padding: 0 !important;
+  flex: 0 0 52px !important;
+}
+
+.read-toolbar .tool-btn svg,
+.read-toolbar .tool-btn .icon-glyph {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+/* A- e A+ */
+#btnFontMinus,
+#btnFontPlus {
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  flex: 0 0 44px !important;
+  padding: 0 !important;
+  font-size: 18px !important;
+}
+
+/* A- e A+ sempre juntos */
+.font-size-controls {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 3px !important;
+}
+
+
+/* =========================================================
+   AJUSTE FINAL — CONTROLES DO LEITOR
+   ========================================================= */
+
+/* Todos os controles principais: 52 x 52 */
+.read-toolbar .tool-btn {
+  width: 52px !important;
+  min-width: 52px !important;
+  max-width: 52px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* A- e A+ um pouco mais estreitos, sempre na mesma linha */
+#btnFontMinus,
+#btnFontPlus {
+  width: 46px !important;
+  min-width: 46px !important;
+  max-width: 46px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  flex: 0 0 46px !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+}
+
+/* Mantém os ícones dos controles em tamanho confortável */
+#btnPlayPause svg,
+#btnStop svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+/* Velocidade somente com o raio */
+#btnSpeed {
+  font-size: 22px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+#btnSpeedLabel {
+  display: none !important;
+}
+
+
+/* =========================================================
+   CORREÇÃO FINAL — MAIS ÁREA PARA LEITURA
+   ========================================================= */
+
+.read-header {
+  padding: 2px 0 !important;
+}
+
+.read-subtitle {
+  margin-top: 0 !important;
+}
+
+.read-toolbar {
+  padding: 2px 6px !important;
+  gap: 4px !important;
+  flex-wrap: nowrap !important;
+}
+
+.read-content {
+  padding: 4px 14px 8px !important;
+}
+
+@media (orientation: landscape) {
+  .read-header {
+    padding: 1px 0 !important;
+  }
+
+  .read-toolbar {
+    padding: 1px 6px !important;
+    gap: 4px !important;
+  }
+
+  .read-content {
+    padding: 2px 14px 6px !important;
+  }
+}
+
+
+/* =========================================================
+   MENU INFERIOR — APENAS BOTÃO DE 4 QUADRINHOS
+   ========================================================= */
+
+/* O container inteiro fica flutuante */
+.bottom-nav.compact-menu {
+  position: fixed !important;
+  right: 10px !important;
+  bottom: 18px !important;
+  left: auto !important;
+  transform: none !important;
+
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: flex-end !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  background: transparent !important;
+  border: 0 !important;
+
+  overflow: visible !important;
+  z-index: 1000 !important;
+}
+
+/* =========================================================
+   BOTÃO PRINCIPAL — 4 QUADRINHOS
+   ========================================================= */
+
+.bottom-nav.compact-menu .menu-toggle {
+  order: 2 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
+
+  flex: 0 0 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  border: 1px solid var(--border) !important;
+  border-radius: 50% !important;
+
+  background: var(--navy) !important;
+
+  box-shadow: 0 4px 16px rgba(0,0,0,.35) !important;
+
+  cursor: pointer !important;
+}
+
+/* Ícone ▦ */
+.bottom-nav.compact-menu .menu-toggle-icon {
+  display: block !important;
+
+  width: auto !important;
+  height: auto !important;
+
+  font-size: 25px !important;
+  line-height: 1 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* =========================================================
+   MENU FECHADO — ESCONDE TODOS OS OUTROS BOTÕES
+   ========================================================= */
+
+.bottom-nav.compact-menu .bottom-menu-items {
+  order: 1 !important;
+
+  display: none !important;
+
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 54px !important;
+  height: auto !important;
+
+  margin: 0 0 8px 0 !important;
+  padding: 8px !important;
+
+  gap: 6px !important;
+
+  border: 1px solid var(--border) !important;
+  border-radius: 28px !important;
+
+  background: var(--navy) !important;
+
+  box-shadow: 0 5px 20px rgba(0,0,0,.4) !important;
+
+  overflow: visible !important;
+}
+
+/* =========================================================
+   MENU ABERTO
+   ========================================================= */
+
+.bottom-nav.compact-menu.menu-open .bottom-menu-items {
+  display: flex !important;
+}
+
+/* =========================================================
+   BOTÕES DENTRO DO MENU
+   ========================================================= */
+
+.bottom-nav.compact-menu .bottom-menu-items .nav-item {
+  display: flex !important;
+
+  width: 42px !important;
+  height: 42px !important;
+
+  min-width: 42px !important;
+  min-height: 42px !important;
+
+  max-width: 42px !important;
+  max-height: 42px !important;
+
+  flex: 0 0 42px !important;
+
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  margin: 0 !important;
+  padding: 2px !important;
+
+  gap: 1px !important;
+
+  border-radius: 50% !important;
+}
+
+/* Ícones internos */
+.bottom-nav.compact-menu .bottom-menu-items .nav-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.bottom-nav.compact-menu .bottom-menu-items .nav-item svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+/* Texto pequeno dentro do menu aberto */
+.bottom-nav.compact-menu .bottom-menu-items .nav-item span:not(.nav-icon) {
+  display: block !important;
+
+  font-size: 8px !important;
+  line-height: 9px !important;
+}
+
+
+/* =========================================================
+   MENU V3 — BOTÃO ÚNICO DE 4 QUADRINHOS
+   ========================================================= */
+
+/* Container do menu */
+.bottom-nav.compact-menu {
+  position: fixed !important;
+  right: 10px !important;
+  bottom: 18px !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
+
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: block !important;
+
+  background: transparent !important;
+  border: 0 !important;
+
+  z-index: 9999 !important;
+  overflow: visible !important;
+}
+
+/* =========================================================
+   BOTÃO DOS 4 QUADRINHOS
+   ========================================================= */
+
+.bottom-nav.compact-menu .menu-toggle {
+  display: flex !important;
+
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  flex: none !important;
+
+  border: 1px solid var(--border) !important;
+  border-radius: 50% !important;
+
+  background: var(--navy) !important;
+
+  box-shadow: 0 4px 16px rgba(0,0,0,.35) !important;
+
+  position: relative !important;
+  z-index: 10001 !important;
+}
+
+/* Ícone dos 4 quadrinhos */
+.bottom-nav.compact-menu .menu-toggle-icon {
+  display: block !important;
+
+  width: auto !important;
+  height: auto !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 28px !important;
+  line-height: 1 !important;
+
+  font-family: Arial, sans-serif !important;
+}
+
+/* =========================================================
+   MENU FECHADO — NENHUM OUTRO BOTÃO APARECE
+   ========================================================= */
+
+.bottom-nav.compact-menu .bottom-menu-items {
+  display: none !important;
+
+  position: absolute !important;
+
+  width: 0 !important;
+  height: 0 !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  overflow: hidden !important;
+}
+
+/* =========================================================
+   MENU ABERTO — RESTAURA OS BOTÕES
+   ========================================================= */
+
+.bottom-nav.compact-menu.menu-open {
+  height: auto !important;
+  min-height: 52px !important;
+}
+
+.bottom-nav.compact-menu.menu-open .bottom-menu-items {
+  display: flex !important;
+
+  position: absolute !important;
+
+  right: 0 !important;
+  bottom: 60px !important;
+
+  width: 54px !important;
+  height: auto !important;
+
+  padding: 8px !important;
+  margin: 0 !important;
+
+  overflow: visible !important;
+
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+
+  border: 1px solid var(--border) !important;
+  border-radius: 28px !important;
+
+  background: var(--navy) !important;
+
+  box-shadow: 0 5px 20px rgba(0,0,0,.4) !important;
+
+  z-index: 10000 !important;
+}
+
+/* Botões internos quando o menu estiver aberto */
+.bottom-nav.compact-menu.menu-open .bottom-menu-items .nav-item {
+  display: flex !important;
+
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
+
+  padding: 2px !important;
+  margin: 0 !important;
+
+  flex: 0 0 42px !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column !important;
+
+  border-radius: 50% !important;
+}
+
+/* Ícones internos */
+.bottom-nav.compact-menu.menu-open .nav-item .nav-icon {
+  width: 22px !important;
+  height: 22px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.bottom-nav.compact-menu.menu-open .nav-item svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+/* Textos dos itens */
+.bottom-nav.compact-menu.menu-open
+.bottom-menu-items .nav-item span:not(.nav-icon) {
+  display: block !important;
+  font-size: 8px !important;
+  line-height: 9px !important;
+}
+
+
+/* =========================================================
+   MENU — ÍCONE 4 QUADRINHOS
+   ========================================================= */
+
+.bottom-nav.compact-menu .menu-toggle {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.bottom-nav.compact-menu .menu-toggle-icon {
+  width: 38px !important;
+  height: 38px !important;
+
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  grid-template-rows: 1fr 1fr !important;
+
+  gap: 5px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+.bottom-nav.compact-menu .menu-toggle-icon i {
+  display: block !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  background: #f1f2f4 !important;
+
+  border-radius: 9px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Mantém o botão clicável com área confortável */
+.bottom-nav.compact-menu .menu-toggle {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+
+/* =========================================================
+   MENU V3 — ÍCONE 4 QUADRADOS REAL
+   ÚLTIMA REGRA — NÃO ALTERAR
+   ========================================================= */
+
+.bottom-nav.compact-menu .menu-toggle-icon {
+  display: grid !important;
+  grid-template-columns: repeat(2, 16px) !important;
+  grid-template-rows: repeat(2, 16px) !important;
+  gap: 5px !important;
+
+  width: 37px !important;
+  height: 37px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 0 !important;
+  line-height: 0 !important;
+
+  color: transparent !important;
+  background: transparent !important;
+}
+
+/* Os 4 quadrados */
+.bottom-nav.compact-menu .menu-toggle-icon i {
+  display: block !important;
+
+  width: 16px !important;
+  height: 16px !important;
+
+  min-width: 16px !important;
+  min-height: 16px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  box-sizing: border-box !important;
+
+  background: var(--text-primary) !important;
+
+  border-radius: 5px !important;
+
+  opacity: 1 !important;
+
+  visibility: visible !important;
+}
+
+/* Garante que nenhum CSS antigo coloque texto no botão */
+.bottom-nav.compact-menu .menu-toggle-icon::before,
+.bottom-nav.compact-menu .menu-toggle-icon::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* O botão continua circular como na V3 */
+.bottom-nav.compact-menu .menu-toggle {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  min-height: 52px !important;
+  max-width: 52px !important;
+  max-height: 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border-radius: 50% !important;
+}
+
+
+/* =========================================================
+   CORREÇÃO DEFINITIVA — 4 QUADRADOS GRANDES
+   ========================================================= */
+
+.bottom-nav.compact-menu .menu-toggle-icon {
+  position: relative !important;
+  display: block !important;
+
+  width: 36px !important;
+  height: 36px !important;
+
+  min-width: 36px !important;
+  min-height: 36px !important;
+
+  max-width: 36px !important;
+  max-height: 36px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 0 !important;
+  line-height: 0 !important;
+
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* Esconde completamente os elementos antigos */
+.bottom-nav.compact-menu .menu-toggle-icon i {
+  display: none !important;
+}
+
+/* PRIMEIRO QUADRADO */
+.bottom-nav.compact-menu .menu-toggle-icon::before {
+  content: "" !important;
+
+  position: absolute !important;
+
+  left: 1px !important;
+  top: 1px !important;
+
+  width: 15px !important;
+  height: 15px !important;
+
+  background: var(--text-primary) !important;
+
+  border-radius: 4px !important;
+
+  box-shadow:
+    20px 0 0 var(--text-primary),
+    0 20px 0 var(--text-primary),
+    20px 20px 0 var(--text-primary) !important;
+
+  display: block !important;
+}
+
+/* Remove qualquer segundo pseudo-elemento antigo */
+.bottom-nav.compact-menu .menu-toggle-icon::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* BOTÃO */
+.bottom-nav.compact-menu .menu-toggle {
+  width: 52px !important;
+  height: 52px !important;
+
+  min-width: 52px !important;
+  min-height: 52px !important;
+
+  max-width: 52px !important;
+  max-height: 52px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border-radius: 50% !important;
+}
+

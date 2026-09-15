@@ -1,4 +1,4 @@
-const CACHE_NAME = 'biblia-estudo-v2.4';
+const CACHE_NAME = 'biblia-estudo-v2.1';
 const APP_SHELL = [
   './assets/icons/bible-icon.png',
   './assets/icons/favicon.png',
@@ -79,20 +79,21 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => caches.match('./index.html')));
+    return;
+  }
+
   event.respondWith(
-    fetch(request)
-      .then((response) => {
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+      return fetch(request).then((response) => {
         if (response && response.ok) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
         return response;
-      })
-      .catch(() =>
-        caches.match(request).then((cached) => {
-          if (cached) return cached;
-          if (request.mode === 'navigate') return caches.match('./index.html');
-        })
-      )
+      });
+    })
   );
 });

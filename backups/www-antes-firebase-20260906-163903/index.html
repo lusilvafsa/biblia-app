@@ -20,6 +20,8 @@
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/components.css">
 <link rel="stylesheet" href="css/animations.css">
+
+
 </head>
 <body>
 <div class="phone-frame" id="phoneFrame">
@@ -36,10 +38,10 @@
     <button class="menu-toggle" id="bottomMenuToggle" type="button" aria-label="Abrir menu" aria-expanded="false">
       <span class="menu-toggle-icon">
       <svg class="menu-four-squares" viewBox="0 0 40 40" aria-hidden="true">
-        <rect x="4" y="4" width="12" height="12" rx="3"></rect>
-        <rect x="20" y="4" width="12" height="12" rx="3"></rect>
-        <rect x="4" y="20" width="12" height="12" rx="3"></rect>
-        <rect x="20" y="20" width="12" height="12" rx="3"></rect>
+        <rect x="2" y="2" width="16" height="16" rx="4"></rect>
+        <rect x="22" y="2" width="16" height="16" rx="4"></rect>
+        <rect x="2" y="22" width="16" height="16" rx="4"></rect>
+        <rect x="22" y="22" width="16" height="16" rx="4"></rect>
       </svg>
     </span>
     </button>
@@ -60,14 +62,22 @@
       <button class="nav-item" data-nav-key="profile" data-route="/perfil">
         <span class="nav-icon"></span><span>Perfil</span>
       </button>
-      <button class="nav-item" data-nav-key="assistant" data-route="/assistente">
-        <span class="nav-icon">✨</span><span>Assistente</span>
-      </button>
     </div>
   </nav>
 
   <div class="home-indicator"></div>
 </div>
+
+<script>
+window.addEventListener("error", function(e) {
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    '<div style="position:fixed;z-index:99999;top:0;left:0;right:0;background:#900;color:#fff;padding:20px;font-size:14px;">ERRO: ' +
+    e.message + '</div>'
+  );
+});
+</script>
+
 
 <script type="module" src="js/main.js"></script>
 </body>
