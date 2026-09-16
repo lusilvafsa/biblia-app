@@ -7,6 +7,7 @@ import { icons } from './components/icons.js';
 import { registerRoute, setNotFound, onRouteChange, initRouter, navigateTo } from './router.js';
 import { bindHeaderTitleElement, setHeaderTitle } from './state/header.js';
 import { getTheme, toggleTheme, onThemeChange } from './state/theme.js';
+import { initDailyNotification } from './utils/dailyNotification.js';
 
 import { homePage } from './features/home/home.js';
 import { bookListPage } from './features/bible/bookList.js';
@@ -131,6 +132,7 @@ function init() {
   initBottomNavIcons();
   initRoutes();
   initRouter(qs('#appContent'));
+  initDailyNotification();
 
   onThemeChange(() => {
     const host = qs('#headerActions');

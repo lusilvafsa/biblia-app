@@ -12,6 +12,7 @@ export const STORAGE_KEYS = {
   settings: 'biblia:settings',
   voice: 'biblia:voice-settings',
   readingPlans: 'biblia:reading-plans',
+  dailyNotification: 'biblia:daily-notification-scheduled',
 };
 
 function readRaw(key) {
@@ -23,17 +24,12 @@ function readRaw(key) {
   }
 }
 
-/**
- * Lê um valor JSON do localStorage.
- * Retorna `fallback` se a chave não existir ou os dados estiverem corrompidos.
- */
 export function getItem(key, fallback = null) {
   const raw = readRaw(key);
   if (raw === null) return fallback;
   try {
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && 'v' in parsed && 'data' in parsed) {
-      // Formato versionado: { v: STORAGE_VERSION, data: ... }
       return parsed.data;
     }
     return parsed;
@@ -43,7 +39,6 @@ export function getItem(key, fallback = null) {
   }
 }
 
-/** Grava um valor no localStorage, envelopado com a versão do schema atual. */
 export function setItem(key, value) {
   try {
     window.localStorage.setItem(key, JSON.stringify({ v: STORAGE_VERSION, data: value }));
