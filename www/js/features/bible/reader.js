@@ -25,6 +25,7 @@ import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js
 import { setHeaderTitle } from '../../state/header.js';
 import { attachSelectionToolbar } from './selectionToolbar.js';
 import { showVerseExplanation } from './verseExplanation.js';
+import { showChapterExplanation } from './chapterExplanation.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
 import { requestWakeLock, releaseWakeLock, setupWakeLockReacquire } from '../../utils/wakeLock.js';
 import { startKeepAlive, stopKeepAlive } from '../../utils/keepAlive.js';
@@ -71,6 +72,7 @@ function template() {
         </button>
         <button class="tool-btn" id="btnFontMinus" aria-label="Diminuir fonte">A-</button>
         <button class="tool-btn" id="btnFontPlus" aria-label="Aumentar fonte">A+</button>
+        <button class="tool-btn" id="btnExplainChapter" title="Estudo do capitulo com IA" aria-label="Pedir estudo do capitulo ao Assistente">✨</button>
       </div>
     </div>
     <div id="readContent" class="read-content"></div>
@@ -189,6 +191,7 @@ export const readerPage = {
       settings.fontSize = Math.max(MIN_FONT, settings.fontSize - 1);
       applySettings();
     });
+    qs('#btnExplainChapter', container).addEventListener('click', () => showChapterExplanation({ bookName: book.name, chapterNumber: chapterIndex + 1 }));
     qs('#btnFontPlus', container).addEventListener('click', () => {
       settings.fontSize = Math.min(MAX_FONT, settings.fontSize + 1);
       applySettings();
