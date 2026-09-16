@@ -11,6 +11,7 @@ export const STORAGE_KEYS = {
   favorites: 'biblia:favorites',
   settings: 'biblia:settings',
   voice: 'biblia:voice-settings',
+  readingPlans: 'biblia:reading-plans',
 };
 
 function readRaw(key) {

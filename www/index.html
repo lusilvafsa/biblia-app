@@ -69,6 +69,11 @@
   <div class="home-indicator"></div>
 </div>
 
+<script>
+window.addEventListener('error', function (e) {
+  alert('ERRO JS: ' + e.message + '\narquivo: ' + e.filename + '\nlinha: ' + e.lineno);
+});
+</script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

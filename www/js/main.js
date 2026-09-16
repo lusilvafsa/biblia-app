@@ -25,6 +25,7 @@ import { notFoundPage } from './features/notFound.js';
 import { favoritesPage } from './features/favorites/favorites.js';
 import { notesPage } from './features/favorites/notes.js';
 import { assistantPage } from './features/assistant/assistant.js';
+import { planDetailPage } from './features/plans/planDetail.js';
 
 const NAV_ICONS = {
   home: icons.home,
@@ -109,10 +110,11 @@ function initRoutes() {
   registerRoute('/quiz', quizPage, { title: 'Quiz Bíblico', navKey: null, showBack: true });
   registerRoute('/ministracao', ministryListPage, { title: 'Guia de Ministração', navKey: null, showBack: true });
   registerRoute('/ministracao/:id', ministryDetailPage, { title: 'Guia de Ministração', navKey: null, showBack: true });
+  registerRoute('/planos/:id', planDetailPage, { title: 'Plano de Leitura', navKey: null, showBack: true });
   registerRoute('/perfil', profilePage, { title: 'Meu Perfil', navKey: 'profile', showSettings: true });
   registerRoute('/favoritos', favoritesPage, { title: 'Favoritos', navKey: null, showBack: true });
   registerRoute('/anotacoes', notesPage, { title: 'Anotações', navKey: null, showBack: true });
-registerRoute('/assistente', assistantPage, { title: 'Assistente Bíblico', navKey: null, showBack: true });
+  registerRoute('/assistente', assistantPage, { title: 'Assistente Bíblico', navKey: null, showBack: true });
   registerRoute('/configuracoes', settingsPage, { title: 'Configurações', navKey: null, showBack: true });
   setNotFound(notFoundPage);
 
@@ -131,7 +133,6 @@ function init() {
   initRouter(qs('#appContent'));
 
   onThemeChange(() => {
-    // Reaplica os ícones do cabeçalho (sol/lua) quando o tema muda.
     const host = qs('#headerActions');
     const themeBtn = qs('.theme-toggle', host);
     if (themeBtn) themeBtn.innerHTML = getTheme() === 'light' ? icons.moon : icons.sun;
@@ -144,7 +145,6 @@ if (document.readyState === 'loading') {
   init();
 }
 
-/* ===== MENU INFERIOR COMPACTO ===== */
 (() => {
   const initCompactBottomMenu = () => {
     const toggle = document.querySelector('#bottomMenuToggle');
@@ -178,7 +178,6 @@ if (document.readyState === 'loading') {
   }
 })();
 
-/* ===== CONTROLES DA BÍBLIA SOMENTE COM ÍCONES ===== */
 (() => {
 
     const NOMES_AUDIO = ['Iniciar', 'Pausar', 'Continuar', 'Parar'];
@@ -206,20 +205,12 @@ if (document.readyState === 'loading') {
 
             botao.classList.add('biblia-audio-icon-only');
 
-            /*
-             * Remove somente nós de texto.
-             * SVG/IMG/i permanecem intactos.
-             */
             [...botao.childNodes].forEach(node => {
                 if (node.nodeType === Node.TEXT_NODE) {
                     node.remove();
                 }
             });
 
-            /*
-             * Remove elementos que contenham apenas
-             * o texto do botão.
-             */
             [...botao.querySelectorAll('span, strong, b, label')].forEach(el => {
 
                 const possuiIcone = el.querySelector('svg, img, i');
@@ -229,9 +220,6 @@ if (document.readyState === 'loading') {
                 }
             });
 
-            /*
-             * Somente ícone.
-             */
             botao.style.width = '54px';
             botao.style.minWidth = '54px';
             botao.style.height = '50px';
@@ -257,9 +245,6 @@ if (document.readyState === 'loading') {
             }
         });
 
-        /*
-         * Agrupa os controles horizontalmente.
-         */
         const primeiro = botoes[0];
 
         if (primeiro && primeiro.parentElement) {
@@ -277,9 +262,6 @@ if (document.readyState === 'loading') {
         }
     }
 
-    /*
-     * CSS definitivo.
-     */
     const estilo = document.createElement('style');
 
     estilo.textContent = `
@@ -321,15 +303,8 @@ if (document.readyState === 'loading') {
 
     document.head.appendChild(estilo);
 
-    /*
-     * Executa agora.
-     */
     compactarBotoesAudio();
 
-    /*
-     * Observa a tela porque os controles da Bíblia
-     * são criados dinamicamente.
-     */
     const observador = new MutationObserver(() => {
         compactarBotoesAudio();
     });
@@ -339,10 +314,6 @@ if (document.readyState === 'loading') {
         subtree: true
     });
 
-    /*
-     * Segunda proteção para mudanças de estado:
-     * Iniciar -> Pausar -> Continuar -> Parar.
-     */
     setInterval(compactarBotoesAudio, 500);
 
 })();

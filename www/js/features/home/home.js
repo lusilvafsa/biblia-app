@@ -6,7 +6,9 @@ import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { speak, stopSpeech } from '../../utils/speech.js';
 import { navigateTo } from '../../router.js';
 import { DAILY_VERSES } from '../../../data/verses.js';
+import { getReadingPlan } from '../../../data/readingPlans.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
+import { planProgressRepository } from '../../data-access/planProgressRepository.js';
 import { getBook } from '../../data-access/bibleRepository.js';
 import { requestAutoStart } from '../bible/reader.js';
 import { aguardarAuthInicial } from '../../supabaseAuth.js';
@@ -34,8 +36,18 @@ function toggleBookmark(ref) {
   return isBookmarked(ref);
 }
 
+function planCardData(planId) {
+  const plan = getReadingPlan(planId);
+  const total = plan.dias.length;
+  const feitos = planProgressRepository.getDoneDays(planId).length;
+  const percent = total ? Math.round((feitos / total) * 100) : 0;
+  return { plan, total, feitos, percent };
+}
+
 function template() {
   const verse = DAILY_VERSES[verseIndex];
+  const plan1 = planCardData('trinta-dias-com-jesus');
+  const plan2 = planCardData('salmos-de-conforto');
   return `
     <div class="hero-card">
       <video autoplay loop muted playsinline aria-hidden="true">
@@ -103,13 +115,13 @@ function template() {
     <div class="section-title">Planos de Leitura</div>
     <button class="plan-card" id="plan1">
       <div class="plan-icon-box">${icons.planBook}</div>
-      <div class="plan-info"><h4>30 Dias com Jesus</h4><p>Dia 12 de 30</p></div>
-      <div class="plan-progress">40%</div>
+      <div class="plan-info"><h4>${plan1.plan.titulo}</h4><p>Dia ${plan1.feitos} de ${plan1.total}</p></div>
+      <div class="plan-progress">${plan1.percent}%</div>
     </button>
     <button class="plan-card" id="plan2">
       <div class="plan-icon-box">${icons.planBook}</div>
-      <div class="plan-info"><h4>Salmos de Conforto</h4><p>Dia 5 de 21</p></div>
-      <div class="plan-progress">24%</div>
+      <div class="plan-info"><h4>${plan2.plan.titulo}</h4><p>Dia ${plan2.feitos} de ${plan2.total}</p></div>
+      <div class="plan-progress">${plan2.percent}%</div>
     </button>
   `;
 }
@@ -193,18 +205,10 @@ function toggleVerseAudio(container) {
   });
 }
 
-/**
- * Se houver progresso de leitura salvo (fora do estado inicial), mostra um
- * card "Continue de onde parou" na Home com opções de continuar a
- * narrativa exatamente do versículo pausado ou recomeçar o capítulo do
- * início. Carregado à parte (sem bloquear o resto da Home) porque exige
- * buscar o nome do livro nos dados da Bíblia.
- */
 async function renderContinueReadingCard(container) {
   const slot = qs('#continueReadingSlot', container);
   if (!slot) return;
 
-  // Aguarda o Supabase restaurar a sessão antes de consultar o progresso.
   await aguardarAuthInicial();
   if (!document.body.contains(slot)) return;
 
@@ -216,9 +220,8 @@ async function renderContinueReadingCard(container) {
   try {
     book = await getBook(progress.book);
   } catch (_e) {
-    return; // dados indisponíveis — não quebra a Home por causa disso
+    return;
   }
-  // A Home pode ter sido trocada por outra tela enquanto isso carregava.
   if (!document.body.contains(slot)) return;
 
   const subtitle =
@@ -271,8 +274,8 @@ export const homePage = {
     });
     qs('#btnVerseTTS', container).addEventListener('click', () => toggleVerseAudio(container));
     qs('#btnSeeAll', container).addEventListener('click', () => toast.info('Mais recursos em breve'));
-    qs('#plan1', container).addEventListener('click', () => toast.info('Plano aberto: 30 Dias com Jesus'));
-    qs('#plan2', container).addEventListener('click', () => toast.info('Plano aberto: Salmos de Conforto'));
+    qs('#plan1', container).addEventListener('click', () => navigateTo('/planos/trinta-dias-com-jesus'));
+    qs('#plan2', container).addEventListener('click', () => navigateTo('/planos/salmos-de-conforto'));
 
     qsa('[data-route]', container).forEach((btn) => {
       btn.addEventListener('click', () => navigateTo(btn.dataset.route));
@@ -281,7 +284,6 @@ export const homePage = {
     updateVerseDisplay(container);
     renderContinueReadingCard(container);
 
-    // Cleanup: para a leitura do versículo do dia ao sair da Home.
     return () => {
       if (isSpeakingVerse) {
         stopSpeech();
