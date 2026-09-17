@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const LIMITE_DIARIO = 40;
+const MAX_TENTATIVAS_GEMINI = 2;
 
 const SYSTEM_INSTRUCTION = String.raw`
 Você é o Assistente Bíblico do aplicativo Bíblia de Estudo.
@@ -99,6 +100,36 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function aguardar(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function chamarGemini(texto: string, geminiApiKey: string) {
+  return await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: SYSTEM_INSTRUCTION }],
+        },
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: texto }],
+          },
+        ],
+        generationConfig: {
+          maxOutputTokens: 1600,
+        },
+      }),
+    },
+  );
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -150,8 +181,6 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // ===== IDENTIFICAR O USUÁRIO E CONTROLAR O LIMITE DIÁRIO =====
-
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -200,8 +229,6 @@ Deno.serve(async (req: Request) => {
       { onConflict: "user_id,dia" },
     );
 
-  // ===== CHAMAR O GEMINI =====
-
   const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
 
   if (!geminiApiKey) {
@@ -214,46 +241,36 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: SYSTEM_INSTRUCTION }],
-          },
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: texto }],
-            },
-          ],
-          generationConfig: {
-            maxOutputTokens: 1600,
-          },
-        }),
-      },
-    );
+    let response: Response | null = null;
+    let data: any = null;
 
-    const data = await response.json();
+    for (let tentativa = 1; tentativa <= MAX_TENTATIVAS_GEMINI; tentativa++) {
+      response = await chamarGemini(texto, geminiApiKey);
+      data = await response.json();
 
-    if (!response.ok) {
+      if (response.ok) break;
+
+      const temporario = response.status === 503 || response.status === 429;
+      const ultimaTentativa = tentativa === MAX_TENTATIVAS_GEMINI;
+
       console.error(
         "[assistente-biblico] erro Gemini:",
         response.status,
         data?.error?.message ?? "erro desconhecido",
+        `(tentativa ${tentativa}/${MAX_TENTATIVAS_GEMINI})`,
       );
 
-      return Response.json(
-        {
-          erro:
-            "Não foi possível obter uma resposta do Assistente Bíblico.",
-        },
-        { status: 502, headers: corsHeaders },
-      );
+      if (!temporario || ultimaTentativa) {
+        return Response.json(
+          {
+            erro:
+              "Não foi possível obter uma resposta do Assistente Bíblico. Tente novamente em instantes.",
+          },
+          { status: 502, headers: corsHeaders },
+        );
+      }
+
+      await aguardar(1500);
     }
 
     const resposta = data?.candidates?.[0]?.content?.parts
