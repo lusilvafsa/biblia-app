@@ -2233,3 +2233,36 @@
 .plan-day-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
 .plan-day-card.done .plan-day-title { text-decoration: line-through; }
 .plan-day-ref { font-size: 12px; color: var(--text-tertiary); }
+
+/* Uniformiza o tamanho dos botões A-/A+ com os demais ícones da barra do leitor */
+.read-toolbar #btnFontMinus,
+.read-toolbar #btnFontPlus {
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  padding: 0 !important;
+  justify-content: center !important;
+}
+
+/* Corrige também a altura dos botões A-/A+ para bater com os demais */
+.read-toolbar #btnFontMinus,
+.read-toolbar #btnFontPlus {
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+}
+
+/* Aumenta o desenho (emoji) do botão de estudo do capítulo */
+.read-toolbar #btnExplainChapter {
+  font-size: 20px !important;
+}
+
+/* Reduz somente o desenho do raio (velocidade), mantendo o botão do mesmo tamanho */
+.read-toolbar #btnSpeed.speed-icon-only {
+  font-size: 15px !important;
+}
+
+/* Ajuste fino do tamanho do raio (velocidade) */
+.read-toolbar #btnSpeed.speed-icon-only {
+  font-size: 18px !important;
+}
