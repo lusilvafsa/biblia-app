@@ -30,16 +30,14 @@ export const BIBLE_VERSIONS = [
     label: 'BLIVRE',
     name: 'Bíblia Livre',
     file: 'bible-blivre.json',
-    available: false,
-    note: 'Tradução livre (Creative Commons) baseada na Almeida de 1819. Arquivo de dados ainda não incluído neste projeto — veja o README para como adicioná-lo.',
+    available: true,
   },
   {
     id: 'alm1911',
     label: 'ARC 1911',
     name: 'Almeida Revista e Corrigida (1911)',
     file: 'bible-alm1911.json',
-    available: false,
-    note: 'Edição em domínio público, linguagem mais antiga. Arquivo de dados ainda não incluído neste projeto — veja o README para como adicioná-lo.',
+    available: true,
   },
 ];
 
