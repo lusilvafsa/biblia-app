@@ -13,6 +13,7 @@ export const STORAGE_KEYS = {
   voice: 'biblia:voice-settings',
   readingPlans: 'biblia:reading-plans',
   dailyNotification: 'biblia:daily-notification-scheduled',
+  highlights: 'biblia:highlights',
 };
 
 function readRaw(key) {

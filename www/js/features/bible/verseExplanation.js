@@ -5,6 +5,7 @@ import { icons } from '../../components/icons.js';
 import { getVerseCommentary } from '../../../data/verseCommentary.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
 import { favoritesRepository } from '../../data-access/favoritesRepository.js';
+import { highlightRepository, HIGHLIGHT_COLORS } from '../../data-access/highlightRepository.js';
 import { navigateTo } from '../../router.js';
 import { supabase } from '../../supabaseClient.js';
 import { usuarioAtual } from '../../supabaseAuth.js';
@@ -54,7 +55,7 @@ function formatarRespostaIa(texto) {
  * Mostra o painel de explicação para um versículo.
  * @param {{ bookIndex: number, bookName: string, chapterIndex: number, verseIndex: number, verseText: string }} info
  */
-export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseIndex, verseText }) {
+export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseIndex, verseText, onHighlightChange }) {
   removePanel();
 
   const commentary = getVerseCommentary(bookIndex, chapterIndex, verseIndex);
@@ -159,6 +160,14 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
       <button type="button" id="btnCompareVersions" class="btn-primary" style="margin-bottom:16px;">📖 Comparar nas 3 versões</button>
       <div id="compareVersionsResult" hidden></div>
       <button type="button" id="btnOpenStudyCorner" style="margin-bottom:16px;">🧭 Abrir no Cantinho de Estudo</button>
+      <div class="highlight-picker">
+        <span class="highlight-label">Grifar:</span>
+        <button type="button" class="highlight-dot" data-color="amarelo" style="background:#f2c94c"></button>
+        <button type="button" class="highlight-dot" data-color="azul" style="background:#56ccf2"></button>
+        <button type="button" class="highlight-dot" data-color="verde" style="background:#6fcf97"></button>
+        <button type="button" class="highlight-dot" data-color="rosa" style="background:#eb5757"></button>
+        <button type="button" class="highlight-dot highlight-dot--none" id="btnRemoveHighlight" title="Remover grifo">✕</button>
+      </div>
 
       ${verseActions}
 
@@ -209,6 +218,20 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
       } finally {
         compareBtn.remove();
       }
+    });
+  }
+
+  overlayEl.querySelectorAll('.highlight-dot[data-color]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      highlightRepository.set(bookIndex, chapterIndex, verseIndex, btn.dataset.color);
+      if (onHighlightChange) onHighlightChange(btn.dataset.color);
+    });
+  });
+  const removeHighlightBtn = overlayEl.querySelector('#btnRemoveHighlight');
+  if (removeHighlightBtn) {
+    removeHighlightBtn.addEventListener('click', () => {
+      highlightRepository.remove(bookIndex, chapterIndex, verseIndex);
+      if (onHighlightChange) onHighlightChange(null);
     });
   }
 

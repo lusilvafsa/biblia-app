@@ -27,6 +27,7 @@ import { attachSelectionToolbar } from './selectionToolbar.js';
 import { showVerseExplanation } from './verseExplanation.js';
 import { showChapterExplanation } from './chapterExplanation.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
+import { highlightRepository, HIGHLIGHT_COLORS } from '../../data-access/highlightRepository.js';
 import { requestWakeLock, releaseWakeLock, setupWakeLockReacquire } from '../../utils/wakeLock.js';
 import { startKeepAlive, stopKeepAlive } from '../../utils/keepAlive.js';
 import {
@@ -117,6 +118,11 @@ export const readerPage = {
       ]);
       p.style.fontSize = settings.fontSize + 'px';
       p.style.lineHeight = String(settings.lineHeight);
+      const savedColor = highlightRepository.get(bookIndex, chapterIndex, idx);
+      if (savedColor) {
+        const corInfo = HIGHLIGHT_COLORS.find((c) => c.id === savedColor);
+        if (corInfo) p.style.background = corInfo.hex + '33';
+      }
       p.addEventListener('click', () => {
         // Evita conflitar com uma seleção de texto (arrastar para
         // selecionar um trecho).
@@ -146,7 +152,15 @@ export const readerPage = {
           bookName: book.name,
           chapterIndex,
           verseIndex: idx,
-          verseText: text
+          verseText: text,
+          onHighlightChange: (colorId) => {
+            if (colorId) {
+              const corInfo = HIGHLIGHT_COLORS.find((c) => c.id === colorId);
+              p.style.background = corInfo ? corInfo.hex + '33' : '';
+            } else {
+              p.style.background = '';
+            }
+          }
         });
       });
       readContent.appendChild(p);
