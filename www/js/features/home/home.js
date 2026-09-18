@@ -112,7 +112,10 @@ function template() {
       </button>
     </div>
 
-    <div class="section-title">Planos de Leitura</div>
+    <div class="section-title">
+      Planos de Leitura
+      <button class="see-all" id="btnSeeAllPlans">Ver todos</button>
+    </div>
     <button class="plan-card" id="plan1">
       <div class="plan-icon-box">${icons.planBook}</div>
       <div class="plan-info"><h4>${plan1.plan.titulo}</h4><p>Dia ${plan1.feitos} de ${plan1.total}</p></div>
@@ -276,6 +279,7 @@ export const homePage = {
     qs('#btnSeeAll', container).addEventListener('click', () => toast.info('Mais recursos em breve'));
     qs('#plan1', container).addEventListener('click', () => navigateTo('/planos/trinta-dias-com-jesus'));
     qs('#plan2', container).addEventListener('click', () => navigateTo('/planos/salmos-de-conforto'));
+    qs('#btnSeeAllPlans', container).addEventListener('click', () => navigateTo('/planos'));
 
     qsa('[data-route]', container).forEach((btn) => {
       btn.addEventListener('click', () => navigateTo(btn.dataset.route));

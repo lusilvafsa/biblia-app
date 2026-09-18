@@ -28,6 +28,7 @@ import { notesPage } from './features/favorites/notes.js';
 import { assistantPage } from './features/assistant/assistant.js';
 import { planDetailPage } from './features/plans/planDetail.js';
 import { studyCornerPage } from './features/bible/studyCorner.js';
+import { plansListPage } from './features/plans/plansList.js';
 
 const NAV_ICONS = {
   home: icons.home,
@@ -112,6 +113,7 @@ function initRoutes() {
   registerRoute('/quiz', quizPage, { title: 'Quiz Bíblico', navKey: null, showBack: true });
   registerRoute('/ministracao', ministryListPage, { title: 'Guia de Ministração', navKey: null, showBack: true });
   registerRoute('/ministracao/:id', ministryDetailPage, { title: 'Guia de Ministração', navKey: null, showBack: true });
+  registerRoute('/planos', plansListPage, { title: 'Planos de Leitura', navKey: null, showBack: true });
   registerRoute('/planos/:id', planDetailPage, { title: 'Plano de Leitura', navKey: null, showBack: true });
   registerRoute('/estudo/:book/:chapter/:verse', studyCornerPage, { title: 'Cantinho de Estudo', navKey: null, showBack: true });
   registerRoute('/perfil', profilePage, { title: 'Meu Perfil', navKey: 'profile', showSettings: true });
