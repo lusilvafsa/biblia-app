@@ -5,8 +5,11 @@ import { icons } from '../../components/icons.js';
 import { getVerseCommentary } from '../../../data/verseCommentary.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
 import { favoritesRepository } from '../../data-access/favoritesRepository.js';
+import { navigateTo } from '../../router.js';
 import { supabase } from '../../supabaseClient.js';
 import { usuarioAtual } from '../../supabaseAuth.js';
+import { BIBLE_VERSIONS } from '../../../data/bibleVersions.js';
+import { getVerseFromVersion } from '../../data-access/bibleRepository.js';
 
 let overlayEl = null;
 
@@ -153,6 +156,10 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
       <div class="verse-explain-ref">📖 ${ref}</div>
       <blockquote class="verse-explain-text">"${verseText}"</blockquote>
 
+      <button type="button" id="btnCompareVersions" class="btn-primary" style="margin-bottom:16px;">📖 Comparar nas 3 versões</button>
+      <div id="compareVersionsResult" hidden></div>
+      <button type="button" id="btnOpenStudyCorner" style="margin-bottom:16px;">🧭 Abrir no Cantinho de Estudo</button>
+
       ${verseActions}
 
       ${body}
@@ -165,6 +172,45 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
     if (e.target === overlayEl) removePanel(); // toca fora do painel fecha
   });
   overlayEl.querySelector('#btnCloseExplain').addEventListener('click', removePanel);
+  overlayEl.querySelector('#btnOpenStudyCorner').addEventListener('click', () => {
+    removePanel();
+    navigateTo('/estudo/' + bookIndex + '/' + chapterIndex + '/' + verseIndex);
+  });
+
+  // ===== COMPARAR VERSÕES =====
+
+  const compareBtn = overlayEl.querySelector('#btnCompareVersions');
+  const compareResult = overlayEl.querySelector('#compareVersionsResult');
+
+  if (compareBtn) {
+    compareBtn.addEventListener('click', async () => {
+      compareBtn.disabled = true;
+      compareBtn.textContent = 'Carregando...';
+      compareResult.hidden = false;
+      compareResult.innerHTML = '<p>Buscando o versículo nas outras versões...</p>';
+
+      try {
+        const textos = await Promise.all(
+          BIBLE_VERSIONS.filter((v) => v.available).map(async (v) => {
+            try {
+              const texto = await getVerseFromVersion(v.id, bookIndex, chapterIndex, verseIndex);
+              return { label: v.label, texto };
+            } catch (_e) {
+              return { label: v.label, texto: null };
+            }
+          })
+        );
+
+        compareResult.innerHTML = textos
+          .map(({ label, texto }) => sectionHtml('📖', label, texto ? escaparHtml(texto) : 'Não disponível nesta versão.'))
+          .join('');
+      } catch (_e) {
+        compareResult.innerHTML = '<p>Não foi possível comparar as versões agora.</p>';
+      } finally {
+        compareBtn.remove();
+      }
+    });
+  }
 
   // ===== FAVORITOS =====
 

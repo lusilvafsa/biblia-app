@@ -2266,3 +2266,18 @@
 .read-toolbar #btnSpeed.speed-icon-only {
   font-size: 18px !important;
 }
+
+/* Referências cruzadas no Cantinho de Estudo */
+.cross-ref-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.ref-chip {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--navy-light);
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.ref-chip:hover { background: var(--gold-soft); border-color: var(--gold); }

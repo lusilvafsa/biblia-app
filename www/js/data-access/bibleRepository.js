@@ -3,7 +3,7 @@
 // Os dados vêm de um JSON estático por versão (data/bible-<id>.json),
 // carregado sob demanda (só quando o usuário entra na Bíblia) para manter
 // a carga inicial leve, e mantido em cache por versão — trocar de versão
-// não precisa rebaixar a que já foi carregada. A interface abaixo foi
+// não precisa recarregar a que já foi carregada. A interface abaixo foi
 // desenhada para que, no futuro, uma implementação equivalente possa
 // buscar os mesmos dados de uma API/backend sem exigir mudanças nas telas
 // que a consomem:
@@ -15,21 +15,19 @@
 // Basta criar, por exemplo, um `ApiBibleRepository` com a mesma forma e
 // trocar a importação nas features que usam este módulo.
 import { getBibleVersionMeta } from '../state/bibleVersion.js';
+import { getVersionMeta } from '../../data/bibleVersions.js';
 
 const cacheByVersion = new Map(); // id -> dados carregados
 const loadPromiseByVersion = new Map(); // id -> Promise em andamento
 
-function load() {
-  const meta = getBibleVersionMeta();
-  const id = meta.id;
-
+function loadVersionData(meta) {
   if (!meta.available) {
     return Promise.reject(
       new Error(`O arquivo de dados de "${meta.name}" ainda não foi adicionado a este projeto (data/${meta.file}).`)
     );
   }
-  if (cacheByVersion.has(id)) return Promise.resolve(cacheByVersion.get(id));
-  if (loadPromiseByVersion.has(id)) return loadPromiseByVersion.get(id);
+  if (cacheByVersion.has(meta.id)) return Promise.resolve(cacheByVersion.get(meta.id));
+  if (loadPromiseByVersion.has(meta.id)) return loadPromiseByVersion.get(meta.id);
 
   const dataUrl = new URL(`../../data/${meta.file}`, import.meta.url);
   const promise = fetch(dataUrl)
@@ -38,17 +36,21 @@ function load() {
       return res.json();
     })
     .then((data) => {
-      cacheByVersion.set(id, data);
-      loadPromiseByVersion.delete(id);
+      cacheByVersion.set(meta.id, data);
+      loadPromiseByVersion.delete(meta.id);
       return data;
     })
     .catch((err) => {
-      loadPromiseByVersion.delete(id); // permite tentar novamente
+      loadPromiseByVersion.delete(meta.id); // permite tentar novamente
       throw err;
     });
 
-  loadPromiseByVersion.set(id, promise);
+  loadPromiseByVersion.set(meta.id, promise);
   return promise;
+}
+
+function load() {
+  return loadVersionData(getBibleVersionMeta());
 }
 
 export async function getAllBooks() {
@@ -76,6 +78,20 @@ export async function getChapter(bookIndex, chapterIndex) {
   const verses = book.chapters[chapterIndex];
   if (!verses) throw new Error(`Capítulo inválido: ${bookIndex}/${chapterIndex}`);
   return verses;
+}
+
+/** Busca um único versículo numa versão específica, sem trocar a versão
+ * atualmente selecionada no app. Usado pelo comparador de versões. */
+export async function getVerseFromVersion(versionId, bookIndex, chapterIndex, verseIndex) {
+  const meta = getVersionMeta(versionId);
+  const data = await loadVersionData(meta);
+  const book = data[bookIndex];
+  if (!book) throw new Error(`Livro inválido: ${bookIndex}`);
+  const chapter = book.chapters[chapterIndex];
+  if (!chapter) throw new Error(`Capítulo inválido: ${bookIndex}/${chapterIndex}`);
+  const verse = chapter[verseIndex];
+  if (verse === undefined) throw new Error(`Versículo inválido: ${bookIndex}/${chapterIndex}/${verseIndex}`);
+  return verse;
 }
 
 /** Busca um termo em todo o texto bíblico. Retorna no máximo `limit` resultados. */
