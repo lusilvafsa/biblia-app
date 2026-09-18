@@ -146,7 +146,8 @@ const MALE_NAME_HINTS = [
   'miguel',
   'tiago',
   'thiago',
-  'masculin'
+  'masculin',
+  'x-ptd'
 ];
 
 const FEMALE_NAME_HINTS = [

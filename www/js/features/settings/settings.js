@@ -42,7 +42,7 @@ function voiceOptionsHtml(voices, selectedURI) {
   let html = `<option value="" ${autoSelected}>Automática (masculina, pt-BR quando disponível)</option>`;
   voices.forEach((v) => {
     const sel = v.voiceURI === selectedURI ? 'selected' : '';
-    html += `<option value="${v.voiceURI}" ${sel}>${v.name} (${v.lang})${genderSuffix(v)}</option>`;
+    html += `<option value="${v.voiceURI}" ${sel}>${v.voiceURI}</option>`;
   });
   return html;
 }
@@ -103,6 +103,7 @@ function template(settings) {
       <div class="settings-actions">
         <button class="tool-btn" id="btnTestVoice">Testar voz</button>
         <button class="tool-btn" id="btnResetVoice">Restaurar padrão</button>
+        <button class="tool-btn" id="btnDebugVoices">Diagnostico de vozes</button>
       </div>
     </div>
 
@@ -223,6 +224,7 @@ export const settingsPage = {
       });
     });
 
+    qs('#btnDebugVoices', container).addEventListener('click', () => alert(JSON.stringify(getAvailableVoices(), null, 2)));
     qs('#btnResetVoice', container).addEventListener('click', () => {
       resetVoiceSettings();
       settings = { ...DEFAULT_VOICE_SETTINGS };
