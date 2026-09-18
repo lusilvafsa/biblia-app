@@ -10,6 +10,7 @@ import { getReadingPlan } from '../../../data/readingPlans.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { planProgressRepository } from '../../data-access/planProgressRepository.js';
 import { getBook } from '../../data-access/bibleRepository.js';
+import { statsRepository } from '../../data-access/statsRepository.js';
 import { requestAutoStart } from '../bible/reader.js';
 import { aguardarAuthInicial } from '../../supabaseAuth.js';
 
@@ -45,6 +46,7 @@ function planCardData(planId) {
 }
 
 function template() {
+  const streak = statsRepository.getStreak();
   const verse = DAILY_VERSES[verseIndex];
   const plan1 = planCardData('trinta-dias-com-jesus');
   const plan2 = planCardData('salmos-de-conforto');
@@ -62,8 +64,8 @@ function template() {
     <div class="streak-banner">
       <div class="streak-flame">${icons.bible}</div>
       <div class="streak-info">
-        <h4>Sequência de 7 dias</h4>
-        <p>Continue lendo para manter sua sequência</p>
+        <h4>Sequência de ${streak} ${streak === 1 ? 'dia' : 'dias'}</h4>
+        <p>${streak > 0 ? 'Continue lendo para manter sua sequência' : 'Leia hoje para começar uma sequência'}</p>
       </div>
     </div>
 
