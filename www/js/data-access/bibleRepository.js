@@ -1,81 +1,96 @@
 // Camada de acesso aos dados bíblicos.
 //
-// Os dados vêm de um JSON estático por versão (data/bible-<id>.json),
-// carregado sob demanda (só quando o usuário entra na Bíblia) para manter
-// a carga inicial leve, e mantido em cache por versão — trocar de versão
-// não precisa recarregar a que já foi carregada. A interface abaixo foi
-// desenhada para que, no futuro, uma implementação equivalente possa
-// buscar os mesmos dados de uma API/backend sem exigir mudanças nas telas
-// que a consomem:
-//
-//   getAllBooks()              -> [{ index, name, abbrev, chapterCount }]
-//   getChapter(bookIndex, ch)  -> string[] (versículos do capítulo)
-//   search(query, limit)       -> resultados encontrados no texto
-//
-// Basta criar, por exemplo, um `ApiBibleRepository` com a mesma forma e
-// trocar a importação nas features que usam este módulo.
+// Cada versão fica em data/bible/<id>/: um index.json leve (nome, abreviação
+// e quantidade de capítulos dos 66 livros, sem o texto) e um arquivo
+// <bookIndex>.json por livro (com o texto completo daquele livro), carregado
+// só quando o usuário realmente abre aquele livro. Isso evita baixar os ~4MB
+// de uma versão inteira só para ler um capítulo.
 import { getBibleVersionMeta } from '../state/bibleVersion.js';
 import { getVersionMeta } from '../../data/bibleVersions.js';
 
-const cacheByVersion = new Map(); // id -> dados carregados
-const loadPromiseByVersion = new Map(); // id -> Promise em andamento
+const indexCache = new Map(); // versionId -> índice leve dos 66 livros
+const indexPromiseCache = new Map();
+const bookCache = new Map(); // "versionId:bookIndex" -> livro completo
+const bookPromiseCache = new Map();
 
-function loadVersionData(meta) {
-  if (!meta.available) {
-    return Promise.reject(
-      new Error(`O arquivo de dados de "${meta.name}" ainda não foi adicionado a este projeto (data/${meta.file}).`)
-    );
-  }
-  if (cacheByVersion.has(meta.id)) return Promise.resolve(cacheByVersion.get(meta.id));
-  if (loadPromiseByVersion.has(meta.id)) return loadPromiseByVersion.get(meta.id);
+function loadIndex(versionId) {
+  if (indexCache.has(versionId)) return Promise.resolve(indexCache.get(versionId));
+  if (indexPromiseCache.has(versionId)) return indexPromiseCache.get(versionId);
 
-  const dataUrl = new URL(`../../data/${meta.file}`, import.meta.url);
-  const promise = fetch(dataUrl)
+  const url = new URL(`../../data/bible/${versionId}/index.json`, import.meta.url);
+  const promise = fetch(url)
     .then((res) => {
-      if (!res.ok) throw new Error(`Falha ao carregar dados da Bíblia (HTTP ${res.status})`);
+      if (!res.ok) throw new Error(`Falha ao carregar índice da Bíblia (HTTP ${res.status})`);
       return res.json();
     })
     .then((data) => {
-      cacheByVersion.set(meta.id, data);
-      loadPromiseByVersion.delete(meta.id);
+      indexCache.set(versionId, data);
+      indexPromiseCache.delete(versionId);
       return data;
     })
     .catch((err) => {
-      loadPromiseByVersion.delete(meta.id); // permite tentar novamente
+      indexPromiseCache.delete(versionId);
       throw err;
     });
 
-  loadPromiseByVersion.set(meta.id, promise);
+  indexPromiseCache.set(versionId, promise);
   return promise;
 }
 
-function load() {
-  return loadVersionData(getBibleVersionMeta());
+function loadBook(versionId, bookIndex) {
+  const chave = `${versionId}:${bookIndex}`;
+  if (bookCache.has(chave)) return Promise.resolve(bookCache.get(chave));
+  if (bookPromiseCache.has(chave)) return bookPromiseCache.get(chave);
+
+  const url = new URL(`../../data/bible/${versionId}/${bookIndex}.json`, import.meta.url);
+  const promise = fetch(url)
+    .then((res) => {
+      if (!res.ok) throw new Error(`Falha ao carregar livro (HTTP ${res.status})`);
+      return res.json();
+    })
+    .then((data) => {
+      bookCache.set(chave, data);
+      bookPromiseCache.delete(chave);
+      return data;
+    })
+    .catch((err) => {
+      bookPromiseCache.delete(chave);
+      throw err;
+    });
+
+  bookPromiseCache.set(chave, promise);
+  return promise;
+}
+
+function currentVersionId() {
+  const meta = getBibleVersionMeta();
+  if (!meta.available) {
+    throw new Error(`O arquivo de dados de "${meta.name}" ainda não foi adicionado a este projeto.`);
+  }
+  return meta.id;
 }
 
 export async function getAllBooks() {
-  const data = await load();
-  return data.map((book, index) => ({
+  const indice = await loadIndex(currentVersionId());
+  return indice.map((livro, index) => ({
     index,
-    name: book.name,
-    abbrev: book.abbrev,
-    chapterCount: book.chapters.length,
+    name: livro.name,
+    abbrev: livro.abbrev,
+    chapterCount: livro.chapterCount,
     testament: index < 39 ? 'old' : 'new',
   }));
 }
 
 export async function getBook(bookIndex) {
-  const data = await load();
-  const book = data[bookIndex];
-  if (!book) throw new Error(`Livro inválido: ${bookIndex}`);
-  return { index: bookIndex, name: book.name, abbrev: book.abbrev, chapterCount: book.chapters.length };
+  const indice = await loadIndex(currentVersionId());
+  const livro = indice[bookIndex];
+  if (!livro) throw new Error(`Livro inválido: ${bookIndex}`);
+  return { index: bookIndex, name: livro.name, abbrev: livro.abbrev, chapterCount: livro.chapterCount };
 }
 
 export async function getChapter(bookIndex, chapterIndex) {
-  const data = await load();
-  const book = data[bookIndex];
-  if (!book) throw new Error(`Livro inválido: ${bookIndex}`);
-  const verses = book.chapters[chapterIndex];
+  const livro = await loadBook(currentVersionId(), bookIndex);
+  const verses = livro.chapters[chapterIndex];
   if (!verses) throw new Error(`Capítulo inválido: ${bookIndex}/${chapterIndex}`);
   return verses;
 }
@@ -83,26 +98,28 @@ export async function getChapter(bookIndex, chapterIndex) {
 /** Busca um único versículo numa versão específica, sem trocar a versão
  * atualmente selecionada no app. Usado pelo comparador de versões. */
 export async function getVerseFromVersion(versionId, bookIndex, chapterIndex, verseIndex) {
-  const meta = getVersionMeta(versionId);
-  const data = await loadVersionData(meta);
-  const book = data[bookIndex];
-  if (!book) throw new Error(`Livro inválido: ${bookIndex}`);
-  const chapter = book.chapters[chapterIndex];
+  getVersionMeta(versionId); // valida que a versão existe
+  const livro = await loadBook(versionId, bookIndex);
+  const chapter = livro.chapters[chapterIndex];
   if (!chapter) throw new Error(`Capítulo inválido: ${bookIndex}/${chapterIndex}`);
   const verse = chapter[verseIndex];
   if (verse === undefined) throw new Error(`Versículo inválido: ${bookIndex}/${chapterIndex}/${verseIndex}`);
   return verse;
 }
 
-/** Busca um termo em todo o texto bíblico. Retorna no máximo `limit` resultados. */
+/** Busca um termo em todo o texto bíblico. Carrega os livros necessários
+ * sob demanda (em paralelo) — só quando o usuário realmente busca algo. */
 export async function search(query, limit = 50) {
-  const data = await load();
   const needle = query.trim().toLowerCase();
   if (needle.length < 2) return [];
 
+  const versionId = currentVersionId();
+  const indice = await loadIndex(versionId);
+  const livros = await Promise.all(indice.map((_, i) => loadBook(versionId, i)));
+
   const results = [];
-  for (let bIdx = 0; bIdx < data.length; bIdx++) {
-    const book = data[bIdx];
+  for (let bIdx = 0; bIdx < livros.length; bIdx++) {
+    const book = livros[bIdx];
     for (let cIdx = 0; cIdx < book.chapters.length; cIdx++) {
       const chapter = book.chapters[cIdx];
       for (let vIdx = 0; vIdx < chapter.length; vIdx++) {

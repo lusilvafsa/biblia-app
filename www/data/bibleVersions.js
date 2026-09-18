@@ -1,11 +1,8 @@
 // Registro das versões da Bíblia que o app pode exibir.
 //
-// Cada entrada aponta para um arquivo em data/bible-<id>.json no mesmo
-// formato de data/bible-acf.json (array de livros, cada um com
-// {abbrev, name, chapters: string[][]}). Uma versão com `available: false`
-// aparece no seletor mas mostra uma mensagem explicando que o arquivo
-// ainda não foi adicionado, em vez de quebrar — veja
-// js/data-access/bibleRepository.js.
+// Cada versão tem seus dados em www/data/bible/<id>/, com um index.json
+// (metadados leves de todos os 66 livros) e um arquivo <bookIndex>.json
+// por livro (carregado sob demanda) — veja js/data-access/bibleRepository.js.
 //
 // Sobre as versões escolhidas: no Brasil, a maioria das traduções bíblicas
 // modernas mais conhecidas (NVI, ARA, NTLH, Almeida Século 21 etc.) é
@@ -22,21 +19,18 @@ export const BIBLE_VERSIONS = [
     id: 'acf',
     label: 'ACF',
     name: 'Almeida Corrigida Fiel',
-    file: 'bible-acf.json',
     available: true,
   },
   {
     id: 'blivre',
     label: 'BLIVRE',
     name: 'Bíblia Livre',
-    file: 'bible-blivre.json',
     available: true,
   },
   {
     id: 'alm1911',
     label: 'ARC 1911',
     name: 'Almeida Revista e Corrigida (1911)',
-    file: 'bible-alm1911.json',
     available: true,
   },
 ];
