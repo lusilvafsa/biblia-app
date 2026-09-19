@@ -2368,3 +2368,23 @@
 img.icon-glyph {
   transform: scale(1.3);
 }
+
+/* Ações de compartilhar/imprimir no Guia de Ministração */
+.ministry-share-actions { display: flex; gap: 8px; margin: 4px 0 16px; }
+.ministry-share-actions .read-btn { flex: 1; }
+
+/* Impressão / "Salvar como PDF": esconde tudo, mostra só o conteúdo do esboço */
+@media print {
+  .app-header, .bottom-nav, .no-print, .home-indicator { display: none !important; }
+  .app-content { padding: 0 !important; max-width: 100% !important; }
+  body, .phone-frame { background: #fff !important; color: #000 !important; }
+  .ministry-header-card, .verse-card, .ministry-outline-card, .settings-card {
+    background: #fff !important;
+    border: 1px solid #999 !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+  .ministry-header-card h2, .verse-ref, .ministry-point h4, .settings-section-title, .ministry-theme-label {
+    color: #000 !important;
+  }
+}

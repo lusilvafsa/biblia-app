@@ -7,14 +7,28 @@ import { setHeaderTitle } from '../../state/header.js';
 import { getMinistryOutline } from '../../../data/ministryOutlines.js';
 import { getAllBooks } from '../../data-access/bibleRepository.js';
 
-/** Tenta extrair {bookName, chapter, verse} de uma referência como
- * "Romanos 8:28" ou "1 Coríntios 13:4-7". Retorna null se não conseguir
- * reconhecer o formato — nesse caso o app simplesmente não oferece o
- * atalho "Abrir no leitor", sem quebrar a tela. */
 function parseRef(ref) {
   const match = ref.match(/^(.+?)\s+(\d+):(\d+)/);
   if (!match) return null;
   return { bookName: match[1].trim(), chapter: Number(match[2]), verse: Number(match[3]) };
+}
+
+function montarTextoCompartilhavel(item) {
+  const pontosTexto = item.esboco.pontos.map((p) => `${p.titulo}\n${p.texto}`).join('\n\n');
+  return [
+    `📖 ${item.tema}`,
+    '',
+    `Passagem principal: ${item.versiculoPrincipal.ref}`,
+    `"${item.versiculoPrincipal.texto}"`,
+    '',
+    item.esboco.introducao,
+    '',
+    pontosTexto,
+    '',
+    `Aplicação: ${item.esboco.aplicacao}`,
+    '',
+    `Oração final: ${item.esboco.oracaoFinal}`,
+  ].join('\n');
 }
 
 export const ministryDetailPage = {
@@ -34,6 +48,11 @@ export const ministryDetailPage = {
     const apoioHtml = item.versiculosApoio.map((ref) => `<span class="ministry-ref-chip">${ref}</span>`).join('');
 
     container.innerHTML = `
+      <div class="ministry-share-actions no-print">
+        <button class="read-btn" id="btnShareOutline">🔗 Compartilhar</button>
+        <button class="read-btn" id="btnPrintOutline">🖨️ Imprimir / PDF</button>
+      </div>
+
       <div class="ministry-header-card">
         <div class="ministry-theme-label">${icons.explain} TEMA</div>
         <h2>${item.tema}</h2>
@@ -43,7 +62,7 @@ export const ministryDetailPage = {
         <div class="verse-label">📖 Passagem Principal</div>
         <div class="verse-text">"${item.versiculoPrincipal.texto}"</div>
         <div class="verse-ref">${item.versiculoPrincipal.ref}</div>
-        <div class="verse-actions">
+        <div class="verse-actions no-print">
           <button class="icon-btn" id="btnOpenPassage" title="Abrir no leitor">${icons.bibleNav}</button>
         </div>
       </div>
@@ -87,5 +106,25 @@ export const ministryDetailPage = {
         }
       });
     }
+
+    container.querySelector('#btnShareOutline').addEventListener('click', async () => {
+      const texto = montarTextoCompartilhavel(item);
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: item.tema, text: texto });
+        } catch (_e) {
+          /* usuário cancelou — sem erro */
+        }
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(texto);
+        toast.success('Esboço copiado! Cole onde quiser compartilhar.');
+      } else {
+        toast.info('Compartilhamento não suportado neste navegador.');
+      }
+    });
+
+    container.querySelector('#btnPrintOutline').addEventListener('click', () => {
+      window.print();
+    });
   },
 };
