@@ -100,6 +100,7 @@ export const readerPage = {
     let book, verses;
     try {
       [book, verses] = await Promise.all([getBook(bookIndex), getChapter(bookIndex, chapterIndex)]);
+      statsRepository.registerActivityToday();
     } catch (err) {
       container.innerHTML = `<div class="state-message error">Capítulo não encontrado.</div>`;
       return;
