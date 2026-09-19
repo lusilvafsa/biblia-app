@@ -2331,3 +2331,9 @@
   border: 1px solid var(--border);
   color: var(--text-secondary);
 }
+
+/* Deixa o rótulo "Versículo do Dia" em texto normal, igual aos demais títulos */
+.verse-label { text-transform: none !important; letter-spacing: normal !important; }
+
+/* Iguala o tamanho do rótulo "Versículo do Dia" aos demais títulos de card */
+.verse-label { font-size: 15px !important; margin-bottom: 12px !important; }

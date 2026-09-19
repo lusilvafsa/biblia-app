@@ -89,7 +89,7 @@ function template() {
     <div class="section-title">Louvor do Dia</div>
     <div class="prayer-card">
       <h4>🎵 ${song.title}</h4>
-      <p>${song.artist}</p>
+      <p class="verse-text" style="margin-bottom:0; color:var(--text-primary); font-size:19px; line-height:1.65;">${song.artist}</p>
       <button type="button" class="prayer-amen" id="btnPlaySong">▶ Ouvir no YouTube</button>
     </div>
 
@@ -243,7 +243,7 @@ async function renderPsalmOfDay(container) {
       <div class="section-title">Salmo do Dia</div>
       <div class="prayer-card" id="btnOpenPsalm" style="cursor:pointer;">
         <h4>📖 Salmos ${chapterIndex + 1}</h4>
-        <p class="verse-text" style="margin-bottom:0; color:var(--text-primary);">${verses[0]}</p>
+        <p class="verse-text" style="margin-bottom:0; color:var(--text-primary); font-size:19px; line-height:1.65;">${verses[0]}</p>
       </div>
     `;
 
