@@ -2337,3 +2337,34 @@
 
 /* Iguala o tamanho do rótulo "Versículo do Dia" aos demais títulos de card */
 .verse-label { font-size: 15px !important; margin-bottom: 12px !important; }
+
+/* Aumenta o emoji do botão Meus Marcadores para bater com os ícones SVG ao lado */
+#btnProfileMarcadores .menu-icon { font-size: 22px; display: flex; align-items: center; justify-content: center; }
+
+/* Garante que o ícone de imagem (Bíblia) fique do mesmo tamanho dos ícones vetoriais ao lado */
+#btnProfileBible .menu-icon img.icon-glyph {
+  width: 22px !important;
+  height: 22px !important;
+  object-fit: contain;
+}
+
+/* Zoom na imagem da Bíblia para compensar espaço vazio no arquivo do ícone */
+#btnProfileBible .menu-icon {
+  overflow: visible !important;
+}
+#btnProfileBible .menu-icon img.icon-glyph {
+  width: 22px !important;
+  height: 22px !important;
+  object-fit: contain;
+  transform: scale(1.8);
+}
+
+/* Ajuste fino do zoom do icone da Biblia (sobrescreve o valor anterior) */
+#btnProfileBible .menu-icon img.icon-glyph {
+  transform: scale(1.3);
+}
+
+/* Corrige o zoom do ícone da Bíblia (bible-icon.png) em qualquer lugar do app onde ele apareça */
+img.icon-glyph {
+  transform: scale(1.3);
+}
