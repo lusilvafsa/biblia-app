@@ -262,42 +262,6 @@ async function renderContinueReadingCard(container) {
 });
 }
 
-export const homePage = {
-  render(container) {
-    container.innerHTML = template();
-
-    qs('#btnCopyVerse', container).addEventListener('click', () => copyVerse(container));
-    qs('#btnBookmarkVerse', container).addEventListener('click', () => {
-      toggleBookmark(DAILY_VERSES[verseIndex].ref);
-      updateVerseDisplay(container);
-    });
-    qs('#btnShareVerse', container).addEventListener('click', shareVerse);
-    qs('#btnNewVerse', container).addEventListener('click', () => {
-      verseIndex = (verseIndex + 1) % DAILY_VERSES.length;
-      updateVerseDisplay(container);
-      toast.info('Novo versículo carregado');
-    });
-    qs('#btnVerseTTS', container).addEventListener('click', () => toggleVerseAudio(container));
-    qs('#btnSeeAll', container).addEventListener('click', () => toast.info('Mais recursos em breve'));
-    qs('#plan1', container).addEventListener('click', () => navigateTo('/planos/trinta-dias-com-jesus'));
-    qs('#plan2', container).addEventListener('click', () => navigateTo('/planos/salmos-de-conforto'));
-    qs('#btnSeeAllPlans', container).addEventListener('click', () => navigateTo('/planos'));
-
-    qsa('[data-route]', container).forEach((btn) => {
-      btn.addEventListener('click', () => navigateTo(btn.dataset.route));
-    });
-
-    updateVerseDisplay(container);
-    renderContinueReadingCard(container);
-
-    return () => {
-      if (isSpeakingVerse) {
-        stopSpeech();
-        isSpeakingVerse = false;
-      }
-    };
-  },
-};
 
 export const homePage = {
   render(container) {
