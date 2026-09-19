@@ -303,21 +303,11 @@ function template(user = null) {
       <button
         type="button"
         class="menu-item profile-action-item"
-        id="btnProfileFavorites"
+        id="btnProfileMarcadores"
       >
-        <div class="menu-icon">♥</div>
+        <div class="menu-icon">📚</div>
         <div class="menu-title">${favoritesCount}</div>
-        <div class="menu-desc">Favoritos</div>
-      </button>
-
-      <button
-        type="button"
-        class="menu-item profile-action-item"
-        id="btnProfileNotes"
-      >
-        <div class="menu-icon">📝</div>
-        <div class="menu-title">${notesCount}</div>
-        <div class="menu-desc">Anotações</div>
+        <div class="menu-desc">Meus Marcadores</div>
       </button>
 
       <button
@@ -1163,27 +1153,15 @@ function bindNavigationEvents(container) {
     );
   }
 
-  const favoritesBtn =
+  const marcadoresBtn =
     container.querySelector(
-      '#btnProfileFavorites'
+      '#btnProfileMarcadores'
     );
 
-  if (favoritesBtn) {
-    favoritesBtn.addEventListener(
+  if (marcadoresBtn) {
+    marcadoresBtn.addEventListener(
       'click',
       () => navigateTo('/favoritos')
-    );
-  }
-
-  const notesBtn =
-    container.querySelector(
-      '#btnProfileNotes'
-    );
-
-  if (notesBtn) {
-    notesBtn.addEventListener(
-      'click',
-      () => navigateTo('/anotacoes')
     );
   }
 
