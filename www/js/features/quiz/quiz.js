@@ -1,6 +1,7 @@
 // Tela: Quiz Bíblico — perguntas de múltipla escolha com placar final.
 import { el } from '../../utils/dom.js';
 import { QUIZ_QUESTIONS } from '../../../data/quiz.js';
+import { statsRepository } from '../../data-access/statsRepository.js';
 
 function renderFinalScore(container, score, restart) {
   container.innerHTML = '';
@@ -25,6 +26,7 @@ export const quizPage = {
 
     function renderQuestion() {
       if (questionIndex >= QUIZ_QUESTIONS.length) {
+        statsRepository.registerQuizResult(score, QUIZ_QUESTIONS.length);
         renderFinalScore(container, score, () => {
           questionIndex = 0;
           score = 0;

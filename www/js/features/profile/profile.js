@@ -213,7 +213,19 @@ function template(user = null) {
   const prayerCount =
     statsRepository.getPrayerCount();
 
-  const badgesHtml = BADGES.map(
+  const bestStreakCount = statsRepository.getBestStreak();
+  const perfectQuizCount = statsRepository.getPerfectQuizCount();
+
+  const badgesComputados = [
+    { icon: icons.badgeFirst, name: 'Primeira Leitura', unlocked: readVersesCount >= 1 },
+    { icon: icons.badgeStreak, name: '7 Dias Seguidos', unlocked: bestStreakCount >= 7 },
+    { icon: icons.prayer, name: 'Guerreiro de Oração', unlocked: prayerCount >= 5 },
+    { icon: icons.badgeDouble, name: 'Estudioso da Bíblia', unlocked: readVersesCount >= 50 },
+    { icon: icons.badgeQuiz, name: 'Mestre do Quiz', unlocked: perfectQuizCount >= 1 },
+    { icon: icons.badgeFull, name: 'Bíblia Completa', unlocked: readVersesCount >= 31100 },
+  ];
+
+  const badgesHtml = badgesComputados.map(
     (b) => `
       <div class="badge-item ${b.unlocked ? 'unlocked' : ''}">
         <div class="badge-icon">${b.icon}</div>
@@ -228,8 +240,8 @@ function template(user = null) {
     <div class="streak-banner">
       <div class="streak-flame">${icons.bible}</div>
       <div class="streak-info">
-        <h4>Sequência de leitura de 7 dias</h4>
-        <p>Melhor: 14 dias</p>
+        <h4>Sequência de leitura de ${statsRepository.getStreak()} dias</h4>
+        <p>Melhor: ${bestStreakCount} dias</p>
       </div>
     </div>
 
