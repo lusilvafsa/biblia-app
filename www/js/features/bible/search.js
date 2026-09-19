@@ -59,7 +59,7 @@ export const searchPage = {
         const item = el('button', {
           className: 'search-result-item',
           html: `<strong>${escapeHtml(r.bookName)} ${r.chapter + 1}:${r.verse + 1}</strong>${highlightMatch(r.text, query)}`,
-          onClick: () => navigateTo(`/biblia/${r.bookIndex}/${r.chapter}`),
+          onClick: () => navigateTo(`/biblia/${r.bookIndex}/${r.chapter}/versiculo/${r.verse}`),
         });
         results.appendChild(item);
       });
