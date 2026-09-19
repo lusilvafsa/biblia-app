@@ -234,6 +234,16 @@ function template(user = null) {
     `
   ).join('');
 
+  const weekActivity = statsRepository.getWeekActivity();
+  const weekActivityHtml = weekActivity.map(
+    (d) => `
+      <div class="week-day ${d.active ? 'active' : ''}">
+        <span class="week-day-label">${d.label}</span>
+        <span class="week-day-dot"></span>
+      </div>
+    `
+  ).join('');
+
   return `
     ${accountTemplate(user)}
 
@@ -243,6 +253,11 @@ function template(user = null) {
         <h4>Sequência de leitura de ${statsRepository.getStreak()} dias</h4>
         <p>Melhor: ${bestStreakCount} dias</p>
       </div>
+    </div>
+
+    <div class="section-title">Sua Semana</div>
+    <div class="week-strip">
+      ${weekActivityHtml}
     </div>
 
     <div class="section-title">Insígnias de Fé</div>
