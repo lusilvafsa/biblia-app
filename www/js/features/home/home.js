@@ -9,8 +9,9 @@ import { DAILY_VERSES } from '../../../data/verses.js';
 import { getReadingPlan } from '../../../data/readingPlans.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { planProgressRepository } from '../../data-access/planProgressRepository.js';
-import { getBook } from '../../data-access/bibleRepository.js';
+import { getBook, getChapter } from '../../data-access/bibleRepository.js';
 import { statsRepository } from '../../data-access/statsRepository.js';
+import { getTodaysSong } from '../../../data/worshipSongs.js';
 import { requestAutoStart } from '../bible/reader.js';
 import { aguardarAuthInicial } from '../../supabaseAuth.js';
 
@@ -47,6 +48,7 @@ function planCardData(planId) {
 
 function template() {
   const streak = statsRepository.getStreak();
+  const song = getTodaysSong();
   const verse = DAILY_VERSES[verseIndex];
   const plan1 = planCardData('trinta-dias-com-jesus');
   const plan2 = planCardData('salmos-de-conforto');
@@ -80,6 +82,15 @@ function template() {
         <button class="icon-btn" id="btnShareVerse" title="Compartilhar" aria-label="Compartilhar versículo">${icons.share}</button>
         <button class="icon-btn" id="btnNewVerse" title="Novo versículo" aria-label="Carregar novo versículo">${icons.refresh}</button>
       </div>
+    </div>
+
+    <div id="psalmOfDaySlot"></div>
+
+    <div class="section-title">Louvor do Dia</div>
+    <div class="prayer-card">
+      <h4>🎵 ${song.title}</h4>
+      <p>${song.artist}</p>
+      <button type="button" class="prayer-amen" id="btnPlaySong">▶ Ouvir no YouTube</button>
     </div>
 
     <div class="section-title">
@@ -128,6 +139,7 @@ function template() {
       <div class="plan-info"><h4>${plan2.plan.titulo}</h4><p>Dia ${plan2.feitos} de ${plan2.total}</p></div>
       <div class="plan-progress">${plan2.percent}%</div>
     </button>
+
   `;
 }
 
@@ -210,6 +222,39 @@ function toggleVerseAudio(container) {
   });
 }
 
+function getTodaysPsalmChapter() {
+  const inicioDoAno = new Date(new Date().getFullYear(), 0, 0);
+  const diffMs = new Date() - inicioDoAno;
+  const diaDoAno = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return diaDoAno % 150; // Salmos tem 150 capítulos, índice 0-149
+}
+
+async function renderPsalmOfDay(container) {
+  const slot = qs('#psalmOfDaySlot', container);
+  if (!slot) return;
+
+  const chapterIndex = getTodaysPsalmChapter();
+
+  try {
+    const verses = await getChapter(18, chapterIndex); // 18 = Salmos
+    if (!document.body.contains(slot)) return;
+
+    slot.innerHTML = `
+      <div class="section-title">Salmo do Dia</div>
+      <div class="prayer-card" id="btnOpenPsalm" style="cursor:pointer;">
+        <h4>📖 Salmos ${chapterIndex + 1}</h4>
+        <p class="verse-text" style="margin-bottom:0; color:var(--text-primary);">${verses[0]}</p>
+      </div>
+    `;
+
+    qs('#btnOpenPsalm', slot).addEventListener('click', () => {
+      navigateTo(`/biblia/18/${chapterIndex}/versiculo/0`);
+    });
+  } catch (_e) {
+    // dado indisponível — não quebra a Home por causa disso
+  }
+}
+
 async function renderContinueReadingCard(container) {
   const slot = qs('#continueReadingSlot', container);
   if (!slot) return;
@@ -283,6 +328,11 @@ export const homePage = {
     qs('#plan1', container).addEventListener('click', () => navigateTo('/planos/trinta-dias-com-jesus'));
     qs('#plan2', container).addEventListener('click', () => navigateTo('/planos/salmos-de-conforto'));
     qs('#btnSeeAllPlans', container).addEventListener('click', () => navigateTo('/planos'));
+    qs('#btnPlaySong', container).addEventListener('click', () => {
+      const s = getTodaysSong();
+      const busca = encodeURIComponent(`${s.title} ${s.artist} louvor`);
+      window.open(`https://www.youtube.com/results?search_query=${busca}`, '_blank');
+    });
 
     qsa('[data-route]', container).forEach((btn) => {
       btn.addEventListener('click', () => navigateTo(btn.dataset.route));
@@ -290,6 +340,7 @@ export const homePage = {
 
     updateVerseDisplay(container);
     renderContinueReadingCard(container);
+    renderPsalmOfDay(container);
 
     return () => {
       if (isSpeakingVerse) {
