@@ -2319,3 +2319,15 @@
   box-shadow: 0 0 10px rgba(201,169,110,0.4);
 }
 .week-day.active .week-day-label { color: var(--gold); }
+
+/* Etiquetas na tela unificada de Meus Marcadores */
+.favorite-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.tag-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--navy-light);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}

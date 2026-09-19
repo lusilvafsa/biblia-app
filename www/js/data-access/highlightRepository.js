@@ -22,6 +22,9 @@ function writeAll(data) {
 }
 
 export const highlightRepository = {
+  getAll() {
+    return readAll();
+  },
   get(bookIndex, chapterIndex, verseIndex) {
     const all = readAll();
     return all[makeKey(bookIndex, chapterIndex, verseIndex)] || null;

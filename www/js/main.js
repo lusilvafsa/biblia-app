@@ -24,6 +24,7 @@ import { ministryListPage } from './features/ministry/ministryList.js';
 import { ministryDetailPage } from './features/ministry/ministryDetail.js';
 import { notFoundPage } from './features/notFound.js';
 import { favoritesPage } from './features/favorites/favorites.js';
+import { reviewPage } from './features/favorites/review.js';
 import { notesPage } from './features/favorites/notes.js';
 import { assistantPage } from './features/assistant/assistant.js';
 import { planDetailPage } from './features/plans/planDetail.js';
@@ -117,8 +118,8 @@ function initRoutes() {
   registerRoute('/planos/:id', planDetailPage, { title: 'Plano de Leitura', navKey: null, showBack: true });
   registerRoute('/estudo/:book/:chapter/:verse', studyCornerPage, { title: 'Cantinho de Estudo', navKey: null, showBack: true });
   registerRoute('/perfil', profilePage, { title: 'Meu Perfil', navKey: 'profile', showSettings: true });
-  registerRoute('/favoritos', favoritesPage, { title: 'Favoritos', navKey: null, showBack: true });
-  registerRoute('/anotacoes', notesPage, { title: 'Anotações', navKey: null, showBack: true });
+  registerRoute('/favoritos', reviewPage, { title: 'Meus Marcadores', navKey: null, showBack: true });
+  registerRoute('/anotacoes', reviewPage, { title: 'Meus Marcadores', navKey: null, showBack: true });
   registerRoute('/assistente', assistantPage, { title: 'Assistente Bíblico', navKey: null, showBack: true });
   registerRoute('/configuracoes', settingsPage, { title: 'Configurações', navKey: null, showBack: true });
   setNotFound(notFoundPage);
