@@ -27,6 +27,8 @@ import { attachSelectionToolbar } from './selectionToolbar.js';
 import { showVerseExplanation } from './verseExplanation.js';
 import { showChapterExplanation } from './chapterExplanation.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
+import { supabase } from '../../supabaseClient.js';
+import { usuarioAtual } from '../../supabaseAuth.js';
 import { highlightRepository, HIGHLIGHT_COLORS } from '../../data-access/highlightRepository.js';
 import { requestWakeLock, releaseWakeLock, setupWakeLockReacquire } from '../../utils/wakeLock.js';
 import { startKeepAlive, stopKeepAlive } from '../../utils/keepAlive.js';
@@ -151,6 +153,7 @@ export const readerPage = {
         // a explicação completa quando o usuário realmente quiser.
         if (showToolbarForVerse) {
           showToolbarForVerse(p.getBoundingClientRect(), text, {
+            verseIndex: idx,
             openFullExplanation: () => showVerseExplanation({
               bookIndex,
               bookName: book.name,
@@ -672,19 +675,66 @@ export const readerPage = {
       }
     }
 
+    function escaparHtmlSelecao(texto) {
+      return String(texto)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function formatarRespostaSelecao(texto) {
+      return String(texto || '')
+        .split(/\r?\n/)
+        .filter((linha) => linha.trim().length > 0)
+        .map((linha) => {
+          const escapada = escaparHtmlSelecao(linha.trim()).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+          return `<p>${escapada}</p>`;
+        })
+        .join('');
+    }
+
+    async function showQuickAiExplanation(text) {
+      const overlay = document.createElement('div');
+      overlay.className = 'verse-explain-overlay';
+      overlay.innerHTML = `
+        <div class="verse-explain-panel" role="dialog" aria-modal="true" aria-label="Explicação">
+          <div class="verse-explain-handle"></div>
+          <button class="verse-explain-close" aria-label="Fechar">${icons.close}</button>
+          <div class="verse-explain-ref">✨ Explicação</div>
+          <blockquote class="verse-explain-text">"${text}"</blockquote>
+          <div id="quickAiResult"><p>Consultando o Assistente Bíblico...</p></div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+      overlay.querySelector('.verse-explain-close').addEventListener('click', () => overlay.remove());
+
+      const resultEl = overlay.querySelector('#quickAiResult');
+      const usuario = usuarioAtual();
+
+      if (!usuario) {
+        resultEl.innerHTML = '<p>Entre na sua conta para usar o Assistente Bíblico.</p>';
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.functions.invoke('assistente-biblico', {
+          body: { mensagem: `Explique este trecho da Bíblia: "${text}"` },
+        });
+
+        if (error || !data?.sucesso || !data?.mensagem) {
+          throw new Error(data?.erro || error?.message || 'Sem resposta.');
+        }
+
+        resultEl.innerHTML = formatarRespostaSelecao(data.mensagem);
+      } catch (_e) {
+        resultEl.innerHTML = '<p>Não foi possível obter a explicação agora. Tente novamente.</p>';
+      }
+    }
+
     function handleExplainSelection(text) {
-      openExternalExplanation(text);
-      toast.info('Abrindo explicação em uma nova aba...');
+      showQuickAiExplanation(text);
     }
-
-    function handleNarrateSelection(text) {
-      // Não interrompe a narrativa do capítulo por engano: se estava
-      // tocando, pausa (preservando o ponto) em vez de simplesmente cortar.
-      if (readingState === 'playing') pauseReading();
-      toast.info('Lendo trecho selecionado...');
-      speak(text, { onError: () => toast.error('Não foi possível ler o trecho') });
-    }
-
     function handleFullExplainSelection(text, context) {
       if (context && typeof context.openFullExplanation === 'function') {
         context.openFullExplanation();
@@ -692,12 +742,15 @@ export const readerPage = {
         toast.info('Toque em um único versículo para ver a explicação completa.');
       }
     }
-    function handlePrintSelection(text) {
+    function handlePrintSelection(text, context) {
+      const referencia = context && context.verseIndex !== undefined
+        ? `${book.name} ${chapterIndex + 1}:${context.verseIndex + 1}`
+        : `${book.name} ${chapterIndex + 1}`;
       const wrapper = document.createElement('div');
       wrapper.className = 'print-only-selection';
       wrapper.innerHTML = `
         <div class="ministry-header-card">
-          <div class="ministry-theme-label">📖 ${book.name} ${chapterIndex + 1}</div>
+          <div class="ministry-theme-label">📖 ${referencia}</div>
         </div>
         <div class="verse-card" style="margin-top:16px;">
           <div class="verse-text">"${text}"</div>
@@ -716,7 +769,10 @@ export const readerPage = {
       setTimeout(limpar, 3000);
     }
 
-    async function handleImageSelection(text) {
+    async function handleImageSelection(text, context) {
+      const referencia = context && context.verseIndex !== undefined
+        ? `${book.name} ${chapterIndex + 1}:${context.verseIndex + 1}`
+        : `${book.name} ${chapterIndex + 1}`;
       if (typeof html2canvas === 'undefined') {
         toast.error('Recurso de imagem ainda carregando, tente novamente em instantes.');
         return;
@@ -730,7 +786,7 @@ export const readerPage = {
       wrapper.style.padding = '24px';
       wrapper.style.background = '#0f1729';
       wrapper.innerHTML = `
-        <div class="ministry-theme-label" style="margin-bottom:10px;">📖 ${book.name} ${chapterIndex + 1}</div>
+        <div class="ministry-theme-label" style="margin-bottom:10px;">📖 ${referencia}</div>
         <div class="verse-text">"${text}"</div>
       `;
       document.body.appendChild(wrapper);
@@ -741,7 +797,7 @@ export const readerPage = {
           const arquivo = new File([blob], `${book.name}-${chapterIndex + 1}.png`, { type: 'image/png' });
           if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
             try {
-              await navigator.share({ files: [arquivo], title: `${book.name} ${chapterIndex + 1}` });
+              await navigator.share({ files: [arquivo], title: referencia });
             } catch (_e) {
               /* usuário cancelou — sem erro */
             }
@@ -764,7 +820,6 @@ export const readerPage = {
     const detachSelectionToolbar = attachSelectionToolbar(readContent, {
       onShare: handleShareSelection,
       onExplain: handleExplainSelection,
-      onNarrate: handleNarrateSelection,
       onPrint: handlePrintSelection,
       onImage: handleImageSelection,
       onFullExplain: handleFullExplainSelection,

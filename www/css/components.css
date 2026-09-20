@@ -2392,9 +2392,14 @@ img.icon-glyph {
 /* Impressão de um trecho selecionado na Bíblia (some com o resto da tela) */
 .print-only-selection { display: none; }
 @media print {
-  body.printing-selection .app-content { display: none !important; }
+  body.printing-selection .phone-frame,
+  body.printing-selection .selection-toolbar,
+  body.printing-selection .tts-status {
+    display: none !important;
+  }
   body.printing-selection .print-only-selection {
     display: block !important;
+    position: static !important;
     padding: 24px;
     background: #fff !important;
     color: #000 !important;
@@ -2402,5 +2407,44 @@ img.icon-glyph {
   body.printing-selection .print-only-selection .verse-text,
   body.printing-selection .print-only-selection .ministry-theme-label {
     color: #000 !important;
+  }
+}
+
+/* Corrige a barra de seleção para quebrar linha em telas estreitas, em vez de vazar */
+.selection-toolbar {
+  flex-wrap: wrap !important;
+  max-width: calc(100vw - 24px);
+  justify-content: center;
+}
+.selection-toolbar button {
+  min-width: 56px !important;
+}
+
+/* Uma única linha para a barra de seleção, compacta, com rolagem horizontal como reserva */
+.selection-toolbar {
+  flex-wrap: nowrap !important;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: calc(100vw - 24px);
+}
+.selection-toolbar button {
+  min-width: 48px !important;
+  padding: 6px 6px !important;
+  flex-shrink: 0;
+}
+.selection-toolbar button span {
+  font-size: 9px !important;
+  white-space: nowrap;
+}
+
+/* Aumenta os ícones em emoji (Explicar, Imagem, Imprimir) para bater com os ícones SVG */
+.selection-toolbar button { font-size: 20px; }
+
+/* Evita página em branco extra na impressão: reseta a altura fixa do app */
+@media print {
+  html, body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
   }
 }
