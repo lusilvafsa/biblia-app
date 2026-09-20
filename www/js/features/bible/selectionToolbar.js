@@ -6,7 +6,7 @@ import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js
 
 const MIN_SELECTION_LENGTH = 2;
 
-export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarrate }) {
+export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarrate, onPrint, onImage }) {
   let toolbarEl = null;
 
   function removeToolbar() {
@@ -60,6 +60,8 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
       { icon: icons.share, label: 'Compartilhar', handler: onShare },
       { icon: icons.explain, label: 'Explicar', handler: onExplain },
       { icon: icons.mic, label: 'Narrar', handler: onNarrate },
+      { icon: '🖨️', label: 'Imprimir', handler: onPrint },
+      { icon: '📷', label: 'Imagem', handler: onImage },
     ];
 
     actions.forEach(({ icon, label, handler }) => {

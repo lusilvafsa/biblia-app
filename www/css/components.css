@@ -2388,3 +2388,19 @@ img.icon-glyph {
     color: #000 !important;
   }
 }
+
+/* Impressão de um trecho selecionado na Bíblia (some com o resto da tela) */
+.print-only-selection { display: none; }
+@media print {
+  body.printing-selection .app-content { display: none !important; }
+  body.printing-selection .print-only-selection {
+    display: block !important;
+    padding: 24px;
+    background: #fff !important;
+    color: #000 !important;
+  }
+  body.printing-selection .print-only-selection .verse-text,
+  body.printing-selection .print-only-selection .ministry-theme-label {
+    color: #000 !important;
+  }
+}
