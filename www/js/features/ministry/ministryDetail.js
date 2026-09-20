@@ -51,8 +51,10 @@ export const ministryDetailPage = {
       <div class="ministry-share-actions no-print">
         <button class="read-btn" id="btnShareOutline">🔗 Compartilhar</button>
         <button class="read-btn" id="btnPrintOutline">🖨️ Imprimir / PDF</button>
+        <button class="read-btn" id="btnImageOutline">📷 Imagem</button>
       </div>
 
+      <div id="ministryCaptureArea">
       <div class="ministry-header-card">
         <div class="ministry-theme-label">${icons.explain} TEMA</div>
         <h2>${item.tema}</h2>
@@ -83,6 +85,7 @@ export const ministryDetailPage = {
         <div class="settings-section-title" style="margin-top:20px;">Versículos de Apoio</div>
         <div class="ministry-ref-chips">${apoioHtml}</div>
       ` : ''}
+      </div>
     `;
 
     const openBtn = container.querySelector('#btnOpenPassage');
@@ -125,6 +128,50 @@ export const ministryDetailPage = {
 
     container.querySelector('#btnPrintOutline').addEventListener('click', () => {
       window.print();
+    });
+
+    container.querySelector('#btnImageOutline').addEventListener('click', async () => {
+      const area = container.querySelector('#ministryCaptureArea');
+      const btn = container.querySelector('#btnImageOutline');
+
+      if (typeof html2canvas === 'undefined') {
+        toast.error('Recurso de imagem ainda carregando, tente novamente em instantes.');
+        return;
+      }
+
+      btn.disabled = true;
+      const textoOriginal = btn.textContent;
+      btn.textContent = 'Gerando...';
+
+      try {
+        const canvas = await html2canvas(area, { backgroundColor: '#0f1729', scale: 2 });
+
+        canvas.toBlob(async (blob) => {
+          const arquivo = new File([blob], `${item.tema}.png`, { type: 'image/png' });
+
+          if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+            try {
+              await navigator.share({ files: [arquivo], title: item.tema });
+            } catch (_e) {
+              /* usuário cancelou — sem erro */
+            }
+          } else {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${item.tema}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+
+          btn.disabled = false;
+          btn.textContent = textoOriginal;
+        }, 'image/png');
+      } catch (_e) {
+        toast.error('Não foi possível gerar a imagem agora.');
+        btn.disabled = false;
+        btn.textContent = textoOriginal;
+      }
     });
   },
 };
