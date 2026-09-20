@@ -1,12 +1,12 @@
 // Toolbar flutuante que aparece ao selecionar um trecho de texto dentro de
-// `containerEl` (ex.: o texto do capítulo), com ações de Compartilhar,
-// Explicar e Narrar o trecho selecionado.
+// `containerEl` (ex.: o texto do capítulo), ou ao tocar num versículo
+// (nesse caso, com um botão extra para abrir a explicação completa).
 import { icons } from '../../components/icons.js';
 import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js';
 
 const MIN_SELECTION_LENGTH = 2;
 
-export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarrate, onPrint, onImage }) {
+export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarrate, onPrint, onImage, onFullExplain, onReady }) {
   let toolbarEl = null;
 
   function removeToolbar() {
@@ -51,12 +51,13 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
     button.setAttribute('aria-label', `Velocidade da narração: ${next} vezes`);
   }
 
-  function showToolbar(rect, text) {
+  function showToolbar(rect, text, context) {
     removeToolbar();
     toolbarEl = document.createElement('div');
     toolbarEl.className = 'selection-toolbar';
 
     const actions = [
+      { icon: icons.explain, label: 'Estudo Completo', handler: onFullExplain },
       { icon: icons.share, label: 'Compartilhar', handler: onShare },
       { icon: icons.explain, label: 'Explicar', handler: onExplain },
       { icon: icons.mic, label: 'Narrar', handler: onNarrate },
@@ -65,12 +66,13 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
     ];
 
     actions.forEach(({ icon, label, handler }) => {
+      if (!handler) return;
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.innerHTML = `${icon}<span>${label}</span>`;
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        handler(text);
+        handler(text, context);
         removeToolbar();
         window.getSelection()?.removeAllRanges();
       });
@@ -140,6 +142,10 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
   containerEl.addEventListener('touchend', handleSelectionEnd);
   document.addEventListener('mousedown', handlePointerDown);
   document.addEventListener('touchstart', handlePointerDown);
+
+  if (onReady) {
+    onReady((rect, text, context) => showToolbar(rect, text, context));
+  }
 
   return function cleanup() {
     removeToolbar();

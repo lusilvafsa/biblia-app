@@ -112,6 +112,7 @@ export const readerPage = {
 
     const readContent = qs('#readContent', container);
     const verseEls = [];
+    let showToolbarForVerse = null;
     verses.forEach((text, idx) => {
       const p = el('p', { className: 'verse-line' }, [
         el('sup', { className: 'verse-num' }, String(idx + 1)),
@@ -144,25 +145,29 @@ export const readerPage = {
 
         // Ao tocar no texto, apenas seleciona o versículo.
         readingIndex = idx;
-    
-            
-        
-                    
-        showVerseExplanation({
-          bookIndex,
-          bookName: book.name,
-          chapterIndex,
-          verseIndex: idx,
-          verseText: text,
-          onHighlightChange: (colorId) => {
-            if (colorId) {
-              const corInfo = HIGHLIGHT_COLORS.find((c) => c.id === colorId);
-              p.style.background = corInfo ? corInfo.hex + '33' : '';
-            } else {
-              p.style.background = '';
-            }
-          }
-        });
+
+        // Em vez de abrir a explicação direto, mostra a barra de ações
+        // (a mesma usada ao selecionar um trecho), com um botão pra abrir
+        // a explicação completa quando o usuário realmente quiser.
+        if (showToolbarForVerse) {
+          showToolbarForVerse(p.getBoundingClientRect(), text, {
+            openFullExplanation: () => showVerseExplanation({
+              bookIndex,
+              bookName: book.name,
+              chapterIndex,
+              verseIndex: idx,
+              verseText: text,
+              onHighlightChange: (colorId) => {
+                if (colorId) {
+                  const corInfo = HIGHLIGHT_COLORS.find((c) => c.id === colorId);
+                  p.style.background = corInfo ? corInfo.hex + '33' : '';
+                } else {
+                  p.style.background = '';
+                }
+              }
+            }),
+          });
+        }
       });
       readContent.appendChild(p);
       verseEls.push(p);
@@ -680,6 +685,13 @@ export const readerPage = {
       speak(text, { onError: () => toast.error('Não foi possível ler o trecho') });
     }
 
+    function handleFullExplainSelection(text, context) {
+      if (context && typeof context.openFullExplanation === 'function') {
+        context.openFullExplanation();
+      } else {
+        toast.info('Toque em um único versículo para ver a explicação completa.');
+      }
+    }
     function handlePrintSelection(text) {
       const wrapper = document.createElement('div');
       wrapper.className = 'print-only-selection';
@@ -755,6 +767,8 @@ export const readerPage = {
       onNarrate: handleNarrateSelection,
       onPrint: handlePrintSelection,
       onImage: handleImageSelection,
+      onFullExplain: handleFullExplainSelection,
+      onReady: (fn) => { showToolbarForVerse = fn; },
     });
 
     // Cleanup: para a leitura em voz alta, desliga wake lock/áudio
