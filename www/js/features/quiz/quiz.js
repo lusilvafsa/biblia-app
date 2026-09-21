@@ -1,9 +1,10 @@
-// Tela: Quiz Bíblico — perguntas de múltipla escolha com placar final.
+// Tela: Quiz Bíblico — 10 perguntas sorteadas de um banco maior a cada
+// partida, com placar e tela de resultado final.
 import { el } from '../../utils/dom.js';
-import { QUIZ_QUESTIONS } from '../../../data/quiz.js';
+import { sortearPerguntas } from '../../../data/quiz.js';
 import { statsRepository } from '../../data-access/statsRepository.js';
 
-function renderFinalScore(container, score, restart) {
+function renderFinalScore(container, score, total, restart) {
   container.innerHTML = '';
   const card = el('div', { className: 'quiz-card quiz-final' }, [
     el('h3', {}, 'Quiz Finalizado!'),
@@ -11,23 +12,25 @@ function renderFinalScore(container, score, restart) {
       'Você acertou ',
       el('strong', {}, String(score)),
       ' de ',
-      el('strong', {}, String(QUIZ_QUESTIONS.length)),
+      el('strong', {}, String(total)),
     ]),
-    el('button', { className: 'read-btn', style: 'margin-top:16px;', onClick: restart }, 'Refazer Quiz'),
+    el('button', { className: 'read-btn', style: 'margin-top:16px;', onClick: restart }, 'Jogar Novamente'),
   ]);
   container.appendChild(card);
 }
 
 export const quizPage = {
   render(container) {
+    let perguntas = sortearPerguntas(10);
     let questionIndex = 0;
     let score = 0;
     let advanceTimer = null;
 
     function renderQuestion() {
-      if (questionIndex >= QUIZ_QUESTIONS.length) {
-        statsRepository.registerQuizResult(score, QUIZ_QUESTIONS.length);
-        renderFinalScore(container, score, () => {
+      if (questionIndex >= perguntas.length) {
+        statsRepository.registerQuizResult(score, perguntas.length);
+        renderFinalScore(container, score, perguntas.length, () => {
+          perguntas = sortearPerguntas(10);
           questionIndex = 0;
           score = 0;
           renderQuestion();
@@ -35,7 +38,7 @@ export const quizPage = {
         return;
       }
 
-      const q = QUIZ_QUESTIONS[questionIndex];
+      const q = perguntas[questionIndex];
       container.innerHTML = '';
 
       const optionButtons = [];
@@ -53,7 +56,7 @@ export const quizPage = {
       );
 
       const card = el('div', { className: 'quiz-card' }, [
-        el('p', { className: 'quiz-progress' }, `Pergunta ${questionIndex + 1} de ${QUIZ_QUESTIONS.length}`),
+        el('p', { className: 'quiz-progress' }, `Pergunta ${questionIndex + 1} de ${perguntas.length}`),
         el('div', { className: 'quiz-question' }, q.question),
         optionsEl,
         resultEl,
@@ -87,9 +90,6 @@ export const quizPage = {
 
     renderQuestion();
 
-    // Cleanup: cancela a troca de pergunta agendada se o usuário sair do
-    // quiz no meio da transição (senão o setTimeout dispararia mais tarde
-    // e sobrescreveria o conteúdo de outra tela já aberta).
     return () => clearTimeout(advanceTimer);
   },
 };
