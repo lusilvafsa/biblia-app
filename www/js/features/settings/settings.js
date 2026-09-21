@@ -116,8 +116,9 @@ function template(settings) {
     </div>
 
     <div class="app-info">
-      Bíblia de Estudo<br>
-      Texto: versão ACF (Almeida Corrigida Fiel)
+      Bíblia de Estudo — v3.0<br>
+      Versões: ACF, BLIVRE e ARC 1911<br>
+      Referências cruzadas: OpenBible.info (CC BY 4.0)
     </div>
   `;
 }
