@@ -103,11 +103,6 @@ function template() {
         <div class="menu-title">Ler Bíblia</div>
         <div class="menu-desc">ACF e mais versões</div>
       </button>
-      <button class="menu-item" data-route="/audio">
-        <div class="menu-icon">${icons.audio}</div>
-        <div class="menu-title">Bíblia em Áudio</div>
-        <div class="menu-desc">Ouça as Escrituras</div>
-      </button>
       <button class="menu-item" data-route="/oracao">
         <div class="menu-icon">${icons.prayer}</div>
         <div class="menu-title">Oração Diária</div>

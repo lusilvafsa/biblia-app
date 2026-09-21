@@ -15,7 +15,6 @@ import { chapterGridPage } from './features/bible/chapterGrid.js';
 import { verseGridPage } from './features/bible/verseGrid.js';
 import { readerPage } from './features/bible/reader.js';
 import { searchPage } from './features/bible/search.js';
-import { audioPage } from './features/audio/audio.js';
 import { prayerPage } from './features/prayer/prayer.js';
 import { quizPage } from './features/quiz/quiz.js';
 import { profilePage } from './features/profile/profile.js';
@@ -109,7 +108,6 @@ function initRoutes() {
   registerRoute('/biblia/:book', chapterGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
   registerRoute('/biblia/:book/:chapter', verseGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
   registerRoute('/biblia/:book/:chapter/versiculo/:verse', readerPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
-  registerRoute('/audio', audioPage, { title: 'Bíblia em Áudio', navKey: 'audio', showSettings: true });
   registerRoute('/oracao', prayerPage, { title: 'Oração Diária', navKey: 'prayer', showSettings: true });
   registerRoute('/quiz', quizPage, { title: 'Quiz Bíblico', navKey: null, showBack: true });
   registerRoute('/ministracao', ministryListPage, { title: 'Guia de Ministração', navKey: null, showBack: true });
