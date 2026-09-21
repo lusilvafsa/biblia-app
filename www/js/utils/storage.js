@@ -15,6 +15,7 @@ export const STORAGE_KEYS = {
   dailyNotification: 'biblia:daily-notification-scheduled',
   generatedOutlines: 'biblia:generated-outlines',
   highlights: 'biblia:highlights',
+  onboardingSeen: 'biblia:onboarding-seen',
 };
 
 function readRaw(key) {

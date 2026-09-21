@@ -8,6 +8,7 @@ import { registerRoute, setNotFound, onRouteChange, initRouter, navigateTo } fro
 import { bindHeaderTitleElement, setHeaderTitle } from './state/header.js';
 import { getTheme, toggleTheme, onThemeChange } from './state/theme.js';
 import { initDailyNotification } from './utils/dailyNotification.js';
+import { initOnboarding } from './features/onboarding/onboarding.js';
 
 import { homePage } from './features/home/home.js';
 import { bookListPage } from './features/bible/bookList.js';
@@ -136,6 +137,7 @@ function init() {
   initRoutes();
   initRouter(qs('#appContent'));
   initDailyNotification();
+  setTimeout(initOnboarding, 1200);
 
   onThemeChange(() => {
     const host = qs('#headerActions');
