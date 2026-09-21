@@ -27,6 +27,8 @@ import { attachSelectionToolbar } from './selectionToolbar.js';
 import { showVerseExplanation } from './verseExplanation.js';
 import { showChapterExplanation } from './chapterExplanation.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
+import { shareText } from '../../utils/share.js';
+import { shareElementAsImage } from '../../utils/nativeExport.js';
 import { supabase } from '../../supabaseClient.js';
 import { usuarioAtual } from '../../supabaseAuth.js';
 import { highlightRepository, HIGHLIGHT_COLORS } from '../../data-access/highlightRepository.js';
@@ -658,21 +660,10 @@ export const readerPage = {
 
     // Seleção de texto: compartilhar / explicar / narrar o trecho selecionado
     async function handleShareSelection(text) {
-      const shareData = { title: `${book.name} ${chapterIndex + 1}`, text };
-      if (navigator.share) {
-        try {
-          await navigator.share(shareData);
-        } catch (_e) {
-          /* usuário cancelou — sem erro */
-        }
-      } else if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(
-          () => toast.success('Trecho copiado!'),
-          () => toast.error('Não foi possível copiar')
-        );
-      } else {
-        toast.info('Compartilhamento não suportado neste navegador');
-      }
+      const resultado = await shareText({ title: `${book.name} ${chapterIndex + 1}`, text });
+      if (resultado === 'copied') toast.success('Trecho copiado!');
+      if (resultado === 'error') toast.error('Não foi possível copiar');
+      if (resultado === 'unsupported') toast.info('Compartilhamento não suportado neste navegador');
     }
 
     function escaparHtmlSelecao(texto) {
@@ -742,12 +733,24 @@ export const readerPage = {
         toast.info('Toque em um único versículo para ver a explicação completa.');
       }
     }
-    function handlePrintSelection(text, context) {
+    async function handlePrintSelection(text, context) {
       const referencia = context && context.verseIndex !== undefined
         ? `${book.name} ${chapterIndex + 1}:${context.verseIndex + 1}`
         : `${book.name} ${chapterIndex + 1}`;
+
+      const capacitor = typeof window !== 'undefined' ? window.Capacitor : null;
+      const isNative = !!(capacitor && typeof capacitor.isNativePlatform === 'function' && capacitor.isNativePlatform());
+
       const wrapper = document.createElement('div');
-      wrapper.className = 'print-only-selection';
+      wrapper.className = isNative ? '' : 'print-only-selection';
+      if (isNative) {
+        wrapper.style.position = 'fixed';
+        wrapper.style.left = '-9999px';
+        wrapper.style.top = '0';
+        wrapper.style.width = '360px';
+        wrapper.style.padding = '24px';
+        wrapper.style.background = '#0f1729';
+      }
       wrapper.innerHTML = `
         <div class="ministry-header-card">
           <div class="ministry-theme-label">📖 ${referencia}</div>
@@ -757,8 +760,16 @@ export const readerPage = {
         </div>
       `;
       document.body.appendChild(wrapper);
-      document.body.classList.add('printing-selection');
 
+      if (isNative) {
+        const resultado = await shareElementAsImage(wrapper, `${referencia}.png`, referencia);
+        wrapper.remove();
+        if (resultado === 'shared') toast.success('Pronto! Escolha imprimir, salvar ou enviar.');
+        if (resultado === 'error') toast.error('Não foi possível gerar a imagem para impressão.');
+        return;
+      }
+
+      document.body.classList.add('printing-selection');
       const limpar = () => {
         document.body.classList.remove('printing-selection');
         wrapper.remove();
@@ -773,10 +784,6 @@ export const readerPage = {
       const referencia = context && context.verseIndex !== undefined
         ? `${book.name} ${chapterIndex + 1}:${context.verseIndex + 1}`
         : `${book.name} ${chapterIndex + 1}`;
-      if (typeof html2canvas === 'undefined') {
-        toast.error('Recurso de imagem ainda carregando, tente novamente em instantes.');
-        return;
-      }
 
       const wrapper = document.createElement('div');
       wrapper.style.position = 'fixed';
@@ -791,30 +798,12 @@ export const readerPage = {
       `;
       document.body.appendChild(wrapper);
 
-      try {
-        const canvas = await html2canvas(wrapper, { backgroundColor: '#0f1729', scale: 2 });
-        canvas.toBlob(async (blob) => {
-          const arquivo = new File([blob], `${book.name}-${chapterIndex + 1}.png`, { type: 'image/png' });
-          if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
-            try {
-              await navigator.share({ files: [arquivo], title: referencia });
-            } catch (_e) {
-              /* usuário cancelou — sem erro */
-            }
-          } else {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${book.name}-${chapterIndex + 1}.png`;
-            a.click();
-            URL.revokeObjectURL(url);
-          }
-        }, 'image/png');
-      } catch (_e) {
-        toast.error('Não foi possível gerar a imagem agora.');
-      } finally {
-        wrapper.remove();
-      }
+      const resultado = await shareElementAsImage(wrapper, `${referencia}.png`, referencia);
+      wrapper.remove();
+
+      if (resultado === 'unavailable') toast.error('Recurso de imagem ainda carregando, tente novamente em instantes.');
+      if (resultado === 'error') toast.error('Não foi possível gerar a imagem agora.');
+      if (resultado === 'downloaded') toast.success('Imagem baixada!');
     }
 
     const detachSelectionToolbar = attachSelectionToolbar(readContent, {
