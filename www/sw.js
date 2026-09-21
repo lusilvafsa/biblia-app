@@ -1,4 +1,4 @@
-const CACHE_NAME = 'biblia-estudo-v2.5';
+const CACHE_NAME = 'biblia-estudo-v2.6';
 const APP_SHELL = [
   './assets/icons/bible-icon.png',
   './assets/icons/favicon.png',
@@ -8,7 +8,6 @@ const APP_SHELL = [
   './css/base.css',
   './css/components.css',
   './css/variables.css',
-  './data/audioTracks.js',
   './data/bibleVersions.js',
   './data/ministryOutlines.js',
   './data/prayers.js',
@@ -22,7 +21,6 @@ const APP_SHELL = [
   './js/data-access/crossReferenceRepository.js',
   './js/data-access/planProgressRepository.js',
   './js/data-access/progressRepository.js',
-  './js/features/audio/audio.js',
   './js/features/bible/bookList.js',
   './js/features/bible/chapterExplanation.js',
   './js/features/bible/chapterGrid.js',
@@ -42,7 +40,6 @@ const APP_SHELL = [
   './js/features/settings/settings.js',
   './js/main.js',
   './js/router.js',
-  './js/state/audioPlayer.js',
   './js/state/bibleVersion.js',
   './js/state/header.js',
   './js/state/installPrompt.js',
