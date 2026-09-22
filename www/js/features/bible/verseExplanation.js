@@ -331,6 +331,8 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
           {
             body: {
               mensagem: `Explique o versículo ${ref}, que diz: "${verseText}". Traga o contexto histórico, o significado principal e uma aplicação prática para a vida hoje.`,
+              tipo: 'versiculo',
+              chave: `${bookIndex}-${chapterIndex}-${verseIndex}`,
             },
           }
         );

@@ -177,6 +177,8 @@ export const studyCornerPage = {
         const { data, error } = await supabase.functions.invoke('assistente-biblico', {
           body: {
             mensagem: `Explique o versículo ${ref}, que diz: "${verseText}". Traga o contexto histórico, o significado principal e uma aplicação prática para a vida hoje.`,
+            tipo: 'versiculo',
+            chave: `${bookIndex}-${chapterIndex}-${verseIndex}`,
           },
         });
 

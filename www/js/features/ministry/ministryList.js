@@ -133,7 +133,11 @@ export const ministryListPage = {
 
         try {
           const { data, error } = await supabase.functions.invoke('assistente-biblico', {
-            body: { mensagem: `Crie uma ministração sobre o tema: ${query}` },
+            body: {
+              mensagem: `Crie uma ministração sobre o tema: ${query}`,
+              tipo: 'ministracao',
+              chave,
+            },
           });
 
           if (error || !data?.sucesso || !data?.mensagem) {

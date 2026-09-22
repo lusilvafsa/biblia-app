@@ -743,7 +743,11 @@ export const readerPage = {
 
       try {
         const { data, error } = await supabase.functions.invoke('assistente-biblico', {
-          body: { mensagem: `Explique este trecho da Bíblia: "${text}"` },
+          body: {
+            mensagem: `Explique este trecho da Bíblia: "${text}"`,
+            tipo: 'trecho',
+            chave: text.trim().toLowerCase().slice(0, 200),
+          },
         });
 
         if (error || !data?.sucesso || !data?.mensagem) {

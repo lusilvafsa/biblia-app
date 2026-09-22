@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const LIMITE_DIARIO = 40;
 const MAX_TENTATIVAS_GEMINI = 2;
+const TIPOS_CACHEAVEIS = ["versiculo", "capitulo", "ministracao", "trecho"];
 
 const SYSTEM_INSTRUCTION = String.raw`
 Você é o Assistente Bíblico do aplicativo Bíblia de Estudo.
@@ -154,7 +155,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  let body: { mensagem?: unknown };
+  let body: { mensagem?: unknown; tipo?: unknown; chave?: unknown };
 
   try {
     body = await req.json();
@@ -181,6 +182,10 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  const tipo = typeof body.tipo === "string" && TIPOS_CACHEAVEIS.includes(body.tipo) ? body.tipo : null;
+  const chave = typeof body.chave === "string" && body.chave.trim() ? body.chave.trim().slice(0, 200) : null;
+  const usaCache = tipo !== null && chave !== null;
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -200,6 +205,27 @@ Deno.serve(async (req: Request) => {
 
   const userId = userData.user.id;
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+  // ===== CACHE COMPARTILHADO (nao gasta o limite diario nem chama a IA) =====
+
+  if (usaCache) {
+    const { data: emCache } = await adminClient
+      .from("assistente_cache_publico")
+      .select("mensagem")
+      .eq("tipo", tipo)
+      .eq("chave", chave)
+      .maybeSingle();
+
+    if (emCache?.mensagem) {
+      return Response.json(
+        { sucesso: true, mensagem: emCache.mensagem, doCache: true },
+        { headers: corsHeaders },
+      );
+    }
+  }
+
+  // ===== LIMITE DIARIO =====
+
   const hoje = new Date().toISOString().slice(0, 10);
 
   const { data: usoAtual } = await adminClient
@@ -287,6 +313,12 @@ Deno.serve(async (req: Request) => {
         { erro: "O Gemini retornou uma resposta vazia." },
         { status: 502, headers: corsHeaders },
       );
+    }
+
+    if (usaCache) {
+      await adminClient
+        .from("assistente_cache_publico")
+        .upsert({ tipo, chave, mensagem: resposta }, { onConflict: "tipo,chave" });
     }
 
     return Response.json(

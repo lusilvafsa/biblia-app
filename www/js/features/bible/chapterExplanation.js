@@ -68,6 +68,8 @@ export function showChapterExplanation({ bookName, chapterNumber }) {
       const { data, error } = await supabase.functions.invoke('assistente-biblico', {
         body: {
           mensagem: `Faça um breve estudo bíblico do capítulo ${ref}. Traga o contexto do capítulo, de 3 a 5 ensinamentos principais e uma aplicação prática.`,
+          tipo: 'capitulo',
+          chave: `${bookName}_${chapterNumber}`,
         },
       });
 
