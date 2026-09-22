@@ -15,7 +15,7 @@ import { qs, el } from '../../utils/dom.js';
 import { icons } from '../../components/icons.js';
 import { toast } from '../../utils/toast.js';
 import { navigateTo } from '../../router.js';
-import { getBook, getChapter } from '../../data-access/bibleRepository.js';
+import { getBook, getChapter, getAllBooks } from '../../data-access/bibleRepository.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { aguardarAuthInicial } from '../../supabaseAuth.js';
 import { statsRepository } from '../../data-access/statsRepository.js';
@@ -346,19 +346,52 @@ export const readerPage = {
       progressRepository.saveProgress({ book: bookIndex, chapter: chapterIndex, verse: 0 });
 
       const hasNextChapter = chapterIndex < book.chapterCount - 1;
-      if (!hasNextChapter) {
-        toast.success('Você concluiu o último capítulo deste livro.');
-        speak('Você concluiu o último capítulo deste livro.', {});
-        clearMediaSession();
+      if (hasNextChapter) {
+        const nextChapterHuman = chapterIndex + 2; // próximo capítulo, 1-based
+        toast.info(`Avançando para ${book.name} capítulo ${nextChapterHuman}...`);
+        const announcement = `Você concluiu ${book.name} capítulo ${chapterIndex + 1}. Agora vamos continuar com ${book.name} capítulo ${nextChapterHuman}.`;
+        requestAutoStart(0);
+        const goToNext = () => navigateTo(`/biblia/${bookIndex}/${chapterIndex + 1}/versiculo/0`);
+        speak(announcement, { onEnd: goToNext, onError: goToNext });
         return;
       }
 
-      const nextChapterHuman = chapterIndex + 2; // próximo capítulo, 1-based
-      toast.info(`Avançando para ${book.name} capítulo ${nextChapterHuman}...`);
-      const announcement = `Você concluiu ${book.name} capítulo ${chapterIndex + 1}. Agora vamos continuar com ${book.name} capítulo ${nextChapterHuman}.`;
-      requestAutoStart(0);
-      const goToNext = () => navigateTo(`/biblia/${bookIndex}/${chapterIndex + 1}/versiculo/0`);
-      speak(announcement, { onEnd: goToNext, onError: goToNext });
+      (async () => {
+        let books;
+
+        try {
+          books = await getAllBooks();
+        } catch (err) {
+          console.error('Erro ao carregar a lista de livros:', err);
+          toast.error('Não foi possível localizar o próximo livro.');
+          clearMediaSession();
+          return;
+        }
+
+        const nextBook = books[bookIndex + 1];
+
+        if (!nextBook) {
+          toast.success('Você concluiu o último livro da Bíblia.');
+          speak('Você concluiu o último livro da Bíblia.', {});
+          clearMediaSession();
+          return;
+        }
+
+        toast.info(`Avançando para ${nextBook.name} capítulo 1...`);
+
+        const announcement =
+          `Você concluiu ${book.name}. Agora vamos continuar com ${nextBook.name}, capítulo 1.`;
+
+        requestAutoStart(0);
+
+        const goToNextBook = () =>
+          navigateTo(`/biblia/${nextBook.index}/0/versiculo/0`);
+
+        speak(announcement, {
+          onEnd: goToNextBook,
+          onError: goToNextBook,
+        });
+      })();
     }
 
     /** Início "novo" (não retomando uma pausa da mesma sessão): sempre
