@@ -118,14 +118,6 @@ export const ministryListPage = {
       wrapper.appendChild(searchBtn);
 
       aiBtn.addEventListener('click', async () => {
-        const usuario = usuarioAtual();
-
-        if (!usuario) {
-          resultEl.hidden = false;
-          resultEl.innerHTML = '<p>Entre na sua conta para usar o Assistente Bíblico.</p>';
-          return;
-        }
-
         aiBtn.disabled = true;
         aiBtn.textContent = 'Gerando...';
         resultEl.hidden = false;

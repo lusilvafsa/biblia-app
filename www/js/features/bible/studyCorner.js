@@ -160,13 +160,6 @@ export const studyCornerPage = {
     const aiResult = container.querySelector('#studyAiResult');
 
     aiBtn.addEventListener('click', async () => {
-      const usuario = usuarioAtual();
-      if (!usuario) {
-        aiResult.hidden = false;
-        aiResult.innerHTML = '<p>Entre na sua conta para usar o Assistente Bíblico.</p>';
-        return;
-      }
-
       aiBtn.disabled = true;
       const textoOriginal = aiBtn.textContent;
       aiBtn.textContent = 'Consultando...';

@@ -311,14 +311,6 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
 
   if (aiBtn) {
     aiBtn.addEventListener('click', async () => {
-      const usuario = usuarioAtual();
-
-      if (!usuario) {
-        aiResultEl.hidden = false;
-        aiResultEl.innerHTML = '<p>Entre na sua conta para usar o Assistente Bíblico.</p>';
-        return;
-      }
-
       aiBtn.disabled = true;
       const textoOriginalBtn = aiBtn.textContent;
       aiBtn.textContent = 'Consultando...';

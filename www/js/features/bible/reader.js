@@ -734,12 +734,6 @@ export const readerPage = {
       overlay.querySelector('.verse-explain-close').addEventListener('click', () => overlay.remove());
 
       const resultEl = overlay.querySelector('#quickAiResult');
-      const usuario = usuarioAtual();
-
-      if (!usuario) {
-        resultEl.innerHTML = '<p>Entre na sua conta para usar o Assistente Bíblico.</p>';
-        return;
-      }
 
       try {
         const { data, error } = await supabase.functions.invoke('assistente-biblico', {
