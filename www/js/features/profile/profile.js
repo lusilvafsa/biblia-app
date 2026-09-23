@@ -1,6 +1,8 @@
 import { icons } from '../../components/icons.js';
 import { favoritesRepository } from '../../data-access/favoritesRepository.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
+import { highlightRepository } from '../../data-access/highlightRepository.js';
+import { planProgressRepository } from '../../data-access/planProgressRepository.js';
 import { navigateTo } from '../../router.js';
 import { statsRepository } from '../../data-access/statsRepository.js';
 
@@ -1205,6 +1207,18 @@ observarUsuario(async (user) => {
 
       console.log(
         '[Cloud Sync] Progresso de leitura sincronizado após login.'
+      );
+
+      await highlightRepository.syncWithCloud();
+
+      console.log(
+        '[Cloud Sync] Grifos sincronizados após login.'
+      );
+
+      await planProgressRepository.syncWithCloud();
+
+      console.log(
+        '[Cloud Sync] Progresso dos planos de leitura sincronizado após login.'
       );
 
     } catch (error) {
