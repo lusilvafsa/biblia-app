@@ -297,8 +297,21 @@ export async function speak(
 
       speaking = true;
 
-      await TextToSpeech.speak({
-        text: text.trim(),
+      const textToSpeak = text.trim();
+
+      // Proteção contra o TTS nativo ficar aguardando indefinidamente
+      // quando o Android não entrega o callback onDone em segundo plano.
+      const safeRate = Math.max(Number(rate) || 1, 0.25);
+      const estimatedMs = Math.max(
+        15000,
+        (textToSpeak.length / (11 * safeRate)) * 1000 + 15000
+      );
+      const watchdogMs = Math.min(120000, estimatedMs);
+
+      let watchdogTimer;
+
+      const nativeSpeak = TextToSpeech.speak({
+        text: textToSpeak,
         lang,
         rate,
         pitch,
@@ -309,10 +322,34 @@ export async function speak(
         queueStrategy: 0
       });
 
+      const watchdog = new Promise((resolve) => {
+        watchdogTimer = setTimeout(async () => {
+          console.warn(
+            `[BIBLIA-TTS] Watchdog acionado após ${watchdogMs}ms; recuperando leitura.`
+          );
+
+          try {
+            await TextToSpeech.stop();
+          } catch (_) {}
+
+          resolve('watchdog');
+        }, watchdogMs);
+      });
+
+      const result = await Promise.race([
+        nativeSpeak.then(() => 'done'),
+        watchdog
+      ]);
+
+      clearTimeout(watchdogTimer);
       speaking = false;
 
-      if (onEnd) onEnd();
+      if (result === 'watchdog') {
+        if (onEnd) onEnd();
+        return true;
+      }
 
+      if (onEnd) onEnd();
       return true;
     } catch (error) {
       speaking = false;

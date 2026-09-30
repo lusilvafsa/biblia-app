@@ -117,6 +117,18 @@ export const readerPage = {
     const readContent = qs('#readContent', container);
     const verseEls = [];
     let showToolbarForVerse = null;
+    // Títulos de passagem (opcionais): data/titles/<livro>.json
+    let chapterTitles = {};
+    try {
+      window.__titlesCache = window.__titlesCache || {};
+      if (!window.__titlesCache[bookIndex]) {
+        const resp = await fetch('data/titles/' + bookIndex + '.json');
+        window.__titlesCache[bookIndex] = resp.ok ? await resp.json() : {};
+      }
+      chapterTitles = window.__titlesCache[bookIndex][String(chapterIndex + 1)] || {};
+    } catch (e) {
+      chapterTitles = {};
+    }
     verses.forEach((text, idx) => {
       const p = el('p', { className: 'verse-line' }, [
         el('sup', { className: 'verse-num' }, String(idx + 1)),
@@ -174,6 +186,11 @@ export const readerPage = {
           });
         }
       });
+      if (chapterTitles[String(idx + 1)]) {
+        const h = el('h3', { className: 'pericope-title' }, chapterTitles[String(idx + 1)]);
+        h.style.cssText = 'margin:20px 0 6px;font-weight:700;opacity:.85;font-size:' + Math.round(settings.fontSize * 0.95) + 'px;';
+        readContent.appendChild(h);
+      }
       readContent.appendChild(p);
       verseEls.push(p);
     });

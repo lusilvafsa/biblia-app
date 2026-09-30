@@ -22,7 +22,33 @@ public class MainActivity extends BridgeActivity {
             }
 
             String action = intent.getAction();
+            if (action == null) {
+                return;
+            }
 
+            // Avisos vindos do motor de narração nativo (rodando no serviço)
+            if (MediaNotificationService.EVENT_VERSE_CHANGED.equals(action)) {
+                int verseIndex = intent.getIntExtra(MediaNotificationService.EXTRA_VERSE_INDEX, 0);
+                dispatchToWebWithVerse("media-notification-verse-changed", verseIndex);
+                return;
+            }
+
+            if (MediaNotificationService.EVENT_CHAPTER_COMPLETE.equals(action)) {
+                dispatchToWeb("media-notification-chapter-complete");
+                return;
+            }
+
+            if (MediaNotificationService.EVENT_REQUEST_PREV_CHAPTER.equals(action)) {
+                dispatchToWeb("media-notification-prev-chapter");
+                return;
+            }
+
+            if (MediaNotificationService.EVENT_REQUEST_NEXT_CHAPTER.equals(action)) {
+                dispatchToWeb("media-notification-next-chapter");
+                return;
+            }
+
+            // Botões da notificação (mantidos para compatibilidade)
             if (MediaNotificationService.ACTION_PLAY.equals(action)) {
                 dispatchToWeb("media-notification-play");
                 return;
@@ -34,49 +60,12 @@ public class MainActivity extends BridgeActivity {
             }
 
             if (MediaNotificationService.ACTION_PREV.equals(action)) {
-                if (intent.getBooleanExtra("chapter_navigation", false)) {
-                    boolean chapterPrevious =
-                            intent.getBooleanExtra("chapter_previous", false);
-
-                    dispatchToWeb(
-                            chapterPrevious
-                                    ? "media-notification-prev-chapter"
-                                    : "media-notification-next-chapter"
-                    );
-                    return;
-                }
-
                 dispatchToWeb("media-notification-prev");
                 return;
             }
 
             if (MediaNotificationService.ACTION_NEXT.equals(action)) {
-                if (intent.getBooleanExtra("chapter_navigation", false)) {
-                    dispatchToWeb("media-notification-next-chapter");
-                    return;
-                }
-
                 dispatchToWeb("media-notification-next");
-                return;
-            }
-
-            if (MediaNotificationService.ACTION_PREV_CHAPTER.equals(action)) {
-                Log.d(
-                        "BIBLIA_MEDIA",
-                        "ACTION_PREV_CHAPTER recebido na MainActivity"
-                );
-
-                dispatchToWeb("media-notification-prev-chapter");
-                return;
-            }
-
-            if (MediaNotificationService.ACTION_NEXT_CHAPTER.equals(action)) {
-                Log.d(
-                        "BIBLIA_MEDIA",
-                        "ACTION_NEXT_CHAPTER recebido na MainActivity"
-                );
-
-                dispatchToWeb("media-notification-next-chapter");
                 return;
             }
 
@@ -91,27 +80,31 @@ public class MainActivity extends BridgeActivity {
             @Override
             public void run() {
                 if (getBridge() == null || getBridge().getWebView() == null) {
-                    Log.w(
-                            "BIBLIA_MEDIA",
-                            "WebView indisponível para evento: " + eventName
-                    );
+                    Log.w("BIBLIA_MEDIA", "WebView indisponível para evento: " + eventName);
                     return;
                 }
 
-                Log.d(
-                        "BIBLIA_MEDIA",
-                        "Disparando evento no WebView: " + eventName
-                );
+                String javascript =
+                        "window.dispatchEvent(new CustomEvent('" + eventName + "'));";
+
+                getBridge().getWebView().evaluateJavascript(javascript, null);
+            }
+        });
+    }
+
+    private void dispatchToWebWithVerse(final String eventName, final int verseIndex) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (getBridge() == null || getBridge().getWebView() == null) {
+                    return;
+                }
 
                 String javascript =
-                        "window.dispatchEvent(new CustomEvent('" +
-                        eventName +
-                        "'));";
+                        "window.dispatchEvent(new CustomEvent('" + eventName
+                        + "', { detail: { verseIndex: " + verseIndex + " } }));";
 
-                getBridge().getWebView().evaluateJavascript(
-                        javascript,
-                        null
-                );
+                getBridge().getWebView().evaluateJavascript(javascript, null);
             }
         });
     }
@@ -137,32 +130,23 @@ public class MainActivity extends BridgeActivity {
         }
 
         IntentFilter filter = new IntentFilter();
-
         filter.addAction(MediaNotificationService.ACTION_PLAY);
         filter.addAction(MediaNotificationService.ACTION_PAUSE);
         filter.addAction(MediaNotificationService.ACTION_PREV);
         filter.addAction(MediaNotificationService.ACTION_NEXT);
-        filter.addAction(MediaNotificationService.ACTION_PREV_CHAPTER);
-        filter.addAction(MediaNotificationService.ACTION_NEXT_CHAPTER);
         filter.addAction(MediaNotificationService.ACTION_STOP);
+        filter.addAction(MediaNotificationService.EVENT_VERSE_CHANGED);
+        filter.addAction(MediaNotificationService.EVENT_CHAPTER_COMPLETE);
+        filter.addAction(MediaNotificationService.EVENT_REQUEST_PREV_CHAPTER);
+        filter.addAction(MediaNotificationService.EVENT_REQUEST_NEXT_CHAPTER);
 
         if (Build.VERSION.SDK_INT >= 33) {
-            registerReceiver(
-                    mediaReceiver,
-                    filter,
-                    Context.RECEIVER_NOT_EXPORTED
-            );
+            registerReceiver(mediaReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
         } else {
-            registerReceiver(
-                    mediaReceiver,
-                    filter
-            );
+            registerReceiver(mediaReceiver, filter);
         }
 
-        Log.d(
-                "BIBLIA_MEDIA",
-                "MainActivity: receptor de mídia registrado"
-        );
+        Log.d("BIBLIA_MEDIA", "MainActivity: receptor de mídia registrado");
     }
 
     @Override
@@ -170,10 +154,7 @@ public class MainActivity extends BridgeActivity {
         try {
             unregisterReceiver(mediaReceiver);
         } catch (Exception e) {
-            Log.w(
-                    "BIBLIA_MEDIA",
-                    "Receptor de mídia já estava desregistrado"
-            );
+            Log.w("BIBLIA_MEDIA", "Receptor de mídia já estava desregistrado");
         }
 
         super.onDestroy();
