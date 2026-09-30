@@ -188,7 +188,7 @@ export const readerPage = {
       });
       if (chapterTitles[String(idx + 1)]) {
         const h = el('h3', { className: 'pericope-title' }, chapterTitles[String(idx + 1)]);
-        h.style.cssText = 'margin:20px 0 6px;font-weight:700;opacity:.85;font-size:' + Math.round(settings.fontSize * 0.95) + 'px;';
+        h.style.cssText = 'margin:20px 0 6px;font-weight:700;color:var(--gold);font-size:' + Math.round(settings.fontSize * 0.95) + 'px;';
         readContent.appendChild(h);
       }
       readContent.appendChild(p);
