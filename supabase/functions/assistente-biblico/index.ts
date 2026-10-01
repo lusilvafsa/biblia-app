@@ -131,6 +131,44 @@ async function chamarGemini(texto: string, geminiApiKey: string) {
   );
 }
 
+// Identifica o usuário logado. Devolve { userId } ou { resposta } (erro pronto).
+async function identificarUsuario(
+  req: Request,
+  supabaseUrl: string,
+  anonKey: string,
+): Promise<{ userId: string } | { resposta: Response }> {
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return {
+      resposta: Response.json(
+        {
+          erro:
+            "É necessário estar autenticado para usar o Assistente Bíblico.",
+        },
+        { status: 401, headers: corsHeaders },
+      ),
+    };
+  }
+
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const { data: userData, error: userError } = await userClient.auth.getUser();
+
+  if (userError || !userData?.user) {
+    return {
+      resposta: Response.json(
+        { erro: "Sessão inválida. Entre novamente na sua conta." },
+        { status: 401, headers: corsHeaders },
+      ),
+    };
+  }
+
+  return { userId: userData.user.id };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -143,19 +181,12 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const authHeader = req.headers.get("Authorization");
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return Response.json(
-      {
-        erro:
-          "É necessário estar autenticado para usar o Assistente Bíblico.",
-      },
-      { status: 401, headers: corsHeaders },
-    );
-  }
-
-  let body: { mensagem?: unknown; tipo?: unknown; chave?: unknown; consultarUso?: unknown };
+  let body: {
+    mensagem?: unknown;
+    tipo?: unknown;
+    chave?: unknown;
+    consultarUso?: unknown;
+  };
 
   try {
     body = await req.json();
@@ -167,7 +198,11 @@ Deno.serve(async (req: Request) => {
   }
 
   const soConsulta = body.consultarUso === true;
-  if (!soConsulta && (typeof body.mensagem !== "string" || !body.mensagem.trim())) {
+
+  if (
+    !soConsulta &&
+    (typeof body.mensagem !== "string" || !body.mensagem.trim())
+  ) {
     return Response.json(
       { erro: "Informe uma mensagem." },
       { status: 400, headers: corsHeaders },
@@ -190,40 +225,40 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-  const userClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
-
-  const { data: userData, error: userError } = await userClient.auth.getUser();
-
-  if (userError || !userData?.user) {
-    return Response.json(
-      { erro: "Sessão inválida. Entre novamente na sua conta." },
-      { status: 401, headers: corsHeaders },
-    );
-  }
-
-  const userId = userData.user.id;
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-  // ===== CONSULTA DE USO (nao chama a IA nem gasta pergunta) =====
-  const hoje = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  // Dia do limite no fuso de Brasília (UTC-3): zera à meia-noite daqui.
+  const hoje = new Date(Date.now() - 3 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+
+  // ===== CONSULTA DE USO (não chama a IA nem gasta pergunta; exige login) =====
+
   if (soConsulta) {
+    const quem = await identificarUsuario(req, supabaseUrl, anonKey);
+    if ("resposta" in quem) return quem.resposta;
+
     const { data: uso } = await adminClient
       .from("assistente_uso")
       .select("contagem")
-      .eq("user_id", userId)
+      .eq("user_id", quem.userId)
       .eq("dia", hoje)
       .maybeSingle();
+
     const usadas = uso?.contagem ?? 0;
+
     return Response.json(
-      { sucesso: true, usadas, limite: LIMITE_DIARIO, restantes: Math.max(0, LIMITE_DIARIO - usadas) },
+      {
+        sucesso: true,
+        usadas,
+        limite: LIMITE_DIARIO,
+        restantes: Math.max(0, LIMITE_DIARIO - usadas),
+      },
       { headers: corsHeaders },
     );
   }
 
-  // ===== CACHE COMPARTILHADO (nao gasta o limite diario nem chama a IA) =====
+  // ===== CACHE COMPARTILHADO — checado ANTES de exigir login, pois é grátis =====
 
   if (usaCache) {
     const { data: emCache } = await adminClient
@@ -241,9 +276,14 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // ===== LIMITE DIARIO =====
+  // ===== A PARTIR DAQUI, PRECISA GERAR COM A IA: EXIGE LOGIN =====
 
-  // (dia calculado acima, no fuso de Brasília)
+  const quem = await identificarUsuario(req, supabaseUrl, anonKey);
+  if ("resposta" in quem) return quem.resposta;
+
+  const userId = quem.userId;
+
+  // ===== LIMITE DIARIO =====
 
   const { data: usoAtual } = await adminClient
     .from("assistente_uso")
