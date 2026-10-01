@@ -42,3 +42,41 @@ export async function initDailyNotification() {
     console.warn('[dailyNotification] não foi possível agendar:', err);
   }
 }
+
+// ---- Configuração do lembrete (usada pela tela de Configurações) ----
+const CONFIG_KEY = 'biblia:daily-notification-config';
+
+export function getDailyNotificationConfig() {
+  return { enabled: true, hour: HORA_PADRAO, minute: 0, ...getItem(CONFIG_KEY, {}) };
+}
+
+export async function applyDailyNotification(partial) {
+  const config = { ...getDailyNotificationConfig(), ...partial };
+  setItem(CONFIG_KEY, config);
+  const capacitor = typeof window !== 'undefined' ? window.Capacitor : null;
+  const nativo = !!(capacitor && typeof capacitor.isNativePlatform === 'function' && capacitor.isNativePlatform());
+  const ln = capacitor?.Plugins?.LocalNotifications || null;
+  if (!nativo || !ln) return false;
+  try {
+    await ln.cancel({ notifications: [{ id: NOTIFICATION_ID }] });
+    if (config.enabled) {
+      const permissao = await ln.requestPermissions();
+      if (permissao.display !== 'granted') return false;
+      await ln.schedule({
+        notifications: [
+          {
+            id: NOTIFICATION_ID,
+            title: '📖 Bíblia de Estudo',
+            body: 'Seu momento com a Palavra te espera hoje. Toque para continuar sua leitura.',
+            schedule: { on: { hour: config.hour, minute: config.minute }, allowWhileIdle: true },
+          },
+        ],
+      });
+    }
+    setItem(STORAGE_KEYS.dailyNotification, true);
+    return true;
+  } catch (err) {
+    console.warn('[dailyNotification] não foi possível aplicar:', err);
+    return false;
+  }
+}

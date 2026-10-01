@@ -155,7 +155,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  let body: { mensagem?: unknown; tipo?: unknown; chave?: unknown };
+  let body: { mensagem?: unknown; tipo?: unknown; chave?: unknown; consultarUso?: unknown };
 
   try {
     body = await req.json();
@@ -166,14 +166,15 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  if (typeof body.mensagem !== "string" || !body.mensagem.trim()) {
+  const soConsulta = body.consultarUso === true;
+  if (!soConsulta && (typeof body.mensagem !== "string" || !body.mensagem.trim())) {
     return Response.json(
       { erro: "Informe uma mensagem." },
       { status: 400, headers: corsHeaders },
     );
   }
 
-  const texto = body.mensagem.trim();
+  const texto = typeof body.mensagem === "string" ? body.mensagem.trim() : "";
 
   if (texto.length > 8000) {
     return Response.json(
@@ -206,6 +207,22 @@ Deno.serve(async (req: Request) => {
   const userId = userData.user.id;
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
+  // ===== CONSULTA DE USO (nao chama a IA nem gasta pergunta) =====
+  const hoje = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  if (soConsulta) {
+    const { data: uso } = await adminClient
+      .from("assistente_uso")
+      .select("contagem")
+      .eq("user_id", userId)
+      .eq("dia", hoje)
+      .maybeSingle();
+    const usadas = uso?.contagem ?? 0;
+    return Response.json(
+      { sucesso: true, usadas, limite: LIMITE_DIARIO, restantes: Math.max(0, LIMITE_DIARIO - usadas) },
+      { headers: corsHeaders },
+    );
+  }
+
   // ===== CACHE COMPARTILHADO (nao gasta o limite diario nem chama a IA) =====
 
   if (usaCache) {
@@ -226,7 +243,7 @@ Deno.serve(async (req: Request) => {
 
   // ===== LIMITE DIARIO =====
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  // (dia calculado acima, no fuso de Brasília)
 
   const { data: usoAtual } = await adminClient
     .from("assistente_uso")

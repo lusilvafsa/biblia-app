@@ -17,6 +17,24 @@ public class MediaNotificationPlugin extends Plugin {
     // rodando mesmo com a tela apagada ou o app em segundo plano.
     public static volatile boolean isNarrating = false;
 
+    @PluginMethod
+    public void setSleepTimer(PluginCall call) {
+        Integer minutos = call.getInt("minutes", 0);
+        if (!isNarrating) {
+            if (minutos.intValue() > 0) {
+                call.reject("A narração não está ativa");
+            } else {
+                call.resolve();
+            }
+            return;
+        }
+        Intent intent = new Intent(getContext(), (Class<?>) MediaNotificationService.class);
+        intent.setAction(MediaNotificationService.ACTION_SET_SLEEP_TIMER);
+        intent.putExtra(MediaNotificationService.EXTRA_SLEEP_MINUTES, minutos.intValue());
+        getContext().startService(intent);
+        call.resolve();
+    }
+
     private void enviarAoServico(Intent intent, boolean emPrimeiroPlano) {
         if (emPrimeiroPlano && Build.VERSION.SDK_INT >= 26) {
             getContext().startForegroundService(intent);

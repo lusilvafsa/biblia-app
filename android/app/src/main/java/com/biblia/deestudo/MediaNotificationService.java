@@ -25,6 +25,8 @@ import java.util.Set;
 public class MediaNotificationService extends Service implements TextToSpeech.OnInitListener {
 
     public static final String ACTION_NEXT = "com.biblia.deestudo.MEDIA_NEXT";
+    public static final String ACTION_SET_SLEEP_TIMER = "com.biblia.deestudo.MEDIA_SET_SLEEP_TIMER";
+    public static final String EXTRA_SLEEP_MINUTES = "sleep_minutes";
     public static final String ACTION_PREV_CHAPTER = "com.biblia.deestudo.MEDIA_PREV_CHAPTER";
     public static final String ACTION_NEXT_CHAPTER = "com.biblia.deestudo.MEDIA_NEXT_CHAPTER";
     public static final String ACTION_PAUSE = "com.biblia.deestudo.MEDIA_PAUSE";
@@ -146,6 +148,36 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
         return utteranceId != null && utteranceId.equals(utteranceAtual) && playing;
     }
 
+    private final android.os.Handler sleepHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable sleepRunnable = null;
+
+    private void configurarSleepTimer(int minutos) {
+        if (sleepRunnable != null) {
+            sleepHandler.removeCallbacks(sleepRunnable);
+            sleepRunnable = null;
+        }
+        if (minutos <= 0) return;
+        sleepRunnable = new Runnable() {
+            @Override
+            public void run() {
+                sleepRunnable = null;
+                encerrarPorTemporizador();
+            }
+        };
+        sleepHandler.postDelayed(sleepRunnable, minutos * 60L * 1000L);
+    }
+
+    private void encerrarPorTemporizador() {
+        pararFala();
+        playing = false;
+        verses.clear();
+        currentIndex = 0;
+        updateWakeLock();
+        notificarSemDado(ACTION_STOP);
+        stopForeground(true);
+        stopSelf();
+    }
+
     private void pararFala() {
         utteranceAtual = null;
         if (tts != null) tts.stop();
@@ -247,6 +279,8 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
                     falarVersiculoAtual();
                 }
 
+            } else if (ACTION_SET_SLEEP_TIMER.equals(action)) {
+                configurarSleepTimer(intent.getIntExtra(EXTRA_SLEEP_MINUTES, 0));
             } else if (ACTION_PAUSE.equals(action)) {
                 pararFala();
                 playing = false;
@@ -371,6 +405,10 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
 
     @Override
     public void onDestroy() {
+        if (sleepRunnable != null) {
+            sleepHandler.removeCallbacks(sleepRunnable);
+            sleepRunnable = null;
+        }
         if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
         if (tts != null) {
             tts.stop();
