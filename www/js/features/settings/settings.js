@@ -163,7 +163,7 @@ function template(settings) {
       <div class="settings-section-title">Assistente Bíblico</div>
       <div class="settings-card">
         <p class="ministry-plain-text" id="assistantUsage">Consultando...</p>
-        <p class="voice-hint" style="margin-top:8px;">Respostas já geradas antes não gastam sua cota.</p>
+        <p style="margin-top:8px;font-size:13px;opacity:.65;">Respostas já geradas antes não gastam sua cota.</p>
       </div>
     </div>
 
