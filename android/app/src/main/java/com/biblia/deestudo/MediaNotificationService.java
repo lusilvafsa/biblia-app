@@ -148,7 +148,7 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
 
     private void pararFala() {
         utteranceAtual = null;
-        pararFala();
+        if (tts != null) tts.stop();
     }
 
     private void avancarENarrar() {
