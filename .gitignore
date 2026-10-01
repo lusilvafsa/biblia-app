@@ -27,3 +27,7 @@ backups/
 www-backup*/
 *backup*
 *.BACKUP-*
+
+patch_*.py
+*.bak*
+*BACKUP*
