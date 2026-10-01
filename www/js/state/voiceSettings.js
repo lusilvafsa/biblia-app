@@ -10,7 +10,7 @@ export const DEFAULT_VOICE_SETTINGS = {
 };
 
 const listeners = new Set();
-let settings = { ...DEFAULT_VOICE_SETTINGS, ...getItem(STORAGE_KEYS.voice, {}) };
+let settings = { ...DEFAULT_VOICE_SETTINGS, ...getItem(STORAGE_KEYS.voice, {}), pitch: 1 };
 
 export function getVoiceSettings() {
   return { ...settings };

@@ -106,14 +106,6 @@ function template(settings) {
           <div class="voice-hint" id="voiceHint" hidden></div>
         </div>
 
-        <div class="setting-row">
-          <div class="setting-row-header">
-            <span class="setting-label">Tom de voz</span>
-            <span class="setting-value" id="pitchValue">${pitchLabel(settings.pitch)}</span>
-          </div>
-          <input type="range" class="range-slider" id="pitchSlider" min="0.5" max="2" step="0.1" value="${settings.pitch}">
-          <div class="setting-scale"><span>Grave</span><span>Agudo</span></div>
-        </div>
 
         <div class="setting-row">
           <div class="setting-row-header">
@@ -209,10 +201,8 @@ export const settingsPage = {
       toast.info('Leitura por voz não é suportada neste navegador');
     }
 
-    const pitchSlider = qs('#pitchSlider', container);
     const rateSlider = qs('#rateSlider', container);
     const voiceSelect = qs('#voiceSelect', container);
-    const pitchValue = qs('#pitchValue', container);
     const rateValue = qs('#rateValue', container);
     const genderToggle = qs('#genderToggle', container);
     const voiceHint = qs('#voiceHint', container);
@@ -268,11 +258,6 @@ export const settingsPage = {
       setActiveGenderButton(pref);
     });
 
-    pitchSlider.addEventListener('input', () => {
-      const pitch = Number(pitchSlider.value);
-      pitchValue.textContent = pitchLabel(pitch);
-      setVoiceSettings({ pitch });
-    });
 
     rateSlider.addEventListener('input', () => {
       const rate = Number(rateSlider.value);
@@ -307,9 +292,7 @@ export const settingsPage = {
       if (!confirm('Restaurar as configurações de voz para o padrão?')) return;
       resetVoiceSettings();
       settings = { ...DEFAULT_VOICE_SETTINGS };
-      pitchSlider.value = settings.pitch;
       rateSlider.value = settings.rate;
-      pitchValue.textContent = pitchLabel(settings.pitch);
       rateValue.textContent = rateLabel(settings.rate);
       voiceSelect.innerHTML = voiceOptionsHtml(getAvailableVoices(), null);
       setActiveGenderButton('auto');
