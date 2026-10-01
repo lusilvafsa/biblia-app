@@ -1,6 +1,6 @@
 {
   "name": "biblia-app",
-  "version": "1.0.0",
+  "version": "3.1.0",
   "description": "Aplicativo web de estudo bíblico: Bíblia completa (ACF, com suporte a mais versões — veja abaixo), busca por palavra, Bíblia em áudio, orações guiadas, quiz bíblico e guia de ministração. Interface em português, tema claro/escuro, responsivo em retrato e paisagem, 100% client-side (sem backend).",
   "main": "sw.js",
   "scripts": {

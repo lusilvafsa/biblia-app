@@ -18,6 +18,7 @@ import { isInstallAvailable, onInstallAvailabilityChange, promptInstall } from '
 
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { supabase } from '../../supabaseClient.js';
+import { APP_VERSION, APP_BUILD, APP_DATE } from '../../version.js';
 import { BIBLE_VERSIONS } from '../../../data/bibleVersions.js';
 import { getBibleVersion, setBibleVersion } from '../../state/bibleVersion.js';
 import { getDailyNotificationConfig, applyDailyNotification } from '../../utils/dailyNotification.js';
@@ -184,7 +185,8 @@ function template(settings) {
     </div>
 
     <div class="app-info">
-      Bíblia de Estudo — v3.0<br>
+      Bíblia de Estudo — v${APP_VERSION} · build ${APP_BUILD}<br>
+    Atualizado em ${APP_DATE}<br>
       Versões: ACF, BLIVRE e ARC 1911<br>
       Referências cruzadas: OpenBible.info (CC BY 4.0)
     </div>
