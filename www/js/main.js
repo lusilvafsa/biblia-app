@@ -103,13 +103,13 @@ function renderHeaderActions(meta) {
 }
 
 function initRoutes() {
-  registerRoute('/', homePage, { title: 'Versículo do Dia', navKey: 'home', showSettings: true });
-  registerRoute('/biblia', bookListPage, { title: 'Bíblia Sagrada', navKey: 'bible', showSearch: true, showSettings: true });
+  registerRoute('/', homePage, { title: 'Versículo do Dia', navKey: 'home' });
+  registerRoute('/biblia', bookListPage, { title: 'Bíblia Sagrada', navKey: 'bible', showSearch: true });
   registerRoute('/biblia/busca', searchPage, { title: 'Buscar na Bíblia', navKey: 'bible', showBack: true });
   registerRoute('/biblia/:book', chapterGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
   registerRoute('/biblia/:book/:chapter', verseGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
   registerRoute('/biblia/:book/:chapter/versiculo/:verse', readerPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
-  registerRoute('/oracao', prayerPage, { title: 'Oração Diária', navKey: 'prayer', showSettings: true });
+  registerRoute('/oracao', prayerPage, { title: 'Oração Diária', navKey: 'prayer' });
   registerRoute('/quiz', quizPage, { title: 'Quiz Bíblico', navKey: null, showBack: true });
   registerRoute('/ministracao', ministryListPage, { title: 'Guia de Ministração', navKey: null, showBack: true });
   registerRoute('/ministracao/:id', ministryDetailPage, { title: 'Guia de Ministração', navKey: null, showBack: true });
