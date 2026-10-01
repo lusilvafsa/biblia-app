@@ -323,7 +323,186 @@ export const readerPage = {
       progressRepository.saveProgress({ book: bookIndex, chapter: chapterIndex, verse: readingIndex });
     }
 
+        // ============================================================
+    // NARRAÇÃO NATIVA (APK): o serviço Android lê vários capítulos
+    // seguidos sozinho, sem depender do JavaScript da tela.
+    // ============================================================
+    let nativeNarrationActive = false;
+    let nativeMap = []; // por item da lista nativa: { chapter, verse } (verse -1 = anúncio)
+    const NATIVE_MAX_CHARS = 60000;
+    const NATIVE_MAX_EXTRA_CHAPTERS = 10;
+
+    function getNativeNarrator() {
+      try {
+        const cap = window.Capacitor;
+        if (cap && cap.isNativePlatform && cap.isNativePlatform()) {
+          return (cap.Plugins && cap.Plugins.MediaNotification) || null;
+        }
+      } catch (e) { /* segue no modo web */ }
+      return null;
+    }
+
+    function nativeCall(method) {
+      try {
+        const p = getNativeNarrator();
+        if (p && p[method]) p[method]();
+      } catch (e) { console.warn('Narração nativa:', method, e); }
+    }
+
+    function nativeStop() {
+      if (window.__nativeNarr) window.__nativeNarr.active = false;
+      if (!nativeNarrationActive) return;
+      nativeNarrationActive = false;
+      nativeCall('stop');
+    }
+
+    function nativeStartFailed(err) {
+      console.error('Falha na narração nativa:', err);
+      nativeNarrationActive = false;
+      if (window.__nativeNarr) window.__nativeNarr.active = false;
+      toast.error('Não foi possível iniciar a narração.');
+      stopReading();
+    }
+
+    async function getBookTitles() {
+      window.__titlesCache = window.__titlesCache || {};
+      if (!window.__titlesCache[bookIndex]) {
+        try {
+          const r = await fetch('data/titles/' + bookIndex + '.json');
+          window.__titlesCache[bookIndex] = r.ok ? await r.json() : {};
+        } catch (e) {
+          window.__titlesCache[bookIndex] = {};
+        }
+      }
+      return window.__titlesCache[bookIndex];
+    }
+
+    async function buildNativeItems(fromVerse) {
+      const items = ['Vamos iniciar a leitura de ' + book.name + ', capítulo ' + (chapterIndex + 1) + '.'];
+      const map = [{ chapter: chapterIndex, verse: -1 }];
+      let chars = items[0].length;
+      const titles = await getBookTitles();
+      const tCur = titles[String(chapterIndex + 1)] || {};
+      for (let i = fromVerse; i < verses.length; i++) {
+        if (tCur[String(i + 1)]) {
+          items.push(tCur[String(i + 1)]);
+          map.push({ chapter: chapterIndex, verse: -1 });
+          chars += tCur[String(i + 1)].length;
+        }
+        items.push('Versículo ' + (i + 1) + '. ' + verses[i]);
+        map.push({ chapter: chapterIndex, verse: i });
+        chars += verses[i].length + 14;
+      }
+      const lastChapter = book.chapterCount - 1;
+      let ch = chapterIndex + 1;
+      while (ch <= lastChapter && ch - chapterIndex <= NATIVE_MAX_EXTRA_CHAPTERS && chars < NATIVE_MAX_CHARS) {
+        let vs;
+        try { vs = await getChapter(bookIndex, ch); } catch (e) { break; }
+        items.push('Você concluiu ' + book.name + ' capítulo ' + ch + '. Agora vamos continuar com ' + book.name + ' capítulo ' + (ch + 1) + '.');
+        map.push({ chapter: ch, verse: -1 });
+        const tNext = titles[String(ch + 1)] || {};
+        for (let i = 0; i < vs.length; i++) {
+          if (tNext[String(i + 1)]) {
+            items.push(tNext[String(i + 1)]);
+            map.push({ chapter: ch, verse: -1 });
+            chars += tNext[String(i + 1)].length;
+          }
+          items.push('Versículo ' + (i + 1) + '. ' + vs[i]);
+          map.push({ chapter: ch, verse: i });
+          chars += vs[i].length + 14;
+        }
+        ch++;
+      }
+      return { items: items, map: map };
+    }
+
+    function startNativeNarration(fromVerse) {
+      const p = getNativeNarrator();
+      if (!p || !p.startChapterNarration) return false;
+      readingState = 'playing';
+      readingIndex = fromVerse;
+      nativeNarrationActive = true;
+      window.__nativeNarr = { active: true, bookIndex: bookIndex, map: [], finishedPending: false };
+      updateControlsUI();
+      const settings = getVoiceSettings() || {};
+      buildNativeItems(fromVerse).then((built) => {
+        if (!nativeNarrationActive) return; // parou antes de ficar pronto
+        nativeMap = built.map;
+        window.__nativeNarr.map = built.map;
+        return p.startChapterNarration({
+          title: book.name + ' ' + (chapterIndex + 1),
+          artist: 'Bíblia de Estudo',
+          verses: built.items,
+          startIndex: 0,
+          rate: Number(settings.rate) || 0.85,
+          voiceName: settings.voiceURI || '',
+        });
+      }).catch(nativeStartFailed);
+      return true;
+    }
+
+    // A tela acompanha o capítulo que o serviço está lendo.
+    function nativeFollowChapter(ch, verse) {
+      progressRepository.saveProgress({ book: bookIndex, chapter: ch, verse: Math.max(0, verse) });
+      clearTimeout(window.__nativeNavTimer);
+      window.__nativeNavTimer = setTimeout(() => {
+        navigateTo('/biblia/' + bookIndex + '/' + ch + '/versiculo/' + Math.max(0, verse));
+      }, 200);
+    }
+
+    function nativeVerseChanged(e) {
+      if (!nativeNarrationActive) return;
+      const n = Number(e.detail && e.detail.verseIndex);
+      const m = nativeMap[n];
+      if (!m) return;
+      const prev = nativeMap[n - 1];
+      if (prev && prev.verse >= 0) {
+        statsRepository.markAudioVerse(bookIndex, prev.chapter, prev.verse);
+      }
+      if (m.chapter !== chapterIndex) {
+        nativeFollowChapter(m.chapter, m.verse);
+        return;
+      }
+      if (m.verse < 0) return; // anúncio
+      readingIndex = m.verse;
+      persistVerseProgress();
+      highlightVerse(m.verse);
+    }
+
+    function nativeChapterComplete() {
+      if (!nativeNarrationActive) return;
+      const last = nativeMap[nativeMap.length - 1];
+      if (last && last.verse >= 0) {
+        statsRepository.markAudioVerse(bookIndex, last.chapter, last.verse);
+      }
+      if (last && last.chapter !== chapterIndex) {
+        if (window.__nativeNarr) window.__nativeNarr.finishedPending = true;
+        nativeFollowChapter(last.chapter, last.verse);
+        return;
+      }
+      nativeNarrationActive = false;
+      if (window.__nativeNarr) window.__nativeNarr.active = false;
+      onChapterFinished();
+    }
+
+    // Se uma narração nativa já está em andamento neste livro, esta tela
+    // (recém-aberta) continua acompanhando em vez de começar outra.
+    (function adoptNativeNarration() {
+      const s = window.__nativeNarr;
+      if (!s || !s.active || s.bookIndex !== bookIndex) return;
+      if (!s.map.some((m) => m.chapter === chapterIndex)) return;
+      nativeNarrationActive = true;
+      nativeMap = s.map;
+      readingState = 'playing';
+      updateControlsUI();
+      if (s.finishedPending) {
+        s.finishedPending = false;
+        setTimeout(nativeChapterComplete, 0);
+      }
+    })();
+
     function readLoop() {
+      if (nativeNarrationActive) return;
       if (readingState !== 'playing') return;
       if (readingIndex >= verses.length) {
         onChapterFinished();
@@ -416,6 +595,7 @@ export const readerPage = {
      * conforme pedido — vale tanto para o primeiro play quanto para
      * retomar uma leitura salva de uma sessão anterior. */
     function startFresh(fromVerse) {
+      if (startNativeNarration(fromVerse)) return;
       readingState = 'playing';
       readingIndex = fromVerse;
       updateControlsUI();
@@ -428,6 +608,7 @@ export const readerPage = {
     }
 
     function pauseReading() {
+      if (nativeNarrationActive && readingState === 'playing') nativeCall('pauseNarration');
       if (readingState !== 'playing') return;
       stopSpeech();
       readingState = 'paused';
@@ -440,6 +621,12 @@ export const readerPage = {
     /** Continuar dentro da MESMA sessão (após pausa) — não reanuncia o
      * capítulo, retoma direto no versículo em que parou. */
     function continueReading() {
+      if (nativeNarrationActive && readingState === 'paused') {
+        readingState = 'playing';
+        updateControlsUI();
+        nativeCall('resumeNarration');
+        return;
+      }
       if (readingState !== 'paused') return;
       readingState = 'playing';
       updateControlsUI();
@@ -448,6 +635,7 @@ export const readerPage = {
     }
 
     function stopReading() {
+      nativeStop();
       stopSpeech();
       readingState = 'idle';
       readingIndex = 0;
@@ -460,6 +648,7 @@ export const readerPage = {
 
     // Controle de versículo pela notificação do Android
     function changeNotificationVerse(delta) {
+      if (nativeNarrationActive) return; // o serviço nativo controla os versículos
       if (!verses.length) return;
 
       // Interrompe imediatamente a fala do versículo atual.
@@ -677,6 +866,8 @@ export const readerPage = {
     window.addEventListener('media-notification-play', nativeMediaPlay);
     window.addEventListener('media-notification-pause', nativeMediaPause);
     window.addEventListener('media-notification-stop', nativeMediaStop);
+    window.addEventListener('media-notification-verse-changed', nativeVerseChanged);
+    window.addEventListener('media-notification-chapter-complete', nativeChapterComplete);
 
     // Controles de mídia na tela de bloqueio / central de notificações.
     setMediaSessionHandlers({
@@ -870,6 +1061,8 @@ export const readerPage = {
       stopSpeech();
 
       window.removeEventListener('media-notification-play', nativeMediaPlay);
+      window.removeEventListener('media-notification-verse-changed', nativeVerseChanged);
+      window.removeEventListener('media-notification-chapter-complete', nativeChapterComplete);
       window.removeEventListener('media-notification-prev-chapter', nativeMediaPrevChapter);
       window.removeEventListener('media-notification-next-chapter', nativeMediaNextChapter);
       window.removeEventListener('media-notification-pause', nativeMediaPause);

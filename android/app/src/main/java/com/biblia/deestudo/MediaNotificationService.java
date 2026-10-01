@@ -101,11 +101,13 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
 
             @Override
             public void onDone(String utteranceId) {
+                if (!narracaoValida(utteranceId)) return;
                 avancarENarrar();
             }
 
             @Override
             public void onError(String utteranceId) {
+                if (!narracaoValida(utteranceId)) return;
                 avancarENarrar();
             }
         });
@@ -137,6 +139,18 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
         }
     }
 
+    private volatile String utteranceAtual = null;
+    private int contadorFala = 0;
+
+    private boolean narracaoValida(String utteranceId) {
+        return utteranceId != null && utteranceId.equals(utteranceAtual) && playing;
+    }
+
+    private void pararFala() {
+        utteranceAtual = null;
+        pararFala();
+    }
+
     private void avancarENarrar() {
         currentIndex++;
         if (currentIndex < verses.size()) {
@@ -154,7 +168,8 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
         if (currentIndex < 0 || currentIndex >= verses.size()) return;
 
         String texto = verses.get(currentIndex);
-        String utteranceId = "verso_" + currentIndex;
+        String utteranceId = "verso_" + currentIndex + "_" + (++contadorFala);
+        utteranceAtual = utteranceId;
 
         tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
 
@@ -227,44 +242,45 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
                 }
 
             } else if (ACTION_PLAY.equals(action)) {
+                if (playing) return START_STICKY;
                 if (!verses.isEmpty()) {
                     falarVersiculoAtual();
                 }
 
             } else if (ACTION_PAUSE.equals(action)) {
-                if (tts != null) tts.stop();
+                pararFala();
                 playing = false;
                 updateWakeLock();
                 atualizarNotificacao();
 
             } else if (ACTION_NEXT.equals(action)) {
-                if (tts != null) tts.stop();
+                pararFala();
                 if (currentIndex < verses.size() - 1) {
                     currentIndex++;
                     falarVersiculoAtual();
                 }
 
             } else if (ACTION_PREV.equals(action)) {
-                if (tts != null) tts.stop();
+                pararFala();
                 if (currentIndex > 0) {
                     currentIndex--;
                     falarVersiculoAtual();
                 }
 
             } else if (ACTION_PREV_CHAPTER.equals(action)) {
-                if (tts != null) tts.stop();
+                pararFala();
                 playing = false;
                 updateWakeLock();
                 notificarSemDado(EVENT_REQUEST_PREV_CHAPTER);
 
             } else if (ACTION_NEXT_CHAPTER.equals(action)) {
-                if (tts != null) tts.stop();
+                pararFala();
                 playing = false;
                 updateWakeLock();
                 notificarSemDado(EVENT_REQUEST_NEXT_CHAPTER);
 
             } else if (ACTION_STOP.equals(action)) {
-                if (tts != null) tts.stop();
+                pararFala();
                 playing = false;
                 verses.clear();
                 currentIndex = 0;
