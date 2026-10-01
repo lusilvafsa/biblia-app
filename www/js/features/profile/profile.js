@@ -1196,6 +1196,12 @@ export const profilePage = {
     return () => {
       currentContainer = null;
     };
+
+    // Ao sair do Perfil, solta o container para que redesenhos tardios
+    // (sincronização após login) não escrevam por cima de outra tela.
+    return () => {
+      currentContainer = null;
+    };
   }
 };
 
