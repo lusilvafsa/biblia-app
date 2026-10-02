@@ -163,6 +163,7 @@ export const readerPage = {
 
         // Ao tocar no texto, apenas seleciona o versículo.
         readingIndex = idx;
+        userSelectedVerse = idx;
 
         // Em vez de abrir a explicação direto, mostra a barra de ações
         // (a mesma usada ao selecionar um trecho), com um botão pra abrir
@@ -330,6 +331,8 @@ export const readerPage = {
     // seguidos sozinho, sem depender do JavaScript da tela.
     // ============================================================
     let nativeNarrationActive = false;
+    let nativeSpokenVerse = -1;
+    let userSelectedVerse = null;
     let nativeMap = []; // por item da lista nativa: { chapter, verse } (verse -1 = anúncio)
     const NATIVE_MAX_CHARS = 60000;
     const NATIVE_MAX_EXTRA_CHAPTERS = 10;
@@ -380,10 +383,10 @@ export const readerPage = {
       return window.__titlesCache[bookIndex];
     }
 
-    async function buildNativeItems(fromVerse) {
-      const items = ['Vamos iniciar a leitura de ' + book.name + ', capítulo ' + (chapterIndex + 1) + '.'];
-      const map = [{ chapter: chapterIndex, verse: -1 }];
-      let chars = items[0].length;
+    async function buildNativeItems(fromVerse, skipIntro) {
+      const items = skipIntro ? [] : ['Vamos iniciar a leitura de ' + book.name + ', capítulo ' + (chapterIndex + 1) + '.'];
+      const map = skipIntro ? [] : [{ chapter: chapterIndex, verse: -1 }];
+      let chars = skipIntro ? 0 : items[0].length;
       const titles = await getBookTitles();
       const lerTitulos = getVoiceSettings().readTitles !== false;
       const tCur = lerTitulos ? (titles[String(chapterIndex + 1)] || {}) : {};
@@ -420,16 +423,17 @@ export const readerPage = {
       return { items: items, map: map };
     }
 
-    function startNativeNarration(fromVerse) {
+    function startNativeNarration(fromVerse, skipIntro) {
       const p = getNativeNarrator();
       if (!p || !p.startChapterNarration) return false;
       readingState = 'playing';
       readingIndex = fromVerse;
       nativeNarrationActive = true;
-      window.__nativeNarr = { active: true, bookIndex: bookIndex, map: [], finishedPending: false };
+      window.__nativeNarr = { active: true, bookIndex: bookIndex, map: [], finishedPending: false, paused: false, follow: null };
+      userSelectedVerse = null;
       updateControlsUI();
       const settings = getVoiceSettings() || {};
-      buildNativeItems(fromVerse).then((built) => {
+      buildNativeItems(fromVerse, skipIntro).then((built) => {
         if (!nativeNarrationActive) return; // parou antes de ficar pronto
         nativeMap = built.map;
         window.__nativeNarr.map = built.map;
@@ -447,6 +451,7 @@ export const readerPage = {
 
     // A tela acompanha o capítulo que o serviço está lendo.
     function nativeFollowChapter(ch, verse) {
+      if (window.__nativeNarr) window.__nativeNarr.follow = ch;
       progressRepository.saveProgress({ book: bookIndex, chapter: ch, verse: Math.max(0, verse) });
       clearTimeout(window.__nativeNavTimer);
       window.__nativeNavTimer = setTimeout(() => {
@@ -472,6 +477,7 @@ export const readerPage = {
       }
       if (m.verse < 0) return; // anúncio
       readingIndex = m.verse;
+      nativeSpokenVerse = m.verse;
       persistVerseProgress();
       highlightVerse(m.verse);
     }
@@ -498,6 +504,9 @@ export const readerPage = {
       const s = window.__nativeNarr;
       if (!s || !s.active || s.bookIndex !== bookIndex) return;
       if (!s.map.some((m) => m.chapter === chapterIndex)) return;
+      const seguindo = s.follow === chapterIndex;
+      if (!seguindo && (hasRequestedVerse || s.paused)) return;
+      s.follow = null;
       nativeNarrationActive = true;
       nativeMap = s.map;
       readingState = 'playing';
@@ -618,7 +627,10 @@ export const readerPage = {
     }
 
     function pauseReading() {
-      if (nativeNarrationActive && readingState === 'playing') nativeCall('pauseNarration');
+      if (nativeNarrationActive && readingState === 'playing') {
+        nativeCall('pauseNarration');
+        if (window.__nativeNarr) window.__nativeNarr.paused = true;
+      }
       if (readingState !== 'playing') return;
       stopSpeech();
       readingState = 'paused';
@@ -632,7 +644,14 @@ export const readerPage = {
      * capítulo, retoma direto no versículo em que parou. */
     function continueReading() {
       if (nativeNarrationActive && readingState === 'paused') {
+        const alvo = userSelectedVerse;
+        userSelectedVerse = null;
+        if (alvo !== null && alvo !== nativeSpokenVerse && alvo >= 0 && alvo < verses.length) {
+          startNativeNarration(alvo, true); // começa no versículo escolhido, sem repetir o anúncio
+          return;
+        }
         readingState = 'playing';
+        if (window.__nativeNarr) window.__nativeNarr.paused = false;
         updateControlsUI();
         nativeCall('resumeNarration');
         return;
@@ -733,6 +752,7 @@ export const readerPage = {
       if (verseIndex < 0 || verseIndex >= verseEls.length) return;
 
       readingIndex = verseIndex;
+      userSelectedVerse = verseIndex;
 
       verseEls.forEach((verse, index) => {
         verse.classList.toggle('selected', index === verseIndex);
