@@ -370,10 +370,22 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        String versiculo = null;
+        if (currentIndex >= 0 && currentIndex < verses.size()) {
+            versiculo = verses.get(currentIndex);
+            if (versiculo != null) {
+                versiculo = versiculo.replaceAll("\\s+", " ").trim();
+                if (versiculo.length() > 140) {
+                    versiculo = versiculo.substring(0, 137) + "…";
+                }
+                if (versiculo.isEmpty()) versiculo = null;
+            }
+        }
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_media_play)
-                .setContentTitle("Bíblia de Estudo")
-                .setContentText(title)
+                .setContentTitle(title)
+                .setContentText(versiculo != null ? versiculo : artist)
                 .setSubText(artist)
                 .setContentIntent(contentIntent)
                 .setOngoing(true)
