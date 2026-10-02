@@ -200,6 +200,21 @@ function adicionarMensagem(messagesEl, tipo, texto) {
 }
 
 let usoEl = null;
+let inputEl = null;
+let sendEl = null;
+let limiteAtingido = false;
+
+function aplicarBloqueio() {
+  if (!inputEl || !sendEl) return;
+  inputEl.disabled = limiteAtingido;
+  sendEl.disabled = limiteAtingido;
+  if (limiteAtingido) {
+    if (inputEl.dataset.ph === undefined) inputEl.dataset.ph = inputEl.placeholder;
+    inputEl.placeholder = 'Limite diário atingido. Volta à meia-noite.';
+  } else if (inputEl.dataset.ph !== undefined) {
+    inputEl.placeholder = inputEl.dataset.ph;
+  }
+}
 
 async function carregarUso() {
   if (!usoEl) return;
@@ -207,16 +222,19 @@ async function carregarUso() {
     await aguardarAuthInicial();
     if (!usuarioAtual()) {
       usoEl.textContent = '';
+      limiteAtingido = false;
+      aplicarBloqueio();
       return;
     }
     const { data, error } = await supabase.functions.invoke('assistente-biblico', {
       body: { consultarUso: true },
     });
     if (error || !data?.sucesso) return;
-    usoEl.textContent =
-      data.restantes > 0
-        ? `Restam ${data.restantes} de ${data.limite} perguntas hoje`
-        : `Você usou as ${data.limite} perguntas de hoje. Volta à meia-noite.`;
+    limiteAtingido = data.restantes <= 0;
+    usoEl.textContent = limiteAtingido
+      ? `Você usou as ${data.limite} perguntas de hoje. Volta à meia-noite.`
+      : `Restam ${data.restantes} de ${data.limite} perguntas hoje`;
+    aplicarBloqueio();
   } catch (_e) {
     /* mantém o texto anterior */
   }
@@ -229,6 +247,11 @@ async function enviarPergunta({
   sendButton,
   statusEl,
 }) {
+  if (limiteAtingido) {
+    statusEl.textContent = 'Você usou todas as perguntas de hoje. Volta à meia-noite.';
+    return;
+  }
+
   const texto = String(pergunta || '').trim();
 
   if (!texto) {
@@ -346,6 +369,9 @@ export const assistantPage = {
     const statusEl = container.querySelector(
       '#assistantStatus',
     );
+
+    inputEl = input;
+    sendEl = sendButton;
 
     await aguardarAuthInicial();
 
