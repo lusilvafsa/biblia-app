@@ -31,3 +31,9 @@ www-backup*/
 patch_*.py
 *.bak*
 *BACKUP*
+
+*.backup*
+*.BACKUP*
+*.bak*
+*.BAK*
+patch_*.py
