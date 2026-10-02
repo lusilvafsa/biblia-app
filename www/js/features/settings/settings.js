@@ -105,6 +105,12 @@ function template(settings) {
             <button type="button" data-gender="auto" class="${pref === 'auto' ? 'active' : ''}">Automática</button>
           </div>
           <div class="voice-hint" id="voiceHint" hidden></div>
+        <div class="setting-row">
+          <label class="setting-label" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="readTitlesToggle" ${getVoiceSettings().readTitles !== false ? 'checked' : ''}>
+            Ler os títulos das passagens
+          </label>
+        </div>
         </div>
 
 
@@ -208,6 +214,12 @@ export const settingsPage = {
     const rateValue = qs('#rateValue', container);
     const genderToggle = qs('#genderToggle', container);
     const voiceHint = qs('#voiceHint', container);
+    const readTitlesToggle = qs('#readTitlesToggle', container);
+    if (readTitlesToggle) {
+      readTitlesToggle.addEventListener('change', () => {
+        setVoiceSettings({ readTitles: readTitlesToggle.checked });
+      });
+    }
 
     function setActiveGenderButton(pref) {
       qsa('button', genderToggle).forEach((btn) => btn.classList.toggle('active', btn.dataset.gender === pref));

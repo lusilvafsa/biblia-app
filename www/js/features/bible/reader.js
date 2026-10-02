@@ -21,6 +21,7 @@ import { aguardarAuthInicial } from '../../supabaseAuth.js';
 import { statsRepository } from '../../data-access/statsRepository.js';
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { speak, stopSpeech, isSpeechSupported } from '../../utils/speech.js';
+import { planProgressRepository } from '../../data-access/planProgressRepository.js';
 import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js';
 import { setHeaderTitle } from '../../state/header.js';
 import { attachSelectionToolbar } from './selectionToolbar.js';
@@ -384,7 +385,8 @@ export const readerPage = {
       const map = [{ chapter: chapterIndex, verse: -1 }];
       let chars = items[0].length;
       const titles = await getBookTitles();
-      const tCur = titles[String(chapterIndex + 1)] || {};
+      const lerTitulos = getVoiceSettings().readTitles !== false;
+      const tCur = lerTitulos ? (titles[String(chapterIndex + 1)] || {}) : {};
       for (let i = fromVerse; i < verses.length; i++) {
         if (tCur[String(i + 1)]) {
           items.push(tCur[String(i + 1)]);
@@ -402,7 +404,7 @@ export const readerPage = {
         try { vs = await getChapter(bookIndex, ch); } catch (e) { break; }
         items.push('Você concluiu ' + book.name + ' capítulo ' + ch + '. Agora vamos continuar com ' + book.name + ' capítulo ' + (ch + 1) + '.');
         map.push({ chapter: ch, verse: -1 });
-        const tNext = titles[String(ch + 1)] || {};
+        const tNext = lerTitulos ? (titles[String(ch + 1)] || {}) : {};
         for (let i = 0; i < vs.length; i++) {
           if (tNext[String(i + 1)]) {
             items.push(tNext[String(i + 1)]);
@@ -461,6 +463,9 @@ export const readerPage = {
       if (prev && prev.verse >= 0) {
         statsRepository.markAudioVerse(bookIndex, prev.chapter, prev.verse);
       }
+      if (prev && prev.verse >= 0 && m.chapter !== prev.chapter) {
+        try { planProgressRepository.markChapterRead(bookIndex, prev.chapter); } catch (e) { /* plano é opcional */ }
+      }
       if (m.chapter !== chapterIndex) {
         nativeFollowChapter(m.chapter, m.verse);
         return;
@@ -511,7 +516,9 @@ export const readerPage = {
         return;
       }
       highlightVerse(readingIndex);
-      const text = `Versículo ${readingIndex + 1}. ${verses[readingIndex]}`;
+      let text = `Versículo ${readingIndex + 1}. ${verses[readingIndex]}`;
+      const tituloLido = (getVoiceSettings().readTitles !== false) ? chapterTitles[String(readingIndex + 1)] : null;
+      if (tituloLido) text = tituloLido + '. ' + text;
       speak(text, {
         onEnd: () => {
           if (readingState !== 'playing') return; // foi pausado/parado durante a fala
@@ -536,6 +543,7 @@ export const readerPage = {
     }
 
     function onChapterFinished() {
+      try { planProgressRepository.markChapterRead(bookIndex, chapterIndex); } catch (e) { /* plano é opcional */ }
       readingState = 'idle';
       readingIndex = 0;
       clearHighlights();
@@ -834,8 +842,11 @@ export const readerPage = {
     function sleepNativeCall(minutes) {
       try {
         const p = getNativeNarrator();
-        if (p && p.setSleepTimer) p.setSleepTimer({ minutes: minutes });
+        if (p && p.setSleepTimer) {
+          return Promise.resolve(p.setSleepTimer({ minutes: minutes }));
+        }
       } catch (e) { console.warn('Temporizador:', e); }
+      return Promise.reject(new Error('indisponível'));
     }
 
     function sleepRemaining() {
@@ -862,10 +873,14 @@ export const readerPage = {
         toast.info('Inicie a leitura para usar o temporizador.');
         return;
       }
-      sleepNativeCall(minutes);
-      window.__sleepTimer = minutes > 0 ? { minutes: minutes, endsAt: Date.now() + minutes * 60000 } : null;
-      updateSleepBtn();
-      toast.info(minutes > 0 ? 'A leitura vai parar em ' + minutes + ' minutos' : 'Temporizador desativado');
+      sleepNativeCall(minutes).then(() => {
+        window.__sleepTimer = minutes > 0 ? { minutes: minutes, endsAt: Date.now() + minutes * 60000 } : null;
+        updateSleepBtn();
+        toast.info(minutes > 0 ? 'A leitura vai parar em ' + minutes + ' minutos' : 'Temporizador desativado');
+      }).catch((err) => {
+        console.warn('Temporizador:', err);
+        toast.error('Não foi possível ativar o temporizador.');
+      });
     }
 
     function openSleepMenu() {
@@ -956,6 +971,13 @@ export const readerPage = {
     window.addEventListener('media-notification-pause', nativeMediaPause);
     window.addEventListener('media-notification-stop', nativeMediaStop);
     window.addEventListener('media-notification-verse-changed', nativeVerseChanged);
+    if (!window.__rateListener) {
+      window.__rateListener = true;
+      window.addEventListener('media-notification-rate-changed', (e) => {
+        const r = Number(e.detail && e.detail.verseIndex) / 100;
+        if (r >= 0.5 && r <= 2) setVoiceSettings({ rate: r });
+      });
+    }
     window.addEventListener('media-notification-chapter-complete', nativeChapterComplete);
 
     // Controles de mídia na tela de bloqueio / central de notificações.

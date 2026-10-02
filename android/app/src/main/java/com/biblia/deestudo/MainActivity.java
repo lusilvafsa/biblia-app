@@ -33,6 +33,12 @@ public class MainActivity extends BridgeActivity {
                 return;
             }
 
+            if (MediaNotificationService.EVENT_RATE_CHANGED.equals(action)) {
+                int centesimos = intent.getIntExtra(MediaNotificationService.EXTRA_VERSE_INDEX, 0);
+                dispatchToWebWithVerse("media-notification-rate-changed", centesimos);
+                return;
+            }
+
             if (MediaNotificationService.EVENT_CHAPTER_COMPLETE.equals(action)) {
                 dispatchToWeb("media-notification-chapter-complete");
                 return;
@@ -137,6 +143,7 @@ public class MainActivity extends BridgeActivity {
         filter.addAction(MediaNotificationService.ACTION_STOP);
         filter.addAction(MediaNotificationService.EVENT_VERSE_CHANGED);
         filter.addAction(MediaNotificationService.EVENT_CHAPTER_COMPLETE);
+        filter.addAction(MediaNotificationService.EVENT_RATE_CHANGED);
         filter.addAction(MediaNotificationService.EVENT_REQUEST_PREV_CHAPTER);
         filter.addAction(MediaNotificationService.EVENT_REQUEST_NEXT_CHAPTER);
 

@@ -1,7 +1,8 @@
+import { EXTRA_PLANS } from './readingPlansExtra.js';
 // Planos de leitura estruturados dia a dia.
 // Cada plano tem um id (usado na URL /planos/:id), título, descrição
 // e uma lista de dias com referência bíblica e o foco do dia.
-export const READING_PLANS = [
+const BASE_PLANS = [
   {
     id: 'trinta-dias-com-jesus',
     titulo: '30 Dias com Jesus',
@@ -118,3 +119,5 @@ export const READING_PLANS = [
 export function getReadingPlan(id) {
   return READING_PLANS.find((plan) => plan.id === id) || null;
 }
+
+export const READING_PLANS = [...BASE_PLANS, ...EXTRA_PLANS];

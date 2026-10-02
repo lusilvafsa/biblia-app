@@ -20,7 +20,7 @@ public class MediaNotificationPlugin extends Plugin {
     @PluginMethod
     public void setSleepTimer(PluginCall call) {
         Integer minutos = call.getInt("minutes", 0);
-        if (!isNarrating) {
+        if (!MediaNotificationService.running) {
             if (minutos.intValue() > 0) {
                 call.reject("A narração não está ativa");
             } else {

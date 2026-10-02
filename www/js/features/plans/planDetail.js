@@ -9,9 +9,9 @@ import { planProgressRepository } from '../../data-access/planProgressRepository
 import { getAllBooks } from '../../data-access/bibleRepository.js';
 
 function parseRef(ref) {
-  const match = ref.match(/^(.+?)\s+(\d+):(\d+)/);
+  const match = ref.match(/^(.+?)\s+(\d+)(?::(\d+))?/);
   if (!match) return null;
-  return { bookName: match[1].trim(), chapter: Number(match[2]), verse: Number(match[3]) };
+  return { bookName: match[1].trim(), chapter: Number(match[2]), verse: Number(match[3] || 1) };
 }
 
 function renderDayCard(dia, plan) {
@@ -35,12 +35,14 @@ function renderProgress(plan) {
   const total = plan.dias.length;
   const feitos = planProgressRepository.getDoneDays(plan.id).length;
   const percent = total ? Math.round((feitos / total) * 100) : 0;
+  const proximo = plan.dias.find((x) => !planProgressRepository.isDayDone(plan.id, x.dia));
 
   return `
     <div class="plan-progress-header">
       <p>${plan.descricao}</p>
       <div class="plan-progress-bar"><div class="plan-progress-fill" style="width:${percent}%"></div></div>
       <p class="plan-progress-label">${feitos} de ${total} dias concluídos (${percent}%)</p>
+        ${proximo ? '<button type="button" class="tool-btn" data-action="abrir" data-dia="' + proximo.dia + '" style="margin-top:12px;">Ler o dia ' + proximo.dia + ': ' + proximo.referencia + '</button>' : '<p class="plan-progress-label">Plano concluído! 🎉</p>'}
     </div>
   `;
 }
@@ -55,6 +57,7 @@ export const planDetailPage = {
     }
 
     setHeaderTitle(plan.titulo);
+    planProgressRepository.markStarted(plan.id);
 
     function renderAll() {
       container.innerHTML = `

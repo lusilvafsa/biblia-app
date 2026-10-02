@@ -4,6 +4,7 @@
 import { getItem, setItem, STORAGE_KEYS } from '../utils/storage.js';
 import { supabase } from '../supabaseClient.js';
 import { usuarioAtual } from '../supabaseAuth.js';
+import { getReadingPlan } from '../../data/readingPlans.js';
 
 function getUser() {
   return usuarioAtual();
@@ -101,6 +102,40 @@ export const planProgressRepository = {
       console.error('[Supabase] Erro ao sincronizar progresso dos planos:', e);
       return local;
     }
+  },
+
+  markStarted(planId) {
+    const lista = getItem('biblia:plans-started', []);
+    if (!lista.includes(planId)) {
+      lista.push(planId);
+      setItem('biblia:plans-started', lista);
+    }
+  },
+
+  markChapterRead(bookIndex, chapterIndex) {
+    const iniciados = getItem('biblia:plans-started', []);
+    if (!iniciados.length) return;
+    const parcial = getItem('biblia:plans-partial', {});
+    const chave = bookIndex + ':' + chapterIndex;
+    let mudou = false;
+    iniciados.forEach((planId) => {
+      const plan = getReadingPlan(planId);
+      if (!plan) return;
+      plan.dias.forEach((dia) => {
+        if (!dia.caps || this.isDayDone(planId, dia.dia)) return;
+        if (!dia.caps.some((c) => c[0] === bookIndex && c[1] === chapterIndex)) return;
+        const k = planId + '#' + dia.dia;
+        const lidos = parcial[k] || [];
+        if (!lidos.includes(chave)) lidos.push(chave);
+        parcial[k] = lidos;
+        mudou = true;
+        if (dia.caps.every((c) => lidos.includes(c[0] + ':' + c[1]))) {
+          this.toggleDay(planId, dia.dia);
+          delete parcial[k];
+        }
+      });
+    });
+    if (mudou) setItem('biblia:plans-partial', parcial);
   },
 
   getDoneDays(planId) {

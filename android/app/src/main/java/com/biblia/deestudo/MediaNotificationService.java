@@ -33,6 +33,9 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
     public static final String ACTION_PLAY = "com.biblia.deestudo.MEDIA_PLAY";
     public static final String ACTION_PREV = "com.biblia.deestudo.MEDIA_PREV";
     public static final String ACTION_STOP = "com.biblia.deestudo.MEDIA_STOP";
+    public static final String ACTION_CYCLE_SPEED = "com.biblia.deestudo.MEDIA_CYCLE_SPEED";
+    public static final String EVENT_RATE_CHANGED = "com.biblia.deestudo.NARRATION_RATE_CHANGED";
+    public static volatile boolean running = false;
     public static final String ACTION_UPDATE = "com.biblia.deestudo.MEDIA_UPDATE";
     public static final String ACTION_START_NARRATION = "com.biblia.deestudo.MEDIA_START_NARRATION";
 
@@ -67,6 +70,7 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
 
     @Override
     public void onCreate() {
+        running = true;
         super.onCreate();
         createChannel();
 
@@ -152,6 +156,7 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
     private Runnable sleepRunnable = null;
 
     private void configurarSleepTimer(int minutos) {
+        Log.d("BIBLIA_MEDIA", "SLEEP TIMER configurado: " + minutos + " min");
         if (sleepRunnable != null) {
             sleepHandler.removeCallbacks(sleepRunnable);
             sleepRunnable = null;
@@ -168,6 +173,7 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
     }
 
     private void encerrarPorTemporizador() {
+        Log.d("BIBLIA_MEDIA", "SLEEP TIMER disparou: encerrando a narração");
         pararFala();
         playing = false;
         verses.clear();
@@ -176,6 +182,30 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
         notificarSemDado(ACTION_STOP);
         stopForeground(true);
         stopSelf();
+    }
+
+    private static final float[] VELOCIDADES = {0.75f, 1.0f, 1.25f, 1.5f};
+
+    private void ciclarVelocidade() {
+        float proxima = VELOCIDADES[0];
+        for (float v : VELOCIDADES) {
+            if (v > rate + 0.01f) { proxima = v; break; }
+        }
+        rate = proxima;
+        aplicarVelocidade();
+        notificarVelocidade(Math.round(rate * 100));
+        if (playing) {
+            falarVersiculoAtual();
+        } else {
+            atualizarNotificacao();
+        }
+    }
+
+    private void notificarVelocidade(int centesimos) {
+        Intent intent = new Intent(EVENT_RATE_CHANGED);
+        intent.setPackage(getPackageName());
+        intent.putExtra(EXTRA_VERSE_INDEX, centesimos);
+        sendBroadcast(intent);
     }
 
     private void pararFala() {
@@ -279,6 +309,8 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
                     falarVersiculoAtual();
                 }
 
+            } else if (ACTION_CYCLE_SPEED.equals(action)) {
+                ciclarVelocidade();
             } else if (ACTION_SET_SLEEP_TIMER.equals(action)) {
                 configurarSleepTimer(intent.getIntExtra(EXTRA_SLEEP_MINUTES, 0));
             } else if (ACTION_PAUSE.equals(action)) {
@@ -349,8 +381,9 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setPriority(NotificationCompat.PRIORITY_LOW);
 
-        builder.addAction(android.R.drawable.ic_media_rew, "Capítulo anterior",
-                actionPendingIntent(ACTION_PREV_CHAPTER, 206));
+        builder.setSubText(String.format(java.util.Locale.US, "%.2fx", rate));
+        builder.addAction(R.drawable.ic_speed, "Velocidade",
+                actionPendingIntent(ACTION_CYCLE_SPEED, 208));
 
         builder.addAction(android.R.drawable.ic_media_previous, "Anterior",
                 actionPendingIntent(ACTION_PREV, 201));
@@ -405,6 +438,7 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
 
     @Override
     public void onDestroy() {
+        running = false;
         if (sleepRunnable != null) {
             sleepHandler.removeCallbacks(sleepRunnable);
             sleepRunnable = null;
