@@ -199,6 +199,29 @@ function adicionarMensagem(messagesEl, tipo, texto) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+let usoEl = null;
+
+async function carregarUso() {
+  if (!usoEl) return;
+  try {
+    await aguardarAuthInicial();
+    if (!usuarioAtual()) {
+      usoEl.textContent = '';
+      return;
+    }
+    const { data, error } = await supabase.functions.invoke('assistente-biblico', {
+      body: { consultarUso: true },
+    });
+    if (error || !data?.sucesso) return;
+    usoEl.textContent =
+      data.restantes > 0
+        ? `Restam ${data.restantes} de ${data.limite} perguntas hoje`
+        : `Você usou as ${data.limite} perguntas de hoje. Volta à meia-noite.`;
+  } catch (_e) {
+    /* mantém o texto anterior */
+  }
+}
+
 async function enviarPergunta({
   pergunta,
   messagesEl,
@@ -287,6 +310,7 @@ async function enviarPergunta({
     input.disabled = false;
     sendButton.disabled = false;
     statusEl.textContent = '';
+    carregarUso();
     input.focus();
   }
 }
@@ -294,6 +318,14 @@ async function enviarPergunta({
 export const assistantPage = {
   async render(container) {
     container.innerHTML = template();
+
+    const headerEl = container.querySelector('.assistant-page .page-header');
+    if (headerEl) {
+      usoEl = document.createElement('p');
+      usoEl.style.cssText = 'margin:8px 4px 0;font-size:13px;opacity:.7;';
+      headerEl.insertAdjacentElement('afterend', usoEl);
+      carregarUso();
+    }
 
     const messagesEl = container.querySelector(
       '#assistantMessages',
