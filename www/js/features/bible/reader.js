@@ -30,6 +30,7 @@ import { showChapterExplanation } from './chapterExplanation.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
 import { shareText } from '../../utils/share.js';
 import { shareElementAsImage } from '../../utils/nativeExport.js';
+import { abrirImagemDoVersiculo } from '../../utils/verseImage.js';
 import { supabase } from '../../supabaseClient.js';
 import { usuarioAtual } from '../../supabaseAuth.js';
 import { highlightRepository, HIGHLIGHT_COLORS } from '../../data-access/highlightRepository.js';
@@ -1151,6 +1152,18 @@ export const readerPage = {
     }
 
     async function handleImageSelection(text, context) {
+      const referenciaImg = context && context.verseIndex !== undefined
+        ? `${book.name} ${chapterIndex + 1}:${context.verseIndex + 1}`
+        : `${book.name} ${chapterIndex + 1}`;
+      try {
+        await abrirImagemDoVersiculo({ texto: text, referencia: referenciaImg });
+      } catch (err) {
+        console.error('Imagem do versículo:', err);
+        return handleImageSelectionLegacy(text, context);
+      }
+    }
+
+    async function handleImageSelectionLegacy(text, context) {
       const referencia = context && context.verseIndex !== undefined
         ? `${book.name} ${chapterIndex + 1}:${context.verseIndex + 1}`
         : `${book.name} ${chapterIndex + 1}`;
