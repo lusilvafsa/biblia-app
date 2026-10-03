@@ -343,7 +343,9 @@ export const settingsPage = {
           body: { consultarUso: true },
         });
         if (error || !data?.sucesso) throw new Error('falha');
-        usoEl.textContent = `Hoje: ${data.usadas} de ${data.limite} perguntas · zera à meia-noite`;
+        usoEl.textContent = data.restantes > 0
+          ? `Restam ${data.restantes} de ${data.limite} perguntas hoje · zera à meia-noite`
+          : `Você usou as ${data.limite} perguntas de hoje. Volta à meia-noite.`;
       } catch {
         usoEl.textContent = 'Não foi possível consultar agora.';
       }
