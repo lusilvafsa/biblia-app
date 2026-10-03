@@ -131,8 +131,10 @@ export const statsRepository = {
     const stats = readStats();
     const hoje = hojeISO();
 
+    let novoDia = false;
     if (!stats.readDays.includes(hoje)) {
       stats.readDays.push(hoje);
+      novoDia = true;
     }
 
     const streakAtual = calcularStreak(stats.readDays);
@@ -141,6 +143,13 @@ export const statsRepository = {
     }
 
     writeStats(stats);
+    if (novoDia) {
+      try { window.dispatchEvent(new CustomEvent('biblia:leitura-do-dia')); } catch (_e) { /* ignora */ }
+    }
+  },
+
+  hasReadToday() {
+    return readStats().readDays.includes(hojeISO());
   },
 
   getStreak() {
