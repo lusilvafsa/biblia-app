@@ -38,7 +38,8 @@ const NAV_ICONS = {
   prayer: icons.prayer,
   profile: icons.profile,
   favorites: '♥',
-  assistant: icons.explain
+  assistant: icons.explain,
+  settings: icons.settings
 };
 
 function initSplashScreen() {
@@ -116,11 +117,11 @@ function initRoutes() {
   registerRoute('/planos', plansListPage, { title: 'Planos de Leitura', navKey: null, showBack: true });
   registerRoute('/planos/:id', planDetailPage, { title: 'Plano de Leitura', navKey: null, showBack: true });
   registerRoute('/estudo/:book/:chapter/:verse', studyCornerPage, { title: 'Cantinho de Estudo', navKey: null, showBack: true });
-  registerRoute('/perfil', profilePage, { title: 'Meu Perfil', navKey: 'profile', showSettings: true });
+  registerRoute('/perfil', profilePage, { title: 'Meu Perfil', navKey: 'profile' });
   registerRoute('/favoritos', reviewPage, { title: 'Meus Marcadores', navKey: null, showBack: true });
   registerRoute('/anotacoes', reviewPage, { title: 'Meus Marcadores', navKey: null, showBack: true });
   registerRoute('/assistente', assistantPage, { title: 'Assistente Bíblico', navKey: null, showBack: true });
-  registerRoute('/configuracoes', settingsPage, { title: 'Configurações', navKey: null, showBack: true });
+  registerRoute('/configuracoes', settingsPage, { title: 'Configurações', navKey: 'settings', showBack: true });
   setNotFound(notFoundPage);
 
   onRouteChange((meta) => {

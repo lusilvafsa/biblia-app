@@ -72,6 +72,7 @@ async function loadNativeVoices() {
 
     if (allVoices.length > 0) {
       ptVoice =
+        allVoices.find(v => v.voiceURI === VOZ_MASCULINA_PADRAO || v.name === VOZ_MASCULINA_PADRAO) ||
         allVoices.find(v => (v.lang || '').toLowerCase() === 'pt-br') ||
         allVoices.find(v => (v.lang || '').toLowerCase().startsWith('pt')) ||
         allVoices[0];
