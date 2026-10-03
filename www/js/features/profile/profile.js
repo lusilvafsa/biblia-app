@@ -1,3 +1,4 @@
+import { supabase } from '../../supabaseClient.js';
 import { icons } from '../../components/icons.js';
 import { favoritesRepository } from '../../data-access/favoritesRepository.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
@@ -254,6 +255,14 @@ function template(user = null) {
       <div class="streak-info">
         <h4>Sequência de leitura de ${statsRepository.getStreak()} dias</h4>
         <p>Melhor: ${bestStreakCount} dias</p>
+      </div>
+    </div>
+
+    <div class="streak-banner" id="perfilUsoAssistente" role="button" style="cursor:pointer;">
+      <div class="streak-flame">✨</div>
+      <div class="streak-info">
+        <h4>Assistente Bíblico</h4>
+        <p data-uso-texto>Consultando...</p>
       </div>
     </div>
 
@@ -1102,6 +1111,36 @@ function bindAccountEvents(container) {
   }
 }
 
+async function carregarUsoAssistente(container) {
+  const card = container.querySelector('#perfilUsoAssistente');
+  if (!card) return;
+  const texto = card.querySelector('[data-uso-texto]');
+  card.addEventListener('click', () => navigateTo('/assistente'));
+  const ativo = () => container.isConnected && currentContainer === container;
+  try {
+    const { data: sess } = await supabase.auth.getSession();
+    if (!ativo()) return;
+    if (!sess?.session) {
+      texto.textContent = 'Entre na sua conta para usar o Assistente.';
+      return;
+    }
+    const { data, error } = await supabase.functions.invoke('assistente-biblico', {
+      body: { consultarUso: true },
+    });
+    if (!ativo()) return;
+    if (error || !data?.sucesso) {
+      texto.textContent = 'Toque para abrir o Assistente.';
+      return;
+    }
+    texto.textContent =
+      data.restantes > 0
+        ? `Restam ${data.restantes} de ${data.limite} perguntas hoje`
+        : `Você usou as ${data.limite} perguntas de hoje. Volta à meia-noite.`;
+  } catch (_e) {
+    texto.textContent = 'Toque para abrir o Assistente.';
+  }
+}
+
 function renderCurrentUser() {
   if (!currentContainer) return;
 
@@ -1118,6 +1157,7 @@ function renderCurrentUser() {
 }
 
 function bindNavigationEvents(container) {
+  carregarUsoAssistente(container);
 
   const bibleBtn =
     container.querySelector(
