@@ -1,3 +1,4 @@
+import { VOZ_MASCULINA_PADRAO } from '../../state/voiceSettings.js';
 // Tela: Configurações — tom de voz, velocidade de leitura e escolha da voz
 // usados em toda leitura por voz do app (versículo do dia, capítulos,
 // narrativa de capítulos, trechos selecionados e o player de "Bíblia em
@@ -57,7 +58,7 @@ function voiceOptionsHtml(voices, selectedURI) {
   let html = `<option value="" ${autoSelected}>Automática (masculina)</option>`;
   voices.forEach((v) => {
     const sel = v.voiceURI === selectedURI ? 'selected' : '';
-    html += `<option value="${v.voiceURI}" ${sel}>${v.voiceURI}</option>`;
+    html += `<option value="${v.voiceURI}" ${sel}>${v.voiceURI}${v.voiceURI === VOZ_MASCULINA_PADRAO ? ' — masculina (padrão)' : ''}</option>`;
   });
   return html;
 }
@@ -66,6 +67,7 @@ function voiceOptionsHtml(voices, selectedURI) {
  * deve aparecer marcado como ativo, a partir da voz selecionada agora. */
 function currentGenderPreference(settings) {
   if (!settings.voiceURI) return 'auto';
+  if (settings.voiceURI === VOZ_MASCULINA_PADRAO) return 'male';
   const voice = getAvailableVoices().find((v) => v.voiceURI === settings.voiceURI);
   return guessVoiceGender(voice) === 'female' ? 'female' : guessVoiceGender(voice) === 'male' ? 'male' : 'auto';
 }
@@ -283,7 +285,7 @@ export const settingsPage = {
       const voiceURI = voiceSelect.value || null;
       setVoiceSettings({ voiceURI });
       const voice = getAvailableVoices().find((v) => v.voiceURI === voiceURI);
-      const gender = voiceURI ? guessVoiceGender(voice) : 'auto';
+      const gender = voiceURI === VOZ_MASCULINA_PADRAO ? 'male' : (voiceURI ? guessVoiceGender(voice) : 'auto');
       setActiveGenderButton(gender === 'unknown' ? 'auto' : gender);
       if (voiceURI) hideVoiceHint();
     });

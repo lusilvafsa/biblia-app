@@ -1,3 +1,4 @@
+import { VOZ_MASCULINA_PADRAO } from '../../state/voiceSettings.js';
 // Tela: leitura de um capítulo — texto, seleção de versículo, controles de
 // fonte e narrativa em voz alta (TTS) com destaque do versículo atual.
 //
@@ -434,7 +435,7 @@ export const readerPage = {
           verses: built.items,
           startIndex: 0,
           rate: Number(settings.rate) || 0.85,
-          voiceName: settings.voiceURI || '',
+          voiceName: settings.voiceURI || VOZ_MASCULINA_PADRAO,
         });
       }).catch(nativeStartFailed);
       return true;

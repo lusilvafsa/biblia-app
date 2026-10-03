@@ -1,3 +1,4 @@
+import { VOZ_MASCULINA_PADRAO } from '../state/voiceSettings.js';
 import { getVoiceSettings } from '../state/voiceSettings.js';
 
 const synth = window.speechSynthesis || null;
@@ -107,6 +108,7 @@ function pickWebVoices() {
     (v.lang || '').toLowerCase().startsWith('pt');
 
   ptVoice =
+    voices.find(v => v.voiceURI === VOZ_MASCULINA_PADRAO || v.name === VOZ_MASCULINA_PADRAO) ||
     voices.find(ptBR) ||
     voices.find(pt) ||
     voices[0];
@@ -221,6 +223,7 @@ export function findVoiceByGender(genderPreference) {
     v.lang.toLowerCase().startsWith('pt');
 
   return (
+    (genderPreference === 'male' && allVoices.find(v => v.voiceURI === VOZ_MASCULINA_PADRAO || v.name === VOZ_MASCULINA_PADRAO)) ||
     allVoices.find(v => isPtBR(v) && matches(v)) ||
     allVoices.find(v => isPt(v) && matches(v)) ||
     allVoices.find(v => matches(v)) ||

@@ -31,3 +31,6 @@ export function onVoiceSettingsChange(fn) {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
+
+// Voz masculina padrão (Google TTS pt-BR). Se não existir no aparelho, cai na voz do sistema.
+export const VOZ_MASCULINA_PADRAO = 'pt-br-x-ptd-local';
