@@ -193,7 +193,7 @@ function template(settings) {
           <button class="tool-btn" id="btnBackupExport" type="button">Exportar</button>
           <button class="tool-btn" id="btnBackupImport" type="button">Importar</button>
         </div>
-        <input type="file" id="backupFile" accept="application/json,.json" hidden>
+        <input type="file" id="backupFile" hidden>
         <p style="margin-top:10px;font-size:13px;opacity:.65;">O arquivo não é criptografado. Guarde-o em local seguro.</p>
       </div>
     </div>
