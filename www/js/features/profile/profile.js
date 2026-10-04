@@ -149,6 +149,9 @@ function accountTemplate(user = null) {
                   border-radius:8px;
                   cursor:pointer;
                   background:transparent;
+                  color:var(--text-primary);
+                  font-family:inherit;
+                  font-size:inherit;
                 "
               >
                 👤 ${escapeHtml(email)}
@@ -165,6 +168,9 @@ function accountTemplate(user = null) {
                 background:transparent;
                 cursor:pointer;
                 text-align:left;
+                color:var(--text-primary);
+                font-family:inherit;
+                font-size:inherit;
               "
             >
               ➕ Adicionar outra conta
