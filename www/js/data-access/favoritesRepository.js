@@ -314,6 +314,34 @@ export const favoritesRepository = {
     }
   },
 
+  async importItems(incoming) {
+    const user = getUser();
+    if (!user) return { ok: false, adicionados: 0, atualizados: 0, mantidos: 0 };
+    const porId = new Map(readAll().map((item) => [item.id, item]));
+    let adicionados = 0;
+    let atualizados = 0;
+    let mantidos = 0;
+    for (const novo of incoming) {
+      const atual = porId.get(novo.id);
+      if (!atual) {
+        porId.set(novo.id, novo);
+        adicionados++;
+        continue;
+      }
+      const tAtual = new Date(atual.updatedAt || atual.createdAt || 0).getTime();
+      const tNovo = new Date(novo.updatedAt || novo.createdAt || 0).getTime();
+      if (tNovo > tAtual) {
+        porId.set(novo.id, novo);
+        atualizados++;
+      } else {
+        mantidos++;
+      }
+    }
+    writeAll(Array.from(porId.values()));
+    await this.syncWithCloud();
+    return { ok: true, adicionados, atualizados, mantidos };
+  },
+
   getAll() {
     return readAll();
   },

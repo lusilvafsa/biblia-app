@@ -129,6 +129,25 @@ export const highlightRepository = {
     }
   },
 
+  async importMap(incoming) {
+    const user = getUser();
+    if (!user) return { ok: false, adicionados: 0, mantidos: 0 };
+    const merged = { ...readAll() };
+    let adicionados = 0;
+    let mantidos = 0;
+    for (const [chave, cor] of Object.entries(incoming)) {
+      if (chave in merged) {
+        mantidos++;
+      } else {
+        merged[chave] = cor;
+        adicionados++;
+      }
+    }
+    writeAll(merged);
+    await this.syncWithCloud();
+    return { ok: true, adicionados, mantidos };
+  },
+
   getAll() {
     return readAll();
   },

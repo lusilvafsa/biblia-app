@@ -20,6 +20,7 @@ import { isInstallAvailable, onInstallAvailabilityChange, promptInstall } from '
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { supabase } from '../../supabaseClient.js';
 import { APP_VERSION, APP_BUILD, APP_DATE } from '../../version.js';
+import { exportarBackup, importarBackup } from '../../utils/backup.js';
 import { BIBLE_VERSIONS } from '../../../data/bibleVersions.js';
 import { getBibleVersion, setBibleVersion } from '../../state/bibleVersion.js';
 import { getDailyNotificationConfig, applyDailyNotification } from '../../utils/dailyNotification.js';
@@ -181,6 +182,19 @@ function template(settings) {
           <div class="setting-row-header"><span class="setting-label">Horário</span></div>
           <input type="time" class="select-input" id="notifTime" value="${pad2(getDailyNotificationConfig().hour)}:${pad2(getDailyNotificationConfig().minute)}" ${getDailyNotificationConfig().enabled ? '' : 'disabled'}>
         </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Backup</div>
+      <div class="settings-card">
+        <p class="ministry-plain-text" style="margin-bottom:14px;">Salve seus favoritos, anotações e grifos em um arquivo, ou restaure de um backup. Importar nunca apaga nada: só acrescenta ou atualiza.</p>
+        <div class="settings-actions">
+          <button class="tool-btn" id="btnBackupExport" type="button">Exportar</button>
+          <button class="tool-btn" id="btnBackupImport" type="button">Importar</button>
+        </div>
+        <input type="file" id="backupFile" accept="application/json,.json" hidden>
+        <p style="margin-top:10px;font-size:13px;opacity:.65;">O arquivo não é criptografado. Guarde-o em local seguro.</p>
       </div>
     </div>
 
@@ -362,6 +376,37 @@ export const settingsPage = {
     }
     notifToggle.addEventListener('change', saveNotification);
     notifTime.addEventListener('change', saveNotification);
+
+    const btnExp = qs('#btnBackupExport', container);
+    const btnImp = qs('#btnBackupImport', container);
+    const arquivoEl = qs('#backupFile', container);
+    btnExp.addEventListener('click', async () => {
+      btnExp.disabled = true;
+      try {
+        const r = await exportarBackup();
+        toast.success(`Backup pronto: ${r.favoritos} favoritos/anotações e ${r.grifos} grifos.`);
+      } catch (err) {
+        toast.error(err && err.message ? err.message : 'Não foi possível gerar o backup.');
+      } finally {
+        btnExp.disabled = false;
+      }
+    });
+    btnImp.addEventListener('click', () => arquivoEl.click());
+    arquivoEl.addEventListener('change', async () => {
+      const arquivo = arquivoEl.files && arquivoEl.files[0];
+      arquivoEl.value = '';
+      if (!arquivo) return;
+      if (!confirm('Importar este backup? Nada será apagado: itens novos são acrescentados e, se um item já existir, vale o mais recente.')) return;
+      btnImp.disabled = true;
+      try {
+        const r = await importarBackup(arquivo);
+        toast.success(`Importado: ${r.favoritos.adicionados} novos, ${r.favoritos.atualizados} atualizados, ${r.grifos.adicionados} grifos novos.`);
+      } catch (err) {
+        toast.error(err && err.message ? err.message : 'Não foi possível importar o backup.');
+      } finally {
+        btnImp.disabled = false;
+      }
+    });
 
     const installSection = qs('#installSection', container);
     const installBtn = qs('#btnInstallApp', container);

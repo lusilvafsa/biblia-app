@@ -1,4 +1,4 @@
 // Gerado automaticamente por scripts/atualizar-versao.cjs. Não edite à mão.
 export const APP_VERSION = '3.1.0';
-export const APP_BUILD = '138';
+export const APP_BUILD = '139';
 export const APP_DATE = '04/10/2026';
