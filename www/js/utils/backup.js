@@ -5,6 +5,7 @@ import { favoritesRepository } from '../data-access/favoritesRepository.js';
 import { highlightRepository } from '../data-access/highlightRepository.js';
 import { usuarioAtual } from '../supabaseAuth.js';
 import { planProgressRepository } from '../data-access/planProgressRepository.js';
+import { statsRepository } from '../data-access/statsRepository.js';
 import { getReadingPlan } from '../../data/readingPlans.js';
 
 const FORMATO = 'biblia-de-estudo-backup';
@@ -71,6 +72,19 @@ function limparPlanos(bruto) {
   return planos;
 }
 
+function limparLeitura(bruto) {
+  const vazio = { readDays: [], bestStreak: 0 };
+  if (!bruto || typeof bruto !== 'object' || Array.isArray(bruto)) return vazio;
+  const limite = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
+  const dias = Array.isArray(bruto.readDays) ? bruto.readDays.slice(0, 5000) : [];
+  const validos = [...new Set(dias.filter((d) =>
+    typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(Date.parse(d)) &&
+    d >= '2020-01-01' && d <= limite))];
+  const melhor = Number.isInteger(bruto.bestStreak) && bruto.bestStreak >= 0 && bruto.bestStreak <= 5000
+    ? bruto.bestStreak : 0;
+  return { readDays: validos, bestStreak: melhor };
+}
+
 async function lerArquivo(arquivo) {
   if (!arquivo) throw new Error('Nenhum arquivo escolhido.');
   if (arquivo.size > MAX_BYTES) throw new Error('Arquivo grande demais para ser um backup.');
@@ -94,6 +108,7 @@ export async function exportarBackup() {
   const favoritos = favoritesRepository.getAll();
   const grifos = highlightRepository.getAll() || {};
   const planos = planProgressRepository.exportAll();
+  const leitura = statsRepository.exportReading();
   const backup = {
     formato: FORMATO,
     versao: VERSAO,
@@ -101,6 +116,7 @@ export async function exportarBackup() {
     favoritos,
     grifos,
     planos,
+    leitura,
   };
   const json = JSON.stringify(backup, null, 2);
   const nome = `biblia-de-estudo-backup-${new Date().toISOString().slice(0, 10)}.json`;
@@ -108,6 +124,7 @@ export async function exportarBackup() {
     favoritos: favoritos.length,
     grifos: Object.keys(grifos).length,
     planos: Object.keys(planos).length,
+    diasLidos: leitura.readDays.length,
   };
 
   const cap = typeof window !== 'undefined' ? window.Capacitor : null;
@@ -148,12 +165,14 @@ export async function importarBackup(arquivo) {
   const itens = bruto.map(limparItem).filter(Boolean);
   const grifos = limparGrifos(dados.grifos) || {};
   const planos = limparPlanos(dados.planos);
-  if (itens.length === 0 && Object.keys(grifos).length === 0 && Object.keys(planos).length === 0) {
+  const leitura = limparLeitura(dados.leitura);
+  if (itens.length === 0 && Object.keys(grifos).length === 0 && Object.keys(planos).length === 0 && leitura.readDays.length === 0) {
     throw new Error('O backup não tem nenhum item válido para importar.');
   }
   const rFav = await favoritesRepository.importItems(itens);
   const rGri = await highlightRepository.importMap(grifos);
   const rPla = await planProgressRepository.importPlans(planos);
+  const rLei = statsRepository.importReading(leitura);
   if (!rFav.ok || !rGri.ok || !rPla.ok) throw new Error('Entre na sua conta para importar um backup.');
-  return { favoritos: rFav, grifos: rGri, planos: rPla, descartados: bruto.length - itens.length };
+  return { favoritos: rFav, grifos: rGri, planos: rPla, leitura: rLei, descartados: bruto.length - itens.length };
 }

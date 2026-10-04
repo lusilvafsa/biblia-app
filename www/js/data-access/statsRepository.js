@@ -148,6 +148,35 @@ export const statsRepository = {
     }
   },
 
+  exportReading() {
+    const s = readStats();
+    return { readDays: [...s.readDays], bestStreak: s.bestStreak };
+  },
+
+  importReading(incoming) {
+    const stats = readStats();
+    const hoje = hojeISO();
+    const uniao = new Set(stats.readDays);
+    let adicionados = 0;
+    for (const dia of incoming.readDays) {
+      if (!uniao.has(dia)) {
+        uniao.add(dia);
+        adicionados++;
+      }
+    }
+    if (adicionados === 0 && incoming.bestStreak <= stats.bestStreak) {
+      return { adicionados: 0 };
+    }
+    const hojeEntrou = uniao.has(hoje) && !stats.readDays.includes(hoje);
+    stats.readDays = Array.from(uniao).sort();
+    stats.bestStreak = Math.max(stats.bestStreak, incoming.bestStreak, calcularStreak(stats.readDays));
+    writeStats(stats);
+    if (hojeEntrou) {
+      try { window.dispatchEvent(new CustomEvent('biblia:leitura-do-dia')); } catch (_e) { /* ignora */ }
+    }
+    return { adicionados };
+  },
+
   hasReadToday() {
     return readStats().readDays.includes(hojeISO());
   },
