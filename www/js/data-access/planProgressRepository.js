@@ -138,6 +138,31 @@ export const planProgressRepository = {
     if (mudou) setItem('biblia:plans-partial', parcial);
   },
 
+  exportAll() {
+    return readAll();
+  },
+
+  async importPlans(incoming) {
+    const user = getUser();
+    if (!user) return { ok: false, adicionados: 0, planos: 0 };
+    const all = { ...readAll() };
+    let adicionados = 0;
+    let planos = 0;
+    for (const [planId, valor] of Object.entries(incoming)) {
+      const atuais = all[planId]?.diasConcluidos || [];
+      const uniao = [...new Set([...atuais, ...valor.diasConcluidos])].sort((a, b) => a - b);
+      const novos = uniao.length - atuais.length;
+      if (novos > 0) {
+        all[planId] = { diasConcluidos: uniao };
+        adicionados += novos;
+        planos++;
+      }
+    }
+    if (adicionados > 0) writeAll(all);
+    await this.syncWithCloud();
+    return { ok: true, adicionados, planos };
+  },
+
   getDoneDays(planId) {
     const all = readAll();
     return all[planId]?.diasConcluidos || [];

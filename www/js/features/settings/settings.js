@@ -188,7 +188,7 @@ function template(settings) {
     <div class="settings-section">
       <div class="settings-section-title">Backup</div>
       <div class="settings-card">
-        <p class="ministry-plain-text" style="margin-bottom:14px;">Salve seus favoritos, anotações e grifos em um arquivo, ou restaure de um backup. Importar nunca apaga nada: só acrescenta ou atualiza.</p>
+        <p class="ministry-plain-text" style="margin-bottom:14px;">Salve seus favoritos, anotações, grifos e o progresso dos planos de leitura em um arquivo, ou restaure de um backup. Importar nunca apaga nada: só acrescenta ou atualiza.</p>
         <div class="settings-actions">
           <button class="tool-btn" id="btnBackupExport" type="button">Exportar</button>
           <button class="tool-btn" id="btnBackupImport" type="button">Importar</button>
@@ -384,7 +384,7 @@ export const settingsPage = {
       btnExp.disabled = true;
       try {
         const r = await exportarBackup();
-        toast.success(`Backup pronto: ${r.favoritos} favoritos/anotações e ${r.grifos} grifos.`);
+        toast.success(`Backup pronto: ${r.favoritos} favoritos/anotações, ${r.grifos} grifos e ${r.planos} planos.`);
       } catch (err) {
         toast.error(err && err.message ? err.message : 'Não foi possível gerar o backup.');
       } finally {
@@ -400,7 +400,7 @@ export const settingsPage = {
       btnImp.disabled = true;
       try {
         const r = await importarBackup(arquivo);
-        toast.success(`Importado: ${r.favoritos.adicionados} novos, ${r.favoritos.atualizados} atualizados, ${r.grifos.adicionados} grifos novos.`);
+        toast.success(`Importado: ${r.favoritos.adicionados} novos, ${r.favoritos.atualizados} atualizados, ${r.grifos.adicionados} grifos novos, ${r.planos.adicionados} dias de planos.`);
       } catch (err) {
         toast.error(err && err.message ? err.message : 'Não foi possível importar o backup.');
       } finally {
