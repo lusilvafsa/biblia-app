@@ -70,11 +70,67 @@
 </div>
 
 <script>
-window.addEventListener('error', function (e) {
-  alert('ERRO JS: ' + e.message + '\narquivo: ' + e.filename + '\nlinha: ' + e.lineno);
-});
+(function () {
+  var emDesenvolvimento = location.hostname === 'localhost' && location.port === '3000';
+  var jaMostrado = false;
+
+  window.addEventListener('error', function (e) {
+    var detalhes = (e.message || 'erro desconhecido') +
+      '\narquivo: ' + (e.filename || '?') + '\nlinha: ' + (e.lineno || '?');
+    try { console.error('[erro]', detalhes); } catch (_e) { /* ignora */ }
+
+    if (emDesenvolvimento) {
+      alert('ERRO JS: ' + e.message + '\narquivo: ' + e.filename + '\nlinha: ' + e.lineno);
+      return;
+    }
+    if (jaMostrado || !document.body) return;
+    if (e.message === 'Script error.' && !e.lineno) return;
+    jaMostrado = true;
+
+    var caixa = document.createElement('div');
+    caixa.setAttribute('role', 'alert');
+    caixa.style.cssText = 'position:fixed;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top, 0px));z-index:10000;padding:12px 14px;background:#1a2644;color:#f4efe3;border:1px solid #c9a96e;border-radius:14px;font:14px/1.4 Inter,Arial,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.4);';
+
+    var texto = document.createElement('div');
+    texto.textContent = 'Algo deu errado. Se a tela não carregar, feche e abra o app de novo.';
+
+    function botao(rotulo, principal) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = rotulo;
+      b.style.cssText = 'border:0;border-radius:10px;padding:8px 12px;font:inherit;font-weight:600;' +
+        (principal ? 'background:#c9a96e;color:#1a1a1a;' : 'background:rgba(244,239,227,.12);color:inherit;');
+      return b;
+    }
+    var recarregar = botao('Recarregar', true);
+    recarregar.addEventListener('click', function () { location.reload(); });
+    var fechar = botao('Fechar', false);
+    fechar.addEventListener('click', function () { caixa.remove(); });
+
+    var acoes = document.createElement('div');
+    acoes.style.cssText = 'display:flex;gap:8px;margin-top:10px;';
+    acoes.appendChild(recarregar);
+    acoes.appendChild(fechar);
+
+    var det = document.createElement('details');
+    det.style.cssText = 'margin-top:8px;opacity:.75;font-size:12px;';
+    var resumo = document.createElement('summary');
+    resumo.textContent = 'Detalhes para o suporte';
+    var pre = document.createElement('pre');
+    pre.style.cssText = 'white-space:pre-wrap;word-break:break-word;margin:6px 0 0;';
+    pre.textContent = detalhes;
+    det.appendChild(resumo);
+    det.appendChild(pre);
+
+    caixa.appendChild(texto);
+    caixa.appendChild(acoes);
+    caixa.appendChild(det);
+    document.body.appendChild(caixa);
+  });
+})();
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>setTimeout(function(){ throw new Error("teste de erro"); }, 3000);</script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
