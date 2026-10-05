@@ -7,6 +7,7 @@
 // Assim o lembrete de hoje some quando você já leu.
 import { getItem, setItem, STORAGE_KEYS } from './storage.js';
 import { statsRepository } from '../data-access/statsRepository.js';
+import { verseForDate, refShort } from './verseOfDay.js';
 
 const NOTIFICATION_ID_ANTIGO = 1001; // alarme repetido das versões anteriores
 const ID_BASE = 2000;
@@ -64,10 +65,12 @@ async function reagendarLembretes() {
         config.hour, config.minute, 0, 0,
       );
       if (i === 0 && (lidoHoje || quando.getTime() <= agora.getTime() + 30000)) continue;
+      const v = verseForDate(quando);
       fila.push({
         id: ID_BASE + i,
-        title: TITULO,
-        body: CORPO,
+        title: '📖 ' + refShort(v.ref),
+        body: v.text,
+        largeBody: v.text,
         schedule: { at: quando, allowWhileIdle: true },
       });
     }

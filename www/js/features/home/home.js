@@ -5,7 +5,7 @@ import { toast } from '../../utils/toast.js';
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { speak, stopSpeech } from '../../utils/speech.js';
 import { navigateTo } from '../../router.js';
-import { DAILY_VERSES } from '../../../data/verses.js';
+import { ALL_VERSES as DAILY_VERSES, verseIndexForDate } from '../../utils/verseOfDay.js';
 import { getReadingPlan } from '../../../data/readingPlans.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { planProgressRepository } from '../../data-access/planProgressRepository.js';
@@ -15,7 +15,7 @@ import { getTodaysSong } from '../../../data/worshipSongs.js';
 import { requestAutoStart } from '../bible/reader.js';
 import { aguardarAuthInicial } from '../../supabaseAuth.js';
 
-let verseIndex = 0;
+let verseIndex = verseIndexForDate();
 let isSpeakingVerse = false;
 
 function isBookmarked(ref) {
