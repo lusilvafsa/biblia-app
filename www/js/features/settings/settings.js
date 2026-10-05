@@ -191,6 +191,7 @@ function template(settings) {
         <p class="ministry-plain-text" style="margin-bottom:14px;">Salve seus favoritos, anotações, grifos, planos e a sequência de leitura em um arquivo, ou restaure de um backup. Importar nunca apaga nada: só acrescenta ou atualiza.</p>
         <div class="settings-actions">
           <button class="tool-btn" id="btnBackupExport" type="button">Exportar</button>
+          ${isNativeApp() ? '<button class="tool-btn" id="btnBackupSave" type="button">Salvar no aparelho</button>' : ''}
           <button class="tool-btn" id="btnBackupImport" type="button">Importar</button>
         </div>
         <input type="file" id="backupFile" hidden>
@@ -391,6 +392,21 @@ export const settingsPage = {
         btnExp.disabled = false;
       }
     });
+    const btnSalvar = qs('#btnBackupSave', container);
+    if (btnSalvar) {
+      btnSalvar.addEventListener('click', async () => {
+        btnSalvar.disabled = true;
+        try {
+          const r = await exportarBackup({ salvarNoAparelho: true });
+          if (r.cancelado) toast.info('Salvamento cancelado.');
+          else toast.success('Backup salvo no aparelho.');
+        } catch (err) {
+          toast.error(err && err.message ? err.message : 'Não foi possível salvar o backup.');
+        } finally {
+          btnSalvar.disabled = false;
+        }
+      });
+    }
     btnImp.addEventListener('click', () => arquivoEl.click());
     arquivoEl.addEventListener('change', async () => {
       const arquivo = arquivoEl.files && arquivoEl.files[0];

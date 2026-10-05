@@ -118,6 +118,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(MediaNotificationPlugin.class);
+        registerPlugin(FileSaverPlugin.class);
 
         super.onCreate(savedInstanceState);
 

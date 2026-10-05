@@ -103,7 +103,7 @@ async function lerArquivo(arquivo) {
   return dados;
 }
 
-export async function exportarBackup() {
+export async function exportarBackup({ salvarNoAparelho = false } = {}) {
   if (!usuarioAtual()) throw new Error('Entre na sua conta para gerar o backup.');
   const favoritos = favoritesRepository.getAll();
   const grifos = highlightRepository.getAll() || {};
@@ -126,6 +126,14 @@ export async function exportarBackup() {
     planos: Object.keys(planos).length,
     diasLidos: leitura.readDays.length,
   };
+
+  const capSalvar = typeof window !== 'undefined' ? window.Capacitor : null;
+  const salvador = salvarNoAparelho && capSalvar && typeof capSalvar.isNativePlatform === 'function' &&
+    capSalvar.isNativePlatform() && capSalvar.Plugins ? capSalvar.Plugins.FileSaver : null;
+  if (salvador) {
+    const r = await salvador.saveFile({ name: nome, data: json });
+    return { ...resumo, cancelado: !(r && r.saved) };
+  }
 
   const cap = typeof window !== 'undefined' ? window.Capacitor : null;
   const nativo = !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
