@@ -175,7 +175,70 @@ function markdownSeguro(texto) {
   return html.join('');
 }
 
-function adicionarMensagem(messagesEl, tipo, texto) {
+async function enviarDenuncia(pergunta, resposta, motivo) {
+  const usuario = usuarioAtual();
+  if (!usuario) throw new Error('Entre na sua conta para reportar.');
+  const { error } = await supabase.from('assistente_denuncias').insert({
+    user_id: usuario.id,
+    pergunta: String(pergunta || '').slice(0, 8000),
+    resposta: String(resposta || '').slice(0, 20000),
+    motivo,
+  });
+  if (error) throw error;
+}
+
+function anexarAvisoIA(message, pergunta, resposta) {
+  const rodape = document.createElement('div');
+  rodape.style.cssText = 'margin-top:10px;font-size:12px;opacity:.75;';
+
+  const linha = document.createElement('div');
+  linha.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;align-items:center;';
+
+  const aviso = document.createElement('span');
+  aviso.textContent = 'Resposta gerada por IA. Pode conter erros. Confira na Bíblia.';
+
+  const reportar = document.createElement('button');
+  reportar.type = 'button';
+  reportar.textContent = 'Reportar';
+  reportar.style.cssText = 'background:transparent;border:0;padding:4px 0;color:var(--gold);font:inherit;text-decoration:underline;cursor:pointer;';
+
+  const opcoes = document.createElement('div');
+  opcoes.style.cssText = 'display:none;margin-top:8px;gap:6px;flex-wrap:wrap;align-items:center;';
+  const pergunta_ = document.createElement('span');
+  pergunta_.textContent = 'O que há de errado?';
+  opcoes.appendChild(pergunta_);
+
+  const motivos = [['ofensivo', 'Ofensiva'], ['incorreto', 'Incorreta'], ['outro', 'Outro']];
+  motivos.forEach(function (par) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = par[1];
+    b.style.cssText = 'border:1px solid var(--gold);background:transparent;color:inherit;border-radius:10px;padding:6px 10px;font:inherit;cursor:pointer;';
+    b.addEventListener('click', async function () {
+      opcoes.querySelectorAll('button').forEach(function (x) { x.disabled = true; });
+      try {
+        await enviarDenuncia(pergunta, resposta, par[0]);
+        rodape.textContent = 'Obrigado. Sua denúncia foi enviada.';
+      } catch (err) {
+        console.error('[Assistente Bíblico] Erro ao enviar denúncia:', err);
+        rodape.textContent = 'Não foi possível enviar agora. Tente de novo mais tarde.';
+      }
+    });
+    opcoes.appendChild(b);
+  });
+
+  reportar.addEventListener('click', function () {
+    opcoes.style.display = opcoes.style.display === 'none' ? 'flex' : 'none';
+  });
+
+  linha.appendChild(aviso);
+  linha.appendChild(reportar);
+  rodape.appendChild(linha);
+  rodape.appendChild(opcoes);
+  message.appendChild(rodape);
+}
+
+function adicionarMensagem(messagesEl, tipo, texto, extra) {
   const message = document.createElement('div');
 
   message.className =
@@ -194,6 +257,7 @@ function adicionarMensagem(messagesEl, tipo, texto) {
 
   message.appendChild(role);
   message.appendChild(content);
+  if (tipo === 'bot' && extra && extra.ia) anexarAvisoIA(message, extra.pergunta, texto);
   messagesEl.appendChild(message);
 
   messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -313,11 +377,7 @@ async function enviarPergunta({
       );
     }
 
-    adicionarMensagem(
-      messagesEl,
-      'bot',
-      data.mensagem,
-    );
+    adicionarMensagem(messagesEl, 'bot', data.mensagem, { ia: true, pergunta: texto });
   } catch (error) {
     console.error(
       '[Assistente Bíblico] Erro:',
