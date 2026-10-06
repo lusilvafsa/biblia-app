@@ -99,6 +99,52 @@ export function contasLembradas() {
   return readRememberedAccounts();
 }
 
+export function esquecerConta(email) {
+  const normalizedEmail = String(email || "")
+    .trim()
+    .toLowerCase();
+
+  if (!normalizedEmail) return;
+
+  saveRememberedAccounts(
+    readRememberedAccounts().filter(
+      (item) => item !== normalizedEmail
+    )
+  );
+}
+
+export async function excluirContaAtual() {
+  const { data: sessao } = await supabase.auth.getSession();
+  const user = sessao?.session?.user;
+
+  if (!user) {
+    throw new Error("Entre na sua conta para excluí-la.");
+  }
+
+  const { data, error } = await supabase.functions.invoke(
+    "excluir-conta",
+    { body: { confirmacao: "EXCLUIR" } }
+  );
+
+  if (error || !data?.sucesso) {
+    console.error("[Supabase Auth] Erro ao excluir conta:", error || data);
+    throw new Error("Não foi possível excluir a conta agora. Tente novamente.");
+  }
+
+  esquecerConta(user.email || "");
+
+  const chaves = ["biblia:favorites", "biblia:highlights", "biblia:reading-plans"];
+  for (const base of chaves) {
+    try {
+      window.localStorage.removeItem(base + ":" + user.id);
+    } catch (_e) {
+      /* ignora */
+    }
+  }
+
+  await supabase.auth.signOut({ scope: "local" });
+}
+
 export async function criarConta(email, senha) {
   const normalizedEmail = String(email || "")
     .trim()

@@ -12,6 +12,7 @@ import {
   entrar,
   entrarComGoogle,
   sair,
+  excluirContaAtual,
   observarUsuario,
   contasLembradas,
   usuarioAtual
@@ -1162,8 +1163,50 @@ function renderCurrentUser() {
   );
 }
 
+function montarExclusaoDeConta(container) {
+  if (!usuarioAtual() || container.querySelector('#btnExcluirConta')) return;
+
+  const bloco = document.createElement('div');
+  bloco.style.cssText = 'margin:28px 0 110px;text-align:center;';
+
+  const botao = document.createElement('button');
+  botao.type = 'button';
+  botao.id = 'btnExcluirConta';
+  botao.textContent = 'Excluir minha conta';
+  botao.style.cssText = 'background:transparent;border:0;color:var(--danger);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:8px;';
+
+  const aviso = document.createElement('p');
+  aviso.style.cssText = 'margin:8px 0 0;font-size:13px;opacity:.8;';
+
+  botao.addEventListener('click', async () => {
+    const pergunta = 'Excluir sua conta apaga para sempre seus favoritos, anotações, grifos, planos de leitura, progresso e o contador do Assistente. Não dá para desfazer.\n\nA sequência de leitura e as configurações deste aparelho continuam.\n\nPara confirmar, digite EXCLUIR:';
+    const resposta = window.prompt(pergunta);
+    if (resposta === null) return;
+    if (resposta.trim() !== 'EXCLUIR') {
+      aviso.textContent = 'O texto digitado não foi EXCLUIR. Nada foi apagado.';
+      return;
+    }
+    botao.disabled = true;
+    aviso.textContent = 'Excluindo...';
+    try {
+      await excluirContaAtual();
+      renderCurrentUser();
+      window.alert('Sua conta foi excluída.');
+    } catch (err) {
+      console.error('[Excluir conta] Erro:', err);
+      aviso.textContent = err && err.message ? err.message : 'Não foi possível excluir a conta.';
+      botao.disabled = false;
+    }
+  });
+
+  bloco.appendChild(botao);
+  bloco.appendChild(aviso);
+  container.appendChild(bloco);
+}
+
 function bindNavigationEvents(container) {
   carregarUsoAssistente(container);
+  montarExclusaoDeConta(container);
 
   const bibleBtn =
     container.querySelector(
