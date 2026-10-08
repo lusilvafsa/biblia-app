@@ -2456,3 +2456,6 @@ img.icon-glyph {
 .onboarding-dots { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
 .onboarding-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
 .onboarding-dot.active { background: var(--gold); width: 18px; border-radius: 4px; }
+
+/* A imagem do topo ja tem o degrade proprio; sem o escurecimento antigo do video */
+.hero-card::after { display: none; }

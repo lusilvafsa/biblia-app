@@ -54,10 +54,7 @@ function template() {
   const plan2 = planCardData('salmos-de-conforto');
   return `
     <div class="hero-card">
-      <video autoplay loop muted playsinline aria-hidden="true">
-        <source src="assets/media/hero-loop.webm" type="video/webm">
-        <source src="assets/media/hero-loop.mp4" type="video/mp4">
-      </video>
+      <img src="assets/hero.webp" alt="" aria-hidden="true" decoding="async">
       <div class="hero-overlay"></div>
     </div>
 

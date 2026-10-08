@@ -71,6 +71,7 @@ async function reagendarLembretes() {
         title: '📖 ' + refShort(v.ref),
         body: v.text,
         largeBody: v.text,
+        isExactNotification: false,
         schedule: { at: quando, allowWhileIdle: true },
       });
     }
