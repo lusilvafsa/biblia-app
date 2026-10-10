@@ -2485,3 +2485,9 @@ img.icon-glyph {
   box-shadow: none;
   border: none;
 }
+
+/* Planos: contador sem girar */
+.plan-progress {
+  animation: none;
+  transform: none;
+}
