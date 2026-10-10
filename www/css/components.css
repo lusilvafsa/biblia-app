@@ -2471,3 +2471,10 @@ img.icon-glyph {
 .streak-banner .streak-info h4 {
   color: var(--gold);
 }
+
+/* Remove aspas decorativas dos cartões de versículo e oração */
+.verse-card::before,
+.verse-card::after {
+  content: none !important;
+  display: none !important;
+}

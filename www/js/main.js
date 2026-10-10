@@ -105,7 +105,7 @@ function renderHeaderActions(meta) {
 }
 
 function initRoutes() {
-  registerRoute('/', homePage, { title: 'Versículo do Dia', navKey: 'home' });
+  registerRoute('/', homePage, { title: 'Bíblia de Estudo', navKey: 'home' });
   registerRoute('/biblia', bookListPage, { title: 'Bíblia Sagrada', navKey: 'bible', showSearch: true });
   registerRoute('/biblia/busca', searchPage, { title: 'Buscar na Bíblia', navKey: 'bible', showBack: true });
   registerRoute('/biblia/:book', chapterGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
