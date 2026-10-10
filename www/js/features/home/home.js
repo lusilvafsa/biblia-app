@@ -8,6 +8,8 @@ import { navigateTo } from '../../router.js';
 import { ALL_VERSES as DAILY_VERSES, verseIndexForDate } from '../../utils/verseOfDay.js';
 import { getReadingPlan } from '../../../data/readingPlans.js';
 import { PRAYERS } from '../../../data/prayers.js';
+import { abrirImagemDoVersiculo } from '../../utils/verseImage.js';
+import { shareText } from '../../utils/share.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { planProgressRepository } from '../../data-access/planProgressRepository.js';
 import { getBook, getChapter } from '../../data-access/bibleRepository.js';
@@ -47,10 +49,40 @@ function planCardData(planId) {
   return { plan, total, feitos, percent };
 }
 
+const ICONE_IMAGEM = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+
+function copiarTexto(texto, mensagem) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(texto).then(
+      () => toast.success(mensagem),
+      () => fallbackCopy(texto)
+    );
+  } else {
+    fallbackCopy(texto);
+  }
+}
+
+async function compartilharTexto(texto, titulo) {
+  const r = await shareText({ title: titulo, text: texto });
+  if (r === 'copied') toast.success('Texto copiado!');
+  if (r === 'unsupported') toast.info('Compartilhamento não suportado neste aparelho');
+  if (r === 'error') toast.error('Não foi possível compartilhar agora.');
+}
+
+function imagemDoTexto(texto, referencia) {
+  abrirImagemDoVersiculo({ texto: texto, referencia: referencia })
+    .catch(() => toast.error('Não foi possível gerar a imagem agora.'));
+}
+
+let prayerIndex = null;
+
 function getTodaysPrayer() {
-  const hoje = new Date();
-  const dia = Math.floor((hoje - new Date(hoje.getFullYear(), 0, 0)) / 86400000);
-  return PRAYERS[dia % PRAYERS.length];
+  if (prayerIndex === null) {
+    const hoje = new Date();
+    const dia = Math.floor((hoje - new Date(hoje.getFullYear(), 0, 0)) / 86400000);
+    prayerIndex = dia % PRAYERS.length;
+  }
+  return PRAYERS[prayerIndex];
 }
 
 function template() {
@@ -71,8 +103,14 @@ function template() {
 
     <div class="verse-card">
       <div class="verse-label">${icons.prayer} Oração do Dia</div>
-      <div class="verse-text">${oracao.text}</div>
-      <div class="verse-ref">${oracao.title}</div>
+      <div class="verse-text" id="prayerText">${oracao.text}</div>
+      <div class="verse-ref" id="prayerTitle">${oracao.title}</div>
+      <div class="verse-actions">
+        <button class="icon-btn" id="btnCopyPrayer" title="Copiar" aria-label="Copiar oração">${icons.copy}</button>
+        <button class="icon-btn" id="btnSharePrayer" title="Compartilhar" aria-label="Compartilhar oração">${icons.share}</button>
+        <button class="icon-btn" id="btnImagePrayer" title="Compartilhar como imagem" aria-label="Compartilhar oração como imagem">${ICONE_IMAGEM}</button>
+        <button class="icon-btn" id="btnNewPrayer" title="Outra oração" aria-label="Carregar outra oração">${icons.refresh}</button>
+      </div>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
         <button type="button" class="prayer-amen" id="btnPrayAmenHome">${icons.check} Orar Amém</button>
         <button type="button" class="prayer-amen" id="btnAllPrayers">Ver todas</button>
@@ -89,6 +127,7 @@ function template() {
         <button class="icon-btn" id="btnCopyVerse" title="Copiar" aria-label="Copiar versículo">${icons.copy}</button>
         <button class="icon-btn" id="btnBookmarkVerse" title="Favoritar" aria-label="Favoritar versículo">${icons.bookmark}</button>
         <button class="icon-btn" id="btnShareVerse" title="Compartilhar" aria-label="Compartilhar versículo">${icons.share}</button>
+        <button class="icon-btn" id="btnShareVerseImage" title="Compartilhar como imagem" aria-label="Compartilhar versículo como imagem"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></button>
         <button class="icon-btn" id="btnNewVerse" title="Novo versículo" aria-label="Carregar novo versículo">${icons.refresh}</button>
       </div>
     </div>
@@ -245,26 +284,53 @@ async function renderPsalmOfDay(container) {
   const slot = qs('#psalmOfDaySlot', container);
   if (!slot) return;
 
-  const chapterIndex = getTodaysPsalmChapter();
+  let chapterIndex = getTodaysPsalmChapter();
 
-  try {
-    const verses = await getChapter(18, chapterIndex); // 18 = Salmos
-    if (!document.body.contains(slot)) return;
-
-    slot.innerHTML = `
-      <div class="section-title">Salmo do Dia</div>
-      <div class="prayer-card" id="btnOpenPsalm" style="cursor:pointer;">
-        <h4>📖 Salmos ${chapterIndex + 1}</h4>
-        <p class="verse-text" style="margin-bottom:0; color:var(--text-primary); font-size:19px; line-height:1.65;">${verses[0]}</p>
-      </div>
-    `;
-
-    qs('#btnOpenPsalm', slot).addEventListener('click', () => {
-      navigateTo(`/biblia/18/${chapterIndex}/versiculo/0`);
-    });
-  } catch (_e) {
-    // dado indisponível — não quebra a Home por causa disso
+  async function mostrar() {
+    try {
+      const verses = await getChapter(18, chapterIndex); // 18 = Salmos
+      if (!document.body.contains(slot)) return;
+      const ref = `Salmos ${chapterIndex + 1}:1`;
+      const texto = verses[0];
+      slot.innerHTML = `
+        <div class="section-title">Salmo do Dia</div>
+        <div class="prayer-card">
+          <div id="btnOpenPsalm" style="cursor:pointer;">
+            <h4>📖 Salmos ${chapterIndex + 1}</h4>
+            <p class="verse-text" style="margin-bottom:16px; color:var(--text-primary); font-size:19px; line-height:1.65;">${texto}</p>
+          </div>
+          <div class="verse-actions">
+            <button class="icon-btn" id="btnCopyPsalm" title="Copiar" aria-label="Copiar salmo">${icons.copy}</button>
+            <button class="icon-btn" id="btnBookmarkPsalm" title="Favoritar" aria-label="Favoritar salmo">${icons.bookmark}</button>
+            <button class="icon-btn" id="btnSharePsalm" title="Compartilhar" aria-label="Compartilhar salmo">${icons.share}</button>
+            <button class="icon-btn" id="btnImagePsalm" title="Compartilhar como imagem" aria-label="Compartilhar salmo como imagem">${ICONE_IMAGEM}</button>
+            <button class="icon-btn" id="btnNewPsalm" title="Outro salmo" aria-label="Carregar outro salmo">${icons.refresh}</button>
+          </div>
+        </div>
+      `;
+      const marcador = qs('#btnBookmarkPsalm', slot);
+      marcador.style.color = isBookmarked(ref) ? 'var(--gold)' : '';
+      qs('#btnOpenPsalm', slot).addEventListener('click', () => {
+        navigateTo(`/biblia/18/${chapterIndex}/versiculo/0`);
+      });
+      qs('#btnCopyPsalm', slot).addEventListener('click', () => copiarTexto(texto + ' — ' + ref, 'Salmo copiado!'));
+      marcador.addEventListener('click', () => {
+        toggleBookmark(ref);
+        marcador.style.color = isBookmarked(ref) ? 'var(--gold)' : '';
+      });
+      qs('#btnSharePsalm', slot).addEventListener('click', () => compartilharTexto(texto + ' — ' + ref, 'Bíblia de Estudo'));
+      qs('#btnImagePsalm', slot).addEventListener('click', () => imagemDoTexto(texto, ref));
+      qs('#btnNewPsalm', slot).addEventListener('click', async () => {
+        chapterIndex = (chapterIndex + 1) % 150;
+        await mostrar();
+        toast.info('Novo salmo carregado');
+      });
+    } catch (_e) {
+      // dado indisponível — não quebra a Home por causa disso
+    }
   }
+
+  await mostrar();
 }
 
 async function renderContinueReadingCard(container) {
@@ -330,6 +396,15 @@ export const homePage = {
       updateVerseDisplay(container);
     });
     qs('#btnShareVerse', container).addEventListener('click', shareVerse);
+    const btnImgVerse = qs('#btnShareVerseImage', container);
+    if (btnImgVerse) {
+      btnImgVerse.addEventListener('click', () => {
+        const texto = (qs('#verseText', container).textContent || '').trim();
+        const ref = (qs('#verseRef', container).textContent || '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+        abrirImagemDoVersiculo({ texto: texto, referencia: ref })
+          .catch(() => toast.error('Não foi possível gerar a imagem agora.'));
+      });
+    }
     qs('#btnNewVerse', container).addEventListener('click', () => {
       verseIndex = (verseIndex + 1) % DAILY_VERSES.length;
       updateVerseDisplay(container);
@@ -352,6 +427,24 @@ export const homePage = {
     }
     const btnTodas = qs('#btnAllPrayers', container);
     if (btnTodas) btnTodas.addEventListener('click', () => navigateTo('/oracao'));
+    const textoOracao = () => (qs('#prayerText', container).textContent || '').trim();
+    const tituloOracao = () => (qs('#prayerTitle', container).textContent || '').trim();
+    qs('#btnCopyPrayer', container).addEventListener('click', () => copiarTexto(textoOracao() + ' — ' + tituloOracao(), 'Oração copiada!'));
+    qs('#btnSharePrayer', container).addEventListener('click', () => compartilharTexto(textoOracao() + ' — ' + tituloOracao(), 'Bíblia de Estudo'));
+    qs('#btnImagePrayer', container).addEventListener('click', () => imagemDoTexto(textoOracao(), tituloOracao()));
+    qs('#btnNewPrayer', container).addEventListener('click', () => {
+      prayerIndex = ((prayerIndex === null ? 0 : prayerIndex) + 1) % PRAYERS.length;
+      const p = PRAYERS[prayerIndex];
+      qs('#prayerText', container).textContent = p.text;
+      qs('#prayerTitle', container).textContent = p.title;
+      const amen = qs('#btnPrayAmenHome', container);
+      if (amen) {
+        amen.disabled = false;
+        amen.classList.remove('prayed');
+        amen.innerHTML = `${icons.check} Orar Amém`;
+      }
+      toast.info('Outra oração carregada');
+    });
     qs('#btnPlaySong', container).addEventListener('click', () => {
       const s = getTodaysSong();
       const busca = encodeURIComponent(`${s.title} ${s.artist} louvor`);
