@@ -373,7 +373,7 @@
 /* --- Prayer card --- */
 .prayer-card { border-radius: 16px; padding: 20px; border: 1px solid var(--border); background: var(--navy-light); margin-bottom: 12px; }
 .prayer-card h4 { font-size: 15px; font-weight: 600; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; color: var(--gold); }
-.prayer-card p { font-size: 14px; line-height: 1.7; color: var(--text-secondary); margin: 0 0 14px; font-family: var(--font-display); }
+.prayer-card p { font-size: 19px; line-height: 1.5; color: var(--text-primary); margin: 0 0 14px; font-family: var(--font-display); }
 .prayer-amen {
   display: inline-flex;
   align-items: center;
@@ -2459,3 +2459,15 @@ img.icon-glyph {
 
 /* A imagem do topo ja tem o degrade proprio; sem o escurecimento antigo do video */
 .hero-card::after { display: none; }
+
+/* Sequência de dias: mesma cor dos demais cartões da Início */
+.streak-banner {
+  background: var(--navy-light);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+/* Sequência de dias: título dourado, como nos outros cartões */
+.streak-banner .streak-info h4 {
+  color: var(--gold);
+}

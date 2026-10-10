@@ -7,6 +7,7 @@ import { speak, stopSpeech } from '../../utils/speech.js';
 import { navigateTo } from '../../router.js';
 import { ALL_VERSES as DAILY_VERSES, verseIndexForDate } from '../../utils/verseOfDay.js';
 import { getReadingPlan } from '../../../data/readingPlans.js';
+import { PRAYERS } from '../../../data/prayers.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
 import { planProgressRepository } from '../../data-access/planProgressRepository.js';
 import { getBook, getChapter } from '../../data-access/bibleRepository.js';
@@ -46,7 +47,14 @@ function planCardData(planId) {
   return { plan, total, feitos, percent };
 }
 
+function getTodaysPrayer() {
+  const hoje = new Date();
+  const dia = Math.floor((hoje - new Date(hoje.getFullYear(), 0, 0)) / 86400000);
+  return PRAYERS[dia % PRAYERS.length];
+}
+
 function template() {
+  const oracao = getTodaysPrayer();
   const streak = statsRepository.getStreak();
   const song = getTodaysSong();
   const verse = DAILY_VERSES[verseIndex];
@@ -60,15 +68,19 @@ function template() {
 
     <div id="continueReadingSlot"></div>
 
-    <div class="streak-banner">
-      <div class="streak-flame">${icons.bible}</div>
-      <div class="streak-info">
-        <h4>Sequência de ${streak} ${streak === 1 ? 'dia' : 'dias'}</h4>
-        <p>${streak > 0 ? 'Continue lendo para manter sua sequência' : 'Leia hoje para começar uma sequência'}</p>
+
+    <div class="verse-card">
+      <div class="verse-label">${icons.prayer} Oração do Dia</div>
+      <div class="verse-text">${oracao.text}</div>
+      <div class="verse-ref">${oracao.title}</div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <button type="button" class="prayer-amen" id="btnPrayAmenHome">${icons.check} Orar Amém</button>
+        <button type="button" class="prayer-amen" id="btnAllPrayers">Ver todas</button>
       </div>
     </div>
 
-    <div class="verse-card">
+    
+<div class="verse-card">
       <div class="verse-label">${icons.bible} Versículo do Dia</div>
       <div class="verse-text" id="verseText">${verse.text}</div>
       <div class="verse-ref" id="verseRef">${verse.ref}</div>
@@ -88,6 +100,14 @@ function template() {
       <h4>🎵 ${song.title}</h4>
       <p class="verse-text" style="margin-bottom:0; color:var(--text-primary); font-size:19px; line-height:1.65;">${song.artist}</p>
       <button type="button" class="prayer-amen" id="btnPlaySong">▶ Ouvir no YouTube</button>
+    </div>
+
+    <div class="streak-banner">
+      <div class="streak-flame">${icons.bible}</div>
+      <div class="streak-info">
+        <h4>Sequência de ${streak} ${streak === 1 ? 'dia' : 'dias'}</h4>
+        <p>${streak > 0 ? 'Continue lendo para manter sua sequência' : 'Leia hoje para começar uma sequência'}</p>
+      </div>
     </div>
 
     <div class="section-title">
@@ -320,6 +340,18 @@ export const homePage = {
     qs('#plan1', container).addEventListener('click', () => navigateTo('/planos/trinta-dias-com-jesus'));
     qs('#plan2', container).addEventListener('click', () => navigateTo('/planos/salmos-de-conforto'));
     qs('#btnSeeAllPlans', container).addEventListener('click', () => navigateTo('/planos'));
+    const btnAmen = qs('#btnPrayAmenHome', container);
+    if (btnAmen) {
+      btnAmen.addEventListener('click', () => {
+        statsRepository.incrementPrayerCount();
+        btnAmen.classList.add('prayed');
+        btnAmen.innerHTML = `${icons.check} Amém orado`;
+        btnAmen.disabled = true;
+        toast.success('Oração registrada');
+      });
+    }
+    const btnTodas = qs('#btnAllPrayers', container);
+    if (btnTodas) btnTodas.addEventListener('click', () => navigateTo('/oracao'));
     qs('#btnPlaySong', container).addEventListener('click', () => {
       const s = getTodaysSong();
       const busca = encodeURIComponent(`${s.title} ${s.artist} louvor`);
