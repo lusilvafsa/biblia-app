@@ -2478,3 +2478,10 @@ img.icon-glyph {
   content: none !important;
   display: none !important;
 }
+
+/* Sequência de dias: ícone sem fundo dourado */
+.streak-banner .streak-flame {
+  background: none;
+  box-shadow: none;
+  border: none;
+}
