@@ -49,6 +49,22 @@ function planCardData(planId) {
   return { plan, total, feitos, percent };
 }
 
+const NOMES_FEMININOS = ['Coríntios', 'Tessalonicenses', 'Timóteo', 'Pedro', 'João', 'Crônicas'];
+
+function referenciaFalada(ref) {
+  const limpa = String(ref).replace(/\s*\([^)]*\)\s*$/, '').trim();
+  const m = limpa.match(/^(?:([123])\s+)?(.+?)\s+(\d+):(\d+)(?:\s*[-–]\s*(\d+))?$/);
+  if (!m) return limpa;
+  let nome = m[2];
+  if (m[1]) {
+    const fem = NOMES_FEMININOS.includes(m[2]);
+    const ord = fem ? ['', 'Primeira', 'Segunda', 'Terceira'] : ['', 'Primeiro', 'Segundo', 'Terceiro'];
+    nome = ord[Number(m[1])] + ' ' + m[2];
+  }
+  const verso = m[5] ? 'versículos ' + m[4] + ' a ' + m[5] : 'versículo ' + m[4];
+  return nome + ', capítulo ' + m[3] + ', ' + verso;
+}
+
 let audioAtivo = null; // botão (Oração ou Salmo) que está falando agora
 
 function pararAudioExtra() {
@@ -146,8 +162,8 @@ function template() {
     <div class="verse-card">
       <div class="verse-label">${icons.prayer} Oração do Dia</div>
       
-      <div class="verse-text" id="prayerText">${oracao.text}</div>
       <div class="verse-ref" id="prayerTitle">${oracao.title}</div>
+      <div class="verse-text" id="prayerText">${oracao.text}</div>
       <div class="verse-actions">
         <button class="icon-btn" id="btnPrayerTTS" title="Ouvir oração" aria-label="Ouvir oração do dia">${icons.listen}</button>
         <button class="icon-btn" id="btnCopyPrayer" title="Copiar" aria-label="Copiar oração">${icons.copy}</button>
@@ -302,7 +318,7 @@ function toggleVerseAudio(container) {
   }
   const verse = DAILY_VERSES[verseIndex];
   pararAudioExtra();
-  const fullText = `${verse.text}. Referência: ${verse.ref}.`;
+  const fullText = `${verse.text}. Referência: ${referenciaFalada(verse.ref)}.`;
   isSpeakingVerse = true;
   btn.classList.add('playing');
   toast.info('Lendo versículo do dia...');
@@ -343,7 +359,7 @@ async function renderPsalmOfDay(container) {
         <div class="prayer-card" style="position:relative;">
           
           <div id="btnOpenPsalm" style="cursor:pointer;">
-            <h4>📖 Salmos ${chapterIndex + 1}</h4>
+            <h4>📖 Salmos ${chapterIndex + 1}:1</h4>
             <p class="verse-text" style="margin-bottom:16px; color:var(--text-primary); font-size:19px; line-height:1.65;">${texto}</p>
           </div>
           <div class="verse-actions">
@@ -357,7 +373,7 @@ async function renderPsalmOfDay(container) {
         </div>
       `;
       const btnTTSSalmo = qs('#btnPsalmTTS', slot);
-      btnTTSSalmo.addEventListener('click', () => falarCartao(btnTTSSalmo, 'Salmos ' + (chapterIndex + 1) + '. ' + texto, 'Lendo salmo do dia...'));
+      btnTTSSalmo.addEventListener('click', () => falarCartao(btnTTSSalmo, referenciaFalada(ref) + '. ' + texto, 'Lendo salmo do dia...'));
       const marcador = qs('#btnBookmarkPsalm', slot);
       marcador.style.color = isBookmarked(ref) ? 'var(--gold)' : '';
       qs('#btnOpenPsalm', slot).addEventListener('click', () => {
@@ -482,7 +498,7 @@ export const homePage = {
     const tituloOracao = () => (qs('#prayerTitle', container).textContent || '').trim();
     const btnTTSOracao = qs('#btnPrayerTTS', container);
     if (btnTTSOracao) {
-      btnTTSOracao.addEventListener('click', () => falarCartao(btnTTSOracao, textoOracao(), 'Lendo oração do dia...'));
+      btnTTSOracao.addEventListener('click', () => falarCartao(btnTTSOracao, tituloOracao() + '. ' + textoOracao(), 'Lendo oração do dia...'));
     }
     qs('#btnCopyPrayer', container).addEventListener('click', () => copiarTexto(textoOracao() + ' — ' + tituloOracao(), 'Oração copiada!'));
     qs('#btnSharePrayer', container).addEventListener('click', () => compartilharTexto(textoOracao() + ' — ' + tituloOracao(), 'Bíblia de Estudo'));

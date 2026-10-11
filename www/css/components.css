@@ -2530,3 +2530,9 @@ img.icon-glyph {
   border-color: var(--gold);
   animation: btnPulse 1.5s ease-in-out infinite;
 }
+
+
+/* Espaço entre ícones e botões da oração */
+.verse-card .verse-actions + div {
+  margin-top: 12px;
+}
