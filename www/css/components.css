@@ -2491,3 +2491,42 @@ img.icon-glyph {
   animation: none;
   transform: none;
 }
+
+
+/* Áudio nos cartões de oração e salmo */
+.prayer-card .audio-btn-top {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--navy-light);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.prayer-card .audio-btn-top:hover { background: var(--navy-lighter); transform: scale(1.05); }
+.prayer-card .audio-btn-top.playing {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  animation: btnPulse 1.5s ease-in-out infinite;
+}
+.prayer-card .audio-btn-top svg { width: 18px; height: 18px; }
+
+
+/* Áudio na fileira de botões */
+.verse-card .verse-actions,
+.prayer-card .verse-actions {
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.verse-actions .icon-btn.playing {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  animation: btnPulse 1.5s ease-in-out infinite;
+}
