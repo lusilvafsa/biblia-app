@@ -359,7 +359,7 @@ async function renderPsalmOfDay(container) {
         <div class="prayer-card" style="position:relative;">
           
           <div id="btnOpenPsalm" style="cursor:pointer;">
-            <h4>📖 Salmos ${chapterIndex + 1}:1</h4>
+            <h4>${icons.bible} Salmos ${chapterIndex + 1}:1</h4>
             <p class="verse-text" style="margin-bottom:16px; color:var(--text-primary); font-size:19px; line-height:1.65;">${texto}</p>
           </div>
           <div class="verse-actions">

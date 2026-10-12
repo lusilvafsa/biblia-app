@@ -14,6 +14,7 @@ const ID_BASE = 2000;
 const DIAS_NA_FILA = 30;
 const HORA_PADRAO = 8;
 const CONFIG_KEY = 'biblia:daily-notification-config';
+const STATUS_KEY = 'biblia:daily-notification-status';
 const TITULO = '📖 Bíblia de Estudo';
 const CORPO = 'Seu momento com a Palavra te espera hoje. Toque para continuar sua leitura.';
 
@@ -48,12 +49,18 @@ async function reagendarLembretes() {
     const ids = [NOTIFICATION_ID_ANTIGO];
     for (let i = 0; i < DIAS_NA_FILA; i++) ids.push(ID_BASE + i);
     await ln.cancel({ notifications: ids.map((id) => ({ id })) });
-    if (!config.enabled) return true;
+    if (!config.enabled) {
+      registrarStatus({ ok: true, desligado: true, agendados: 0 });
+      return true;
+    }
 
     let permissao = await ln.checkPermissions();
     if (permissao.display !== 'granted') {
       permissao = await ln.requestPermissions();
-      if (permissao.display !== 'granted') return false;
+      if (permissao.display !== 'granted') {
+        registrarStatus({ ok: false, motivo: 'permissão de notificações negada' });
+        return false;
+      }
     }
 
     const lidoHoje = statsRepository.hasReadToday();
@@ -75,11 +82,20 @@ async function reagendarLembretes() {
         schedule: { at: quando, allowWhileIdle: true },
       });
     }
-    if (fila.length > 0) await ln.schedule({ notifications: fila });
+    let resultado = null;
+    if (fila.length > 0) resultado = await ln.schedule({ notifications: fila });
+    registrarStatus({
+      ok: true,
+      agendados: fila.length,
+      primeiro: fila.length ? new Date(fila[0].schedule.at).toISOString() : null,
+      aviso: (resultado && resultado.warning && (resultado.warning.message || resultado.warning.code)) || null,
+      lidoHoje: lidoHoje,
+    });
     setItem(STORAGE_KEYS.dailyNotification, true);
     return true;
   } catch (err) {
     console.warn('[dailyNotification] não foi possível agendar:', err);
+    registrarStatus({ ok: false, erro: String((err && err.message) || err) });
     return false;
   } finally {
     emAndamento = false;
@@ -110,4 +126,43 @@ if (typeof window !== 'undefined') {
       reagendarLembretes();
     }
   });
+}
+
+function registrarStatus(dados) {
+  try {
+    setItem(STATUS_KEY, { quando: new Date().toISOString(), ...dados });
+  } catch (_e) {
+    /* ignora */
+  }
+}
+
+export function getDailyNotificationStatus() {
+  return getItem(STATUS_KEY, null);
+}
+
+export async function listarAgendados() {
+  const ln = plugin();
+  if (!ln) return null;
+  const r = await ln.getPending();
+  return Array.isArray(r && r.notifications) ? r.notifications : [];
+}
+
+export async function testarLembreteAgora() {
+  const ln = plugin();
+  if (!ln) return { ok: false, motivo: 'só funciona no app instalado' };
+  let p = await ln.checkPermissions();
+  if (p.display !== 'granted') p = await ln.requestPermissions();
+  if (p.display !== 'granted') return { ok: false, motivo: 'a permissão de notificações está negada' };
+  await ln.schedule({
+    notifications: [
+      {
+        id: 1999,
+        title: '🔔 Teste do lembrete',
+        body: 'Se você está vendo isto, as notificações agendadas do app funcionam.',
+        isExactNotification: false,
+        schedule: { at: new Date(Date.now() + 60000), allowWhileIdle: true },
+      },
+    ],
+  });
+  return { ok: true };
 }

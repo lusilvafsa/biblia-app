@@ -23,7 +23,7 @@ import { APP_VERSION, APP_BUILD, APP_DATE } from '../../version.js';
 import { exportarBackup, importarBackup } from '../../utils/backup.js';
 import { BIBLE_VERSIONS } from '../../../data/bibleVersions.js';
 import { getBibleVersion, setBibleVersion } from '../../state/bibleVersion.js';
-import { getDailyNotificationConfig, applyDailyNotification } from '../../utils/dailyNotification.js';
+import { getDailyNotificationConfig, applyDailyNotification, getDailyNotificationStatus, listarAgendados, testarLembreteAgora } from '../../utils/dailyNotification.js';
 
 const SAMPLE_TEXT = 'O Senhor é o meu pastor; nada me faltará.';
 
@@ -181,6 +181,14 @@ function template(settings) {
         <div class="setting-row">
           <div class="setting-row-header"><span class="setting-label">Horário</span></div>
           <input type="time" class="select-input" id="notifTime" value="${pad2(getDailyNotificationConfig().hour)}:${pad2(getDailyNotificationConfig().minute)}" ${getDailyNotificationConfig().enabled ? '' : 'disabled'}>
+        </div>
+        <div class="setting-row">
+          <div class="setting-row-header"><span class="setting-label">Diagnóstico</span></div>
+          <div class="settings-actions">
+            <button class="tool-btn" id="btnNotifVer" type="button">Ver agendados</button>
+            <button class="tool-btn" id="btnNotifTeste" type="button">Testar em 1 min</button>
+          </div>
+          <p id="notifStatus" style="margin-top:10px;font-size:13px;opacity:.8;white-space:pre-line;"></p>
         </div>
       </div>
     </div>
@@ -377,6 +385,52 @@ export const settingsPage = {
     }
     notifToggle.addEventListener('change', saveNotification);
     notifTime.addEventListener('change', saveNotification);
+    const statusEl = qs('#notifStatus', container);
+    function mostrarStatus(texto) {
+      if (statusEl) statusEl.textContent = texto;
+    }
+    const btnVer = qs('#btnNotifVer', container);
+    if (btnVer) {
+      btnVer.addEventListener('click', async () => {
+        mostrarStatus('Consultando...');
+        try {
+          const lista = await listarAgendados();
+          const datas = (lista || [])
+            .map((n) => new Date((n.schedule && n.schedule.at) || 0).getTime())
+            .filter((t) => t > 0)
+            .sort((a, b) => a - b);
+          const proximo = datas.length ? new Date(datas[0]).toLocaleString('pt-BR') : 'nenhum';
+          let texto = 'Agendados: ' + (lista ? lista.length : 0) + ' · próximo: ' + proximo;
+          const s = getDailyNotificationStatus();
+          if (s) {
+            texto += '\nÚltima tentativa: ' + new Date(s.quando).toLocaleString('pt-BR');
+            if (s.desligado) texto += ' (lembrete desligado)';
+            else if (s.ok) texto += ' (ok, ' + s.agendados + ' lembretes' + (s.aviso ? '; aviso: ' + s.aviso : '') + (s.lidoHoje ? '; hoje já lido' : '') + ')';
+            else texto += ' (falhou: ' + (s.erro || s.motivo || '?') + ')';
+          } else {
+            texto += '\nNenhuma tentativa registrada ainda.';
+          }
+          mostrarStatus(texto);
+        } catch (err) {
+          mostrarStatus('Não foi possível consultar: ' + (err && err.message ? err.message : err));
+        }
+      });
+    }
+    const btnTeste = qs('#btnNotifTeste', container);
+    if (btnTeste) {
+      btnTeste.addEventListener('click', async () => {
+        btnTeste.disabled = true;
+        try {
+          const r = await testarLembreteAgora();
+          mostrarStatus(r.ok ? 'Teste agendado para daqui a 1 minuto. Bloqueie a tela e espere.' : 'Não foi possível: ' + r.motivo);
+        } catch (err) {
+          mostrarStatus('Erro no teste: ' + (err && err.message ? err.message : err));
+        } finally {
+          btnTeste.disabled = false;
+        }
+      });
+    }
+
 
     const btnExp = qs('#btnBackupExport', container);
     const btnImp = qs('#btnBackupImport', container);
