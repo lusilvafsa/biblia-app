@@ -455,7 +455,7 @@ async function renderContinueReadingCard(container) {
 
 export const homePage = {
   render(container) {
-    container.innerHTML = template();
+    container.innerHTML = '<div class="home-grid">' + template() + '</div>';
 
     qs('#btnCopyVerse', container).addEventListener('click', () => copyVerse(container));
     qs('#btnBookmarkVerse', container).addEventListener('click', () => {

@@ -2551,3 +2551,31 @@ img.icon-glyph {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* Telas grandes: tela cheia, Início em colunas (não afeta celular) */
+@media (min-width: 900px) and (min-height: 600px) {
+  body { padding: 0 !important; }
+  body .phone-frame {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  body .app-content {
+    padding-left: max(32px, calc((100% - 1000px) / 2));
+    padding-right: max(32px, calc((100% - 1000px) / 2));
+  }
+  body .app-content:has(.home-grid) {
+    padding-left: max(32px, calc((100% - 1300px) / 2));
+    padding-right: max(32px, calc((100% - 1300px) / 2));
+  }
+  .home-grid { column-count: 2; column-gap: 28px; }
+  .home-grid > * { break-inside: avoid; }
+  .home-grid > .hero-card,
+  .home-grid > .section-title,
+  .home-grid > .menu-grid { column-span: all; }
+  body .menu-grid { grid-template-columns: repeat(4, 1fr); }
+}
