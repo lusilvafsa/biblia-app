@@ -364,10 +364,18 @@ async function enviarPergunta({
         error,
       );
 
-      throw new Error(
-        error.message ||
-          'Não foi possível obter uma resposta do Assistente Bíblico.',
-      );
+      let msgServidor = null;
+        try {
+          const corpo = await error.context.json();
+          msgServidor = corpo && corpo.erro ? String(corpo.erro) : null;
+        } catch (_e) {
+          /* sem corpo legível */
+        }
+        const falha = new Error(
+          msgServidor || error.message || 'Não foi possível obter uma resposta do Assistente Bíblico.',
+        );
+        falha.doServidor = !!msgServidor;
+        throw falha;
     }
 
     if (!data?.sucesso || !data?.mensagem) {
@@ -385,10 +393,12 @@ async function enviarPergunta({
     );
 
     adicionarMensagem(
-      messagesEl,
-      'bot',
-      'Não foi possível responder agora. Verifique sua conexão e tente novamente.',
-    );
+        messagesEl,
+        'bot',
+        error && error.doServidor
+          ? error.message
+          : 'Não foi possível responder agora. Verifique sua conexão e tente novamente.',
+      );
   } finally {
     input.disabled = false;
     sendButton.disabled = false;
@@ -407,6 +417,10 @@ export const assistantPage = {
       usoEl = document.createElement('p');
       usoEl.style.cssText = 'margin:8px 4px 0;font-size:13px;opacity:.7;';
       headerEl.insertAdjacentElement('afterend', usoEl);
+      const avisoEl = document.createElement('p');
+      avisoEl.style.cssText = 'margin:4px 4px 0;font-size:12px;opacity:.65;line-height:1.4;';
+      avisoEl.textContent = 'Privacidade: não escreva dados pessoais nem informações sensíveis. As perguntas são processadas pelo Google (Gemini) e, no plano gratuito, podem ser usadas por ele para melhorar seus serviços.';
+      usoEl.insertAdjacentElement('afterend', avisoEl);
       carregarUso();
     }
 

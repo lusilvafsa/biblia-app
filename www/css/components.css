@@ -2536,3 +2536,18 @@ img.icon-glyph {
 .verse-card .verse-actions + div {
   margin-top: 12px;
 }
+
+/* Telas grandes: aproveitar o espaço do computador (não afeta celular) */
+@media (min-width: 900px) and (min-height: 600px) {
+  body .phone-frame {
+    max-width: 880px !important;
+    height: min(960px, 96vh) !important;
+  }
+  body .app-content {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  body .menu-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
