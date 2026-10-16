@@ -19,8 +19,8 @@ function douradoDoApp() {
 
 function temas() {
   return {
-    escuro: { fundo1: '#0f1729', fundo2: '#1a2644', texto: '#f4efe3', dourado: douradoDoApp(), suave: 'rgba(244,239,227,0.55)' },
-    claro: { fundo1: '#fbf6ea', fundo2: '#efe5cd', texto: '#2a2418', dourado: '#8f7233', suave: 'rgba(42,36,24,0.55)' },
+    escuro: { fundo1: '#192a4f', fundo2: '#2a447d', texto: '#e6cb8f', ref: '#f4efe3', dourado: douradoDoApp(), suave: 'rgba(244,239,227,0.55)' },
+    claro: { fundo1: '#fbf6ea', fundo2: '#efe5cd', texto: '#6b5120', ref: '#2a2418', dourado: '#8f7233', suave: 'rgba(42,36,24,0.55)' },
   };
 }
 
@@ -113,13 +113,13 @@ function desenhar(estilo, texto, referencia) {
   let linhas = [];
   let alturaLinha = 0;
   for (; tamanho >= 28; tamanho -= 2) {
-    ctx.font = 'italic 400 ' + tamanho + 'px ' + SERIFA;
+    ctx.font = '600 ' + tamanho + 'px ' + SERIFA;
     linhas = quebrarLinhas(ctx, '\u201C' + limpo + '\u201D', larguraTexto);
     alturaLinha = tamanho * 1.45;
     if (linhas.length * alturaLinha <= areaAltura) break;
   }
   tamanho = Math.max(tamanho, 28);
-  ctx.font = 'italic 400 ' + tamanho + 'px ' + SERIFA;
+  ctx.font = '600 ' + tamanho + 'px ' + SERIFA;
   const maxLinhas = Math.floor(areaAltura / alturaLinha);
   if (linhas.length > maxLinhas) {
     linhas = linhas.slice(0, maxLinhas);
@@ -134,7 +134,7 @@ function desenhar(estilo, texto, referencia) {
     y += alturaLinha;
   });
 
-  ctx.fillStyle = t.dourado;
+  ctx.fillStyle = t.ref;
   ctx.font = '600 46px ' + SERIFA;
   ctx.fillText(referencia, cx, 1110);
   ctx.fillStyle = t.suave;

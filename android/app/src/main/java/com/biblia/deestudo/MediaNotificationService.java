@@ -347,6 +347,7 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
 
             } else if (ACTION_STOP.equals(action)) {
                 pararFala();
+                MediaNotificationPlugin.isNarrating = false;
                 playing = false;
                 verses.clear();
                 currentIndex = 0;
@@ -394,8 +395,6 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
                 .setPriority(NotificationCompat.PRIORITY_LOW);
 
         builder.setSubText(String.format(java.util.Locale.US, "%.2fx", rate));
-        builder.addAction(R.drawable.ic_speed, "Velocidade",
-                actionPendingIntent(ACTION_CYCLE_SPEED, 208));
 
         builder.addAction(android.R.drawable.ic_media_previous, "Anterior",
                 actionPendingIntent(ACTION_PREV, 201));
