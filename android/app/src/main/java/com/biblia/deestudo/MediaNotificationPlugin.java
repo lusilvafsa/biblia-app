@@ -45,7 +45,7 @@ public class MediaNotificationPlugin extends Plugin {
 
     @PluginMethod
     public void startChapterNarration(PluginCall call) {
-        String title = call.getString("title", "Bíblia de Estudo");
+        String title = call.getString("title", "Bíblia de Estudo LS");
         String artist = call.getString("artist", "Bíblia em Áudio");
         Integer startIndex = call.getInt("startIndex", 0);
         Double rate = call.getDouble("rate", 1.0);
@@ -105,7 +105,7 @@ public class MediaNotificationPlugin extends Plugin {
     public void update(PluginCall call) {
         Log.d("BIBLIA_MEDIA", "PLUGIN update() chamado");
 
-        String title = call.getString(MediaNotificationService.EXTRA_TITLE, "Bíblia de Estudo");
+        String title = call.getString(MediaNotificationService.EXTRA_TITLE, "Bíblia de Estudo LS");
         String artist = call.getString(MediaNotificationService.EXTRA_ARTIST, "Bíblia em Áudio");
         boolean playing = call.getBoolean(MediaNotificationService.EXTRA_PLAYING, false).booleanValue();
 

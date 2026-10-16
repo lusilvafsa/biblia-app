@@ -1,6 +1,6 @@
 {
   "appId": "com.biblia.deestudo",
-  "appName": "Bíblia de Estudo",
+  "appName": "Bíblia de Estudo LS",
   "webDir": "www",
   "plugins": {
     "FirebaseAuthentication": {

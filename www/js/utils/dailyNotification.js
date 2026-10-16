@@ -15,7 +15,7 @@ const DIAS_NA_FILA = 30;
 const HORA_PADRAO = 8;
 const CONFIG_KEY = 'biblia:daily-notification-config';
 const STATUS_KEY = 'biblia:daily-notification-status';
-const TITULO = '📖 Bíblia de Estudo';
+const TITULO = '📖 Bíblia de Estudo LS';
 const CORPO = 'Seu momento com a Palavra te espera hoje. Toque para continuar sua leitura.';
 
 function plugin() {
@@ -64,6 +64,15 @@ async function reagendarLembretes() {
     }
 
     const lidoHoje = statsRepository.hasReadToday();
+    let exato = false;
+    try {
+      if (typeof ln.checkExactNotificationSetting === 'function') {
+        const st = await ln.checkExactNotificationSetting();
+        exato = !!st && st.exact_alarm === 'granted';
+      }
+    } catch (_e) {
+      /* sem informação: segue com alarme aproximado */
+    }
     const agora = new Date();
     const fila = [];
     for (let i = 0; i < DIAS_NA_FILA; i++) {
@@ -78,7 +87,7 @@ async function reagendarLembretes() {
         title: '📖 ' + refShort(v.ref),
         body: v.text,
         largeBody: v.text,
-        isExactNotification: false,
+        isExactNotification: exato,
         schedule: { at: quando, allowWhileIdle: true },
       });
     }
@@ -90,6 +99,7 @@ async function reagendarLembretes() {
       primeiro: fila.length ? new Date(fila[0].schedule.at).toISOString() : null,
       aviso: (resultado && resultado.warning && (resultado.warning.message || resultado.warning.code)) || null,
       lidoHoje: lidoHoje,
+      exato: exato,
     });
     setItem(STORAGE_KEYS.dailyNotification, true);
     return true;
@@ -147,7 +157,7 @@ export async function listarAgendados() {
   return Array.isArray(r && r.notifications) ? r.notifications : [];
 }
 
-export async function testarLembreteAgora() {
+export async function testarLembreteAgora(exato = false) {
   const ln = plugin();
   if (!ln) return { ok: false, motivo: 'só funciona no app instalado' };
   let p = await ln.checkPermissions();
@@ -156,13 +166,35 @@ export async function testarLembreteAgora() {
   await ln.schedule({
     notifications: [
       {
-        id: 1999,
-        title: '🔔 Teste do lembrete',
+        id: exato ? 1998 : 1999,
+        title: exato ? '🔔 Teste do lembrete (preciso)' : '🔔 Teste do lembrete (aproximado)',
         body: 'Se você está vendo isto, as notificações agendadas do app funcionam.',
-        isExactNotification: false,
+        isExactNotification: !!exato,
         schedule: { at: new Date(Date.now() + 60000), allowWhileIdle: true },
       },
     ],
   });
   return { ok: true };
+}
+
+export async function alarmesPrecisosPermitidos() {
+  const ln = plugin();
+  if (!ln || typeof ln.checkExactNotificationSetting !== 'function') return null;
+  try {
+    const st = await ln.checkExactNotificationSetting();
+    return !!st && st.exact_alarm === 'granted';
+  } catch (_e) {
+    return null;
+  }
+}
+
+export async function pedirAlarmesPrecisos() {
+  const ln = plugin();
+  if (!ln || typeof ln.changeExactNotificationSetting !== 'function') return false;
+  try {
+    await ln.changeExactNotificationSetting();
+    return true;
+  } catch (_e) {
+    return false;
+  }
 }

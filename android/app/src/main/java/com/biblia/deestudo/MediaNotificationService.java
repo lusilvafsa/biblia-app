@@ -56,7 +56,7 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
     public static final String EXTRA_VERSE_INDEX = "verse_index";
     public static final int NOTIFICATION_ID = 9001;
 
-    private String title = "Bíblia de Estudo";
+    private String title = "Bíblia de Estudo LS";
     private String artist = "Bíblia em Áudio";
     private boolean playing = false;
     private PowerManager.WakeLock wakeLock;

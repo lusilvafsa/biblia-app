@@ -12,7 +12,7 @@ const MediaNotification = (() => {
   return null;
 })();
 
-let nativeNotificationTitle = 'Bíblia de Estudo';
+let nativeNotificationTitle = 'Bíblia de Estudo LS';
 let nativeNotificationArtist = 'Bíblia em Áudio';
 let nativeNotificationPlaying = false;
 
@@ -22,7 +22,7 @@ async function syncNativeNotification(
   artist = nativeNotificationArtist
 ) {
   nativeNotificationPlaying = !!playing;
-  nativeNotificationTitle = title || 'Bíblia de Estudo';
+  nativeNotificationTitle = title || 'Bíblia de Estudo LS';
   nativeNotificationArtist = artist || 'Bíblia em Áudio';
 
   if (!MediaNotification) return;
@@ -49,7 +49,7 @@ export function isMediaSessionSupported() {
 }
 
 export function setMediaSessionMetadata({ title, artist, album }) {
-  const nextTitle = title || 'Bíblia de Estudo';
+  const nextTitle = title || 'Bíblia de Estudo LS';
   const nextArtist = artist || 'Bíblia em Áudio';
 
   if (isMediaSessionSupported()) {
@@ -57,7 +57,7 @@ export function setMediaSessionMetadata({ title, artist, album }) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: nextTitle,
         artist: nextArtist,
-        album: album || 'Bíblia de Estudo',
+        album: album || 'Bíblia de Estudo LS',
       });
     } catch (_err) {
       /* ignora */

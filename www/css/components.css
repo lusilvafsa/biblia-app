@@ -2593,3 +2593,10 @@ img.icon-glyph {
     display: block;
   }
 }
+
+/* Textos de oração, versículo e salmo mais fortes */
+.verse-card .verse-text,
+#psalmOfDaySlot .verse-text,
+.prayer-card p {
+  font-weight: 600;
+}

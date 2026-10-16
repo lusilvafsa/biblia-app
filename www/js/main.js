@@ -105,7 +105,7 @@ function renderHeaderActions(meta) {
 }
 
 function initRoutes() {
-  registerRoute('/', homePage, { title: 'Bíblia de Estudo', navKey: 'home' });
+  registerRoute('/', homePage, { title: 'Bíblia de Estudo LS', navKey: 'home' });
   registerRoute('/biblia', bookListPage, { title: 'Bíblia Sagrada', navKey: 'bible', showSearch: true });
   registerRoute('/biblia/busca', searchPage, { title: 'Buscar na Bíblia', navKey: 'bible', showBack: true });
   registerRoute('/biblia/:book', chapterGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
@@ -126,7 +126,7 @@ function initRoutes() {
   setNotFound(notFoundPage);
 
   onRouteChange((meta) => {
-    setHeaderTitle(meta.title || 'Bíblia de Estudo');
+    setHeaderTitle(meta.title || 'Bíblia de Estudo LS');
     renderHeaderActions(meta);
     updateBottomNav(meta.navKey);
   });

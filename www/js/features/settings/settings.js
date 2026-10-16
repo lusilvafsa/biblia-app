@@ -23,7 +23,7 @@ import { APP_VERSION, APP_BUILD, APP_DATE } from '../../version.js';
 import { exportarBackup, importarBackup } from '../../utils/backup.js';
 import { BIBLE_VERSIONS } from '../../../data/bibleVersions.js';
 import { getBibleVersion, setBibleVersion } from '../../state/bibleVersion.js';
-import { getDailyNotificationConfig, applyDailyNotification, getDailyNotificationStatus, listarAgendados, testarLembreteAgora } from '../../utils/dailyNotification.js';
+import { getDailyNotificationConfig, applyDailyNotification, getDailyNotificationStatus, listarAgendados, testarLembreteAgora, alarmesPrecisosPermitidos, pedirAlarmesPrecisos } from '../../utils/dailyNotification.js';
 
 const SAMPLE_TEXT = 'O Senhor é o meu pastor; nada me faltará.';
 
@@ -187,7 +187,10 @@ function template(settings) {
           <div class="settings-actions">
             <button class="tool-btn" id="btnNotifVer" type="button">Ver agendados</button>
             <button class="tool-btn" id="btnNotifTeste" type="button">Testar em 1 min</button>
+            <button class="tool-btn" id="btnNotifTestePreciso" type="button">Testar preciso</button>
+            <button class="tool-btn" id="btnNotifPrecisos" type="button">Permitir alarmes precisos</button>
           </div>
+          <p id="notifPrecisos" style="margin:10px 0 0;font-size:13px;opacity:.9;"></p>
           <p id="notifStatus" style="margin-top:10px;font-size:13px;opacity:.8;white-space:pre-line;"></p>
         </div>
       </div>
@@ -216,10 +219,11 @@ function template(settings) {
     </div>
 
     <div class="app-info">
-      Bíblia de Estudo — v${APP_VERSION} · build ${APP_BUILD}<br>
+      Bíblia de Estudo LS — v${APP_VERSION} · build ${APP_BUILD}<br>
     Atualizado em ${APP_DATE}<br>
       Versões: ACF, BLIVRE e ARC 1911<br>
-      Referências cruzadas: OpenBible.info (CC BY 4.0)
+      Referências cruzadas: OpenBible.info (CC BY 4.0)<br>
+      <a href="https://lusilvafsa.github.io/biblia-app/privacidade.html" target="_blank" rel="noopener" style="color:inherit;">Política de privacidade</a> · <a href="https://lusilvafsa.github.io/biblia-app/excluir-conta.html" target="_blank" rel="noopener" style="color:inherit;">Excluir conta</a>
     </div>
   `;
 }
@@ -385,6 +389,50 @@ export const settingsPage = {
     }
     notifToggle.addEventListener('change', saveNotification);
     notifTime.addEventListener('change', saveNotification);
+    const mostrar = (t) => { const el = qs('#notifStatus', container); if (el) el.textContent = t; };
+    const precisosEl = qs('#notifPrecisos', container);
+    async function atualizarPrecisos() {
+      if (!precisosEl) return;
+      const ok = await alarmesPrecisosPermitidos();
+      precisosEl.textContent = ok === true
+        ? 'Alarmes precisos: permitidos. O lembrete chega na hora certa.'
+        : ok === false
+          ? 'Alarmes precisos: NÃO permitidos. Neste aparelho o lembrete pode não chegar com o app fechado. Toque em "Permitir alarmes precisos" e ligue a chave.'
+          : 'Alarmes precisos: não foi possível verificar.';
+    }
+    atualizarPrecisos();
+    const btnPrecisos = qs('#btnNotifPrecisos', container);
+    if (btnPrecisos) {
+      btnPrecisos.addEventListener('click', async () => {
+        const aberto = await pedirAlarmesPrecisos();
+        if (!aberto) {
+          mostrar('Abra Configurações do Android → Apps → Acesso especial → Alarmes e lembretes e permita este app.');
+          return;
+        }
+        const aoVoltar = () => {
+          if (document.visibilityState === 'visible') {
+            document.removeEventListener('visibilitychange', aoVoltar);
+            applyDailyNotification({}).then(atualizarPrecisos);
+          }
+        };
+        document.addEventListener('visibilitychange', aoVoltar);
+      });
+    }
+    const btnPreciso = qs('#btnNotifTestePreciso', container);
+    if (btnPreciso) {
+      btnPreciso.addEventListener('click', async () => {
+        btnPreciso.disabled = true;
+        try {
+          const r = await testarLembreteAgora(true);
+          mostrar(r.ok ? 'Teste PRECISO agendado para daqui a 1 minuto. Feche o app (deslize nos recentes), bloqueie a tela e espere.' : 'Não foi possível: ' + r.motivo);
+        } catch (err) {
+          mostrar('Erro no teste: ' + (err && err.message ? err.message : err));
+        } finally {
+          btnPreciso.disabled = false;
+        }
+      });
+    }
+
     const statusEl = qs('#notifStatus', container);
     function mostrarStatus(texto) {
       if (statusEl) statusEl.textContent = texto;
@@ -405,7 +453,7 @@ export const settingsPage = {
           if (s) {
             texto += '\nÚltima tentativa: ' + new Date(s.quando).toLocaleString('pt-BR');
             if (s.desligado) texto += ' (lembrete desligado)';
-            else if (s.ok) texto += ' (ok, ' + s.agendados + ' lembretes' + (s.aviso ? '; aviso: ' + s.aviso : '') + (s.lidoHoje ? '; hoje já lido' : '') + ')';
+            else if (s.ok) texto += ' (ok, ' + s.agendados + ' lembretes' + (s.aviso ? '; aviso: ' + s.aviso : '') + (s.lidoHoje ? '; hoje já lido' : '') + (s.exato === true ? '; alarme preciso' : '; alarme aproximado') + ')';
             else texto += ' (falhou: ' + (s.erro || s.motivo || '?') + ')';
           } else {
             texto += '\nNenhuma tentativa registrada ainda.';

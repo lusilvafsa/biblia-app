@@ -52,6 +52,18 @@ function quebrarLinhas(ctx, texto, larguraMax) {
   return linhas;
 }
 
+let marcaDagua = null;
+
+function carregarMarca() {
+  return new Promise((resolve) => {
+    if (marcaDagua) { resolve(marcaDagua); return; }
+    const img = new Image();
+    img.onload = () => { marcaDagua = img; resolve(img); };
+    img.onerror = () => resolve(null);
+    img.src = 'assets/marca-dagua.png';
+  });
+}
+
 function desenhar(estilo, texto, referencia) {
   const t = temas()[estilo] || temas().escuro;
   const canvas = document.createElement('canvas');
@@ -65,6 +77,15 @@ function desenhar(estilo, texto, referencia) {
   grad.addColorStop(1, t.fundo2);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, LARGURA, ALTURA);
+
+  if (marcaDagua && marcaDagua.naturalWidth) {
+    const larg = 760;
+    const alt = larg * marcaDagua.naturalHeight / marcaDagua.naturalWidth;
+    ctx.save();
+    ctx.globalAlpha = estilo === 'claro' ? 0.16 : 0.10;
+    ctx.drawImage(marcaDagua, cx - larg / 2, 650 - alt / 2, larg, alt);
+    ctx.restore();
+  }
 
   ctx.strokeStyle = t.dourado;
   ctx.globalAlpha = 0.55;
@@ -118,7 +139,7 @@ function desenhar(estilo, texto, referencia) {
   ctx.fillText(referencia, cx, 1110);
   ctx.fillStyle = t.suave;
   ctx.font = '400 28px ' + SANS;
-  ctx.fillText('Bíblia de Estudo', cx, 1230);
+  ctx.fillText('Bíblia de Estudo LS', cx, 1230);
   return canvas;
 }
 
@@ -167,6 +188,7 @@ async function compartilhar(canvas, arquivo, titulo) {
 
 export async function abrirImagemDoVersiculo({ texto, referencia }) {
   await carregarFontes();
+  await carregarMarca();
   let estilo = 'escuro';
   try {
     const salvo = window.localStorage.getItem(CHAVE_ESTILO);

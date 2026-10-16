@@ -284,7 +284,7 @@ export const readerPage = {
       setMediaSessionMetadata({
         title: `${book.name} ${chapterIndex + 1}:${idx + 1}`,
         artist: 'Narrativa em voz alta',
-        album: 'Bíblia de Estudo',
+        album: 'Bíblia de Estudo LS',
       });
     }
 
@@ -431,7 +431,7 @@ export const readerPage = {
         window.__nativeNarr.map = built.map;
         return p.startChapterNarration({
           title: book.name + ' ' + (chapterIndex + 1),
-          artist: 'Bíblia de Estudo',
+          artist: 'Bíblia de Estudo LS',
           verses: built.items,
           startIndex: 0,
           rate: Number(settings.rate) || 0.85,

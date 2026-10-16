@@ -51,7 +51,7 @@ export function initOnboarding() {
     const dots = STEPS.map((_, i) => `<span class="onboarding-dot ${i === passo ? 'active' : ''}"></span>`).join('');
 
     overlay.innerHTML = `
-      <div class="verse-explain-panel" role="dialog" aria-modal="true" aria-label="Bem-vindo ao Bíblia de Estudo">
+      <div class="verse-explain-panel" role="dialog" aria-modal="true" aria-label="Bem-vindo ao Bíblia de Estudo LS">
         <div class="verse-explain-handle"></div>
         <button class="verse-explain-close" id="btnOnboardingSkip" aria-label="Pular">✕</button>
         <div class="onboarding-icon">${step.icon}</div>

@@ -295,7 +295,7 @@ function fallbackCopy(text) {
 
 async function shareVerse() {
   const verse = DAILY_VERSES[verseIndex];
-  const shareData = { title: 'Bíblia de Estudo', text: `${verse.text} — ${verse.ref}` };
+  const shareData = { title: 'Bíblia de Estudo LS', text: `${verse.text} — ${verse.ref}` };
   if (navigator.share) {
     try {
       await navigator.share(shareData);
@@ -384,7 +384,7 @@ async function renderPsalmOfDay(container) {
         toggleBookmark(ref);
         marcador.style.color = isBookmarked(ref) ? 'var(--gold)' : '';
       });
-      qs('#btnSharePsalm', slot).addEventListener('click', () => compartilharTexto(texto + ' — ' + ref, 'Bíblia de Estudo'));
+      qs('#btnSharePsalm', slot).addEventListener('click', () => compartilharTexto(texto + ' — ' + ref, 'Bíblia de Estudo LS'));
       qs('#btnImagePsalm', slot).addEventListener('click', () => imagemDoTexto(texto, ref));
       qs('#btnNewPsalm', slot).addEventListener('click', async () => {
         if (audioAtivo) { stopSpeech(); pararAudioExtra(); }
@@ -501,7 +501,7 @@ export const homePage = {
       btnTTSOracao.addEventListener('click', () => falarCartao(btnTTSOracao, tituloOracao() + '. ' + textoOracao(), 'Lendo oração do dia...'));
     }
     qs('#btnCopyPrayer', container).addEventListener('click', () => copiarTexto(textoOracao() + ' — ' + tituloOracao(), 'Oração copiada!'));
-    qs('#btnSharePrayer', container).addEventListener('click', () => compartilharTexto(textoOracao() + ' — ' + tituloOracao(), 'Bíblia de Estudo'));
+    qs('#btnSharePrayer', container).addEventListener('click', () => compartilharTexto(textoOracao() + ' — ' + tituloOracao(), 'Bíblia de Estudo LS'));
     qs('#btnImagePrayer', container).addEventListener('click', () => imagemDoTexto(textoOracao(), tituloOracao()));
     qs('#btnNewPrayer', container).addEventListener('click', () => {
       if (audioAtivo) { stopSpeech(); pararAudioExtra(); }
