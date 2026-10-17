@@ -184,7 +184,7 @@ function template(settings) {
         </div>
         <div class="setting-row">
           <div class="setting-row-header"><span class="setting-label">Diagnóstico</span></div>
-          <div class="settings-actions">
+          <div class="settings-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <button class="tool-btn" id="btnNotifVer" type="button">Ver agendados</button>
             <button class="tool-btn" id="btnNotifTeste" type="button">Testar em 1 min</button>
             <button class="tool-btn" id="btnNotifTestePreciso" type="button">Testar preciso</button>
