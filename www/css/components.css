@@ -2617,3 +2617,114 @@ img.icon-glyph {
   width: 34px !important;
   height: 34px !important;
 }
+
+/* Assistente Bíblico: estilo da conversa */
+.assistant-page { padding-bottom: 24px; }
+.assistant-page h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--gold);
+  margin: 6px 0 6px;
+}
+.assistant-intro {
+  background: var(--navy-light);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  margin-top: 18px;
+}
+.assistant-intro h3 {
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.assistant-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 52vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.assistant-message {
+  max-width: 92%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.assistant-message--bot {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-top-left-radius: 6px;
+}
+.assistant-message--user {
+  align-self: flex-end;
+  background: var(--gold-soft);
+  border: 1px solid var(--gold);
+  border-top-right-radius: 6px;
+}
+.assistant-message-role {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.assistant-form {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.assistant-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 92px;
+  max-height: 220px;
+  resize: vertical;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--navy-deep);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.assistant-input::placeholder { color: var(--text-tertiary); }
+.assistant-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.18);
+}
+.assistant-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.assistant-status {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.assistant-form .btn-primary {
+  background: linear-gradient(135deg, var(--gold), #b8944a);
+  color: #14100a;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 26px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.assistant-form .btn-primary:disabled { opacity: 0.5; cursor: default; }

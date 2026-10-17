@@ -119,6 +119,30 @@ async function reagendarLembretes() {
 
 export async function initDailyNotification() {
   await reagendarLembretes();
+  setTimeout(sugerirAlarmesPrecisos, 8000);
+}
+
+async function sugerirAlarmesPrecisos() {
+  try {
+    if (!plugin()) return;
+    if (!getDailyNotificationConfig().enabled) return;
+    if (getItem('biblia:alarme-preciso-perguntado', false)) return;
+    const ok = await alarmesPrecisosPermitidos();
+    if (ok !== false) return;
+    setItem('biblia:alarme-preciso-perguntado', true);
+    const quer = window.confirm('Para o lembrete diário chegar na hora certa, mesmo com o app fechado, o Android precisa da sua autorização em "Alarmes e lembretes". Deseja abrir essa tela agora?');
+    if (!quer) return;
+    await pedirAlarmesPrecisos();
+    const aoVoltar = () => {
+      if (document.visibilityState === 'visible') {
+        document.removeEventListener('visibilitychange', aoVoltar);
+        reagendarLembretes();
+      }
+    };
+    document.addEventListener('visibilitychange', aoVoltar);
+  } catch (_e) {
+    /* ignora */
+  }
 }
 
 export async function applyDailyNotification(partial) {
