@@ -11,6 +11,10 @@ export const HIGHLIGHT_COLORS = [
   { id: 'azul', label: 'Ensino', hex: '#56ccf2' },
   { id: 'verde', label: 'Crescimento', hex: '#6fcf97' },
   { id: 'rosa', label: 'Advertência', hex: '#eb5757' },
+  { id: 'laranja', label: 'Gratidão', hex: '#f2994a' },
+  { id: 'roxo', label: 'Oração', hex: '#a78bfa' },
+  { id: 'rosado', label: 'Amor', hex: '#f472b6' },
+  { id: 'cinza', label: 'Reflexão', hex: '#9ca3af' },
 ];
 
 function getUser() {

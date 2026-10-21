@@ -2,11 +2,16 @@
 // `containerEl` (ex.: o texto do capítulo), ou ao tocar num versículo
 // (nesse caso, com um botão extra para abrir a explicação completa).
 import { icons } from '../../components/icons.js';
+import { HIGHLIGHT_COLORS } from '../../data-access/highlightRepository.js';
 import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js';
 
 const MIN_SELECTION_LENGTH = 2;
 
-export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarrate, onPrint, onImage, onFullExplain, onReady }) {
+function imp(el, props) {
+  Object.entries(props).forEach(([k, v]) => el.style.setProperty(k, v, 'important'));
+}
+
+export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarrate, onPrint, onImage, onFullExplain, onHighlight, onFavorite, onNote, onReady }) {
   let toolbarEl = null;
 
   function removeToolbar() {
@@ -58,26 +63,96 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
 
     const actions = [
       { icon: icons.explain, label: 'Estudo', handler: onFullExplain },
-      { icon: icons.share, label: 'Compartilhar', handler: onShare },
+      (onFavorite && context && context.verseIndex !== undefined)
+        ? { icon: iconeFavorito(), label: 'Favorito', handler: () => onFavorite(context) }
+        : null,
+      (onNote && context && context.verseIndex !== undefined)
+        ? { icon: '📝', label: 'Anotação', handler: () => onNote(context) }
+        : null,
+      { icon: icons.share, label: 'Compartilhar', handler: abrirSubmenu },
       { icon: '✨', label: 'Explicar', handler: onExplain },
-      { icon: '📷', label: 'Imagem', handler: onImage },
-      { icon: '🖨️', label: 'Imprimir', handler: onPrint },
-    ];
+    ].filter(Boolean);
 
     actions.forEach(({ icon, label, handler }) => {
       if (!handler) return;
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.innerHTML = `${icon}<span>${label}</span>`;
+      btn.innerHTML = `<div class="sel-ico">${icon}</div><span>${label}</span>`;
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        handler(text, context);
+        const manter = handler(text, context);
+        if (manter === 'manter') return;
         removeToolbar();
         window.getSelection()?.removeAllRanges();
       });
       toolbarEl.appendChild(btn);
     });
 
+
+    function iconeFavorito() {
+      const fav = !!(context && context.isFavorite);
+      return '<i style="font-style:normal;' + (fav ? 'color:var(--gold);' : '') + '">' + (fav ? '★' : '☆') + '</i>';
+    }
+
+    const submenuEl = document.createElement('div');
+    submenuEl.className = 'selection-share-menu';
+    imp(toolbarEl, { width: 'max-content', 'flex-wrap': 'wrap', overflow: 'visible', 'justify-content': 'center' });
+    imp(submenuEl, { flex: '0 0 100%', width: '100%', display: 'none', 'justify-content': 'center', gap: '8px', padding: '8px 4px 0', 'margin-top': '6px', 'border-top': '1px solid rgba(255,255,255,0.12)' });
+    [
+      { rotulo: '💬 Texto', fn: onShare },
+      { rotulo: '📷 Imagem', fn: onImage },
+      { rotulo: '🖨️ Imprimir', fn: onPrint },
+    ].filter((o) => o.fn).forEach((o) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = o.rotulo;
+      imp(b, { width: 'auto', height: 'auto', 'min-width': '0', 'max-width': 'none', flex: '0 0 auto', padding: '8px 14px', margin: '0', 'border-radius': '12px', border: '1px solid rgba(255,255,255,0.22)', background: 'rgba(255,255,255,0.08)', color: 'inherit', 'font-size': '14px', 'flex-direction': 'row', cursor: 'pointer' });
+      b.addEventListener('click', (e) => {
+        e.stopPropagation();
+        o.fn(text, context);
+        removeToolbar();
+        window.getSelection()?.removeAllRanges();
+      });
+      submenuEl.appendChild(b);
+    });
+    toolbarEl.appendChild(submenuEl);
+
+    function abrirSubmenu() {
+      const aberto = submenuEl.style.display !== 'none';
+      imp(submenuEl, { display: aberto ? 'none' : 'flex' });
+      return 'manter';
+    }
+
+    if (onHighlight && context && context.verseIndex !== undefined) {
+      const aplicar = (el, props) => Object.entries(props).forEach(([k, v]) => el.style.setProperty(k, v, 'important'));
+      aplicar(toolbarEl, { width: 'max-content', 'flex-wrap': 'wrap', overflow: 'visible', 'justify-content': 'center' });
+      const linha = document.createElement('div');
+      linha.className = 'selection-colors';
+      aplicar(linha, { flex: '0 0 100%', width: '100%', display: 'flex', 'flex-wrap': 'wrap', 'justify-content': 'center', gap: '5px', padding: '8px 4px 4px', 'margin-top': '6px', 'border-top': '1px solid rgba(255,255,255,0.12)' });
+      const criarPonto = (cor, titulo) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.title = titulo;
+        b.setAttribute('aria-label', titulo);
+        const ativo = cor && context.currentColor === cor.id;
+        aplicar(b, { flex: '0 0 26px', width: '26px', height: '26px', 'min-width': '26px', 'max-width': '26px', padding: '0', margin: '0', 'border-radius': '50%', cursor: 'pointer', display: 'flex', 'align-items': 'center', 'justify-content': 'center', background: cor ? cor.hex : 'transparent', border: '2px solid ' + (ativo ? '#ffffff' : 'rgba(255,255,255,0.28)') });
+        if (!cor) {
+          b.textContent = '✕';
+          b.style.color = 'rgba(255,255,255,0.8)';
+          b.style.fontSize = '12px';
+        }
+        b.addEventListener('click', (e) => {
+          e.stopPropagation();
+          onHighlight(cor ? cor.id : null, context);
+          removeToolbar();
+          window.getSelection()?.removeAllRanges();
+        });
+        return b;
+      };
+      HIGHLIGHT_COLORS.forEach((cor) => linha.appendChild(criarPonto(cor, cor.label)));
+      linha.appendChild(criarPonto(null, 'Remover grifo'));
+      toolbarEl.appendChild(linha);
+    }
 
     document.body.appendChild(toolbarEl);
 

@@ -31,6 +31,8 @@ import { assistantPage } from './features/assistant/assistant.js';
 import { planDetailPage } from './features/plans/planDetail.js';
 import { studyCornerPage } from './features/bible/studyCorner.js';
 import { plansListPage } from './features/plans/plansList.js';
+import { diaryListPage } from './features/diary/diaryList.js';
+import { diaryThemePage } from './features/diary/diaryTheme.js';
 
 const NAV_ICONS = {
   home: icons.home,
@@ -117,6 +119,8 @@ function initRoutes() {
   registerRoute('/ministracao/:id', ministryDetailPage, { title: 'Guia de Ministração', navKey: null, showBack: true });
   registerRoute('/planos', plansListPage, { title: 'Planos de Leitura', navKey: null, showBack: true });
   registerRoute('/planos/:id', planDetailPage, { title: 'Plano de Leitura', navKey: null, showBack: true });
+  registerRoute('/diario', diaryListPage, { title: 'Diário de Estudo', navKey: null, showBack: true });
+  registerRoute('/diario/:id', diaryThemePage, { title: 'Tema', navKey: null, showBack: true });
   registerRoute('/estudo/:book/:chapter/:verse', studyCornerPage, { title: 'Cantinho de Estudo', navKey: null, showBack: true });
   registerRoute('/perfil', profilePage, { title: 'Meu Perfil', navKey: 'profile' });
   registerRoute('/favoritos', reviewPage, { title: 'Meus Marcadores', navKey: null, showBack: true });

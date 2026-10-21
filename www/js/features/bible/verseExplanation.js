@@ -162,10 +162,7 @@ export function showVerseExplanation({ bookIndex, bookName, chapterIndex, verseI
       <button type="button" id="btnOpenStudyCorner" style="margin-bottom:16px;">🧭 Abrir no Cantinho de Estudo</button>
       <div class="highlight-picker">
         <span class="highlight-label">Grifar:</span>
-        <button type="button" class="highlight-dot" data-color="amarelo" style="background:#f2c94c"></button>
-        <button type="button" class="highlight-dot" data-color="azul" style="background:#56ccf2"></button>
-        <button type="button" class="highlight-dot" data-color="verde" style="background:#6fcf97"></button>
-        <button type="button" class="highlight-dot" data-color="rosa" style="background:#eb5757"></button>
+${HIGHLIGHT_COLORS.map((c) => `<button type="button" class="highlight-dot" data-color="${c.id}" title="${c.label}" style="background:${c.hex}"></button>`).join("")}
         <button type="button" class="highlight-dot highlight-dot--none" id="btnRemoveHighlight" title="Remover grifo">✕</button>
       </div>
 

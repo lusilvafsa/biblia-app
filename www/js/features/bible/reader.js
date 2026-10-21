@@ -27,6 +27,7 @@ import { getVoiceSettings, setVoiceSettings } from '../../state/voiceSettings.js
 import { setHeaderTitle } from '../../state/header.js';
 import { attachSelectionToolbar } from './selectionToolbar.js';
 import { showVerseExplanation } from './verseExplanation.js';
+import { openVerseNoteEditor } from './verseNote.js';
 import { showChapterExplanation } from './chapterExplanation.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
 import { shareText } from '../../utils/share.js';
@@ -35,6 +36,7 @@ import { abrirImagemDoVersiculo } from '../../utils/verseImage.js';
 import { supabase } from '../../supabaseClient.js';
 import { usuarioAtual } from '../../supabaseAuth.js';
 import { highlightRepository, HIGHLIGHT_COLORS } from '../../data-access/highlightRepository.js';
+import { favoritesRepository } from '../../data-access/favoritesRepository.js';
 import { requestWakeLock, releaseWakeLock, setupWakeLockReacquire } from '../../utils/wakeLock.js';
 import { startKeepAlive, stopKeepAlive } from '../../utils/keepAlive.js';
 import {
@@ -171,6 +173,8 @@ export const readerPage = {
         if (showToolbarForVerse) {
           showToolbarForVerse(p.getBoundingClientRect(), text, {
             verseIndex: idx,
+            currentColor: highlightRepository.get(bookIndex, chapterIndex, idx),
+            isFavorite: (() => { try { return favoritesRepository.isFavorite(bookIndex, chapterIndex, idx); } catch (e) { return false; } })(),
             openFullExplanation: () => showVerseExplanation({
               bookIndex,
               bookName: book.name,
@@ -1180,12 +1184,49 @@ export const readerPage = {
       if (resultado === 'downloaded') toast.success('Imagem baixada!');
     }
 
+    function handleNoteSelection(context) {
+      if (!context || context.verseIndex === undefined) return;
+      const idx = context.verseIndex;
+      openVerseNoteEditor({ bookIndex, bookName: book.name, chapterIndex, verseIndex: idx, verseText: verses[idx] });
+    }
+
+    function handleFavoriteSelection(context) {
+      if (!context || context.verseIndex === undefined) return;
+      const idx = context.verseIndex;
+      const antes = favoritesRepository.isFavorite(bookIndex, chapterIndex, idx);
+      const depois = favoritesRepository.toggleFavorite({
+        bookIndex,
+        bookName: book.name,
+        chapterIndex,
+        verseIndex: idx,
+        verseText: verses[idx],
+      });
+      if (depois === antes) return; // sem mudança (por exemplo, sem login)
+      toast.success(depois ? 'Favoritado!' : 'Favorito removido');
+    }
+
+    function handleHighlightSelection(colorId, context) {
+      if (!context || context.verseIndex === undefined) return;
+      const idx = context.verseIndex;
+      if (colorId) {
+        highlightRepository.set(bookIndex, chapterIndex, idx, colorId);
+        const info = HIGHLIGHT_COLORS.find((c) => c.id === colorId);
+        if (verseEls[idx]) verseEls[idx].style.background = info ? info.hex + '33' : '';
+      } else {
+        highlightRepository.remove(bookIndex, chapterIndex, idx);
+        if (verseEls[idx]) verseEls[idx].style.background = '';
+      }
+    }
+
     const detachSelectionToolbar = attachSelectionToolbar(readContent, {
       onShare: handleShareSelection,
       onExplain: handleExplainSelection,
       onPrint: handlePrintSelection,
       onImage: handleImageSelection,
       onFullExplain: handleFullExplainSelection,
+      onHighlight: handleHighlightSelection,
+      onFavorite: handleFavoriteSelection,
+      onNote: handleNoteSelection,
       onReady: (fn) => { showToolbarForVerse = fn; },
     });
 

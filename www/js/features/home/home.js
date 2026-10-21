@@ -235,6 +235,11 @@ function template() {
         <div class="menu-title">Guia de Ministração</div>
         <div class="menu-desc">Temas, passagens e esboços</div>
       </button>
+      <button class="menu-item" data-route="/diario">
+        <div class="menu-icon">📓</div>
+        <div class="menu-title">Diário de Estudo</div>
+        <div class="menu-desc">Temas e passagens</div>
+      </button>
     </div>
 
     <div class="section-title">
