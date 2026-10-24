@@ -6,6 +6,7 @@ for f in $(find www/js -name "*.js"); do
 done
 [ $ok = 1 ] || { echo "Build cancelado."; exit 1; }
 echo "SINTAXE OK"
+python3 verificar_imports.py || { echo "Build cancelado: corrija as importações acima."; exit 1; }
 node scripts/atualizar-versao.cjs || exit 1
 npx cap sync android || exit 1
 (cd android && ./gradlew assembleDebug) || { echo "ERRO NA COMPILAÇÃO"; exit 1; }
