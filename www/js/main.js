@@ -48,6 +48,7 @@ const NAV_ICONS = {
   bible: icons.bibleNav,
   audio: icons.audio,
   prayer: icons.prayer,
+  diary: icons.diary,
   profile: icons.profile,
   favorites: '♥',
   assistant: icons.explain,
