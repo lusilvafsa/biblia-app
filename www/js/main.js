@@ -34,6 +34,15 @@ import { plansListPage } from './features/plans/plansList.js';
 import { diaryListPage } from './features/diary/diaryList.js';
 import { diaryThemePage } from './features/diary/diaryTheme.js';
 
+// Fecha o menu flutuante depois de escolher um item.
+document.addEventListener('click', (e) => {
+  if (!e.target.closest || !e.target.closest('.bottom-nav .nav-item')) return;
+  const menu = document.querySelector('.bottom-nav.compact-menu');
+  const toggle = document.querySelector('#bottomMenuToggle');
+  if (menu) menu.classList.remove('menu-open');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+});
+
 const NAV_ICONS = {
   home: icons.home,
   bible: icons.bibleNav,
@@ -119,8 +128,8 @@ function initRoutes() {
   registerRoute('/ministracao/:id', ministryDetailPage, { title: 'Guia de Ministração', navKey: null, showBack: true });
   registerRoute('/planos', plansListPage, { title: 'Planos de Leitura', navKey: null, showBack: true });
   registerRoute('/planos/:id', planDetailPage, { title: 'Plano de Leitura', navKey: null, showBack: true });
-  registerRoute('/diario', diaryListPage, { title: 'Diário de Estudo', navKey: null, showBack: true });
-  registerRoute('/diario/:id', diaryThemePage, { title: 'Tema', navKey: null, showBack: true });
+  registerRoute('/diario', diaryListPage, { title: 'Diário de Estudo', navKey: 'diary', showBack: true });
+  registerRoute('/diario/:id', diaryThemePage, { title: 'Tema', navKey: 'diary', showBack: true });
   registerRoute('/estudo/:book/:chapter/:verse', studyCornerPage, { title: 'Cantinho de Estudo', navKey: null, showBack: true });
   registerRoute('/perfil', profilePage, { title: 'Meu Perfil', navKey: 'profile' });
   registerRoute('/favoritos', reviewPage, { title: 'Meus Marcadores', navKey: null, showBack: true });

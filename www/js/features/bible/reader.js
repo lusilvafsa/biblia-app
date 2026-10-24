@@ -28,6 +28,7 @@ import { setHeaderTitle } from '../../state/header.js';
 import { attachSelectionToolbar } from './selectionToolbar.js';
 import { showVerseExplanation } from './verseExplanation.js';
 import { openVerseNoteEditor } from './verseNote.js';
+import { openDiaryPicker } from '../diary/diaryPicker.js';
 import { showChapterExplanation } from './chapterExplanation.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
 import { shareText } from '../../utils/share.js';
@@ -120,7 +121,50 @@ export const readerPage = {
 
     const readContent = qs('#readContent', container);
     const verseEls = [];
+    const selecionados = new Set();
+
+    function limparSelecao() {
+      selecionados.clear();
+      verseEls.forEach((v) => v.classList.remove('selected'));
+    }
+
+    function abrirBarra(rect) {
+      if (!showToolbarForVerse) return;
+      const indices = Array.from(selecionados).sort((a, b) => a - b);
+      if (!indices.length) {
+        if (fecharBarra) fecharBarra();
+        return;
+      }
+      const primeiro = indices[0];
+      const cores = indices.map((i) => highlightRepository.get(bookIndex, chapterIndex, i));
+      const corComum = cores.every((cor) => cor && cor === cores[0]) ? cores[0] : null;
+      let favorito = false;
+      try {
+        favorito = indices.every((i) => favoritesRepository.isFavorite(bookIndex, chapterIndex, i));
+      } catch (e) {
+        favorito = false;
+      }
+      const contexto = { verseIndex: primeiro, verseIndexes: indices, currentColor: corComum, isFavorite: favorito };
+      if (indices.length === 1) {
+        contexto.openFullExplanation = () => showVerseExplanation({
+          bookIndex,
+          bookName: book.name,
+          chapterIndex,
+          verseIndex: primeiro,
+          verseText: verses[primeiro],
+          onHighlightChange: (colorId) => {
+            const cor = colorId ? HIGHLIGHT_COLORS.find((x) => x.id === colorId) : null;
+            if (verseEls[primeiro]) {
+              verseEls[primeiro].style.background = cor ? cor.hex + '33' : '';
+              verseEls[primeiro].style.fontWeight = cor ? '700' : '';
+            }
+          },
+        });
+      }
+      showToolbarForVerse(rect, indices.map((i) => verses[i]).join(' '), contexto);
+    }
     let showToolbarForVerse = null;
+    let fecharBarra = null;
     // Títulos de passagem (opcionais): data/titles/<livro>.json
     let chapterTitles = {};
     try {
@@ -143,7 +187,7 @@ export const readerPage = {
       const savedColor = highlightRepository.get(bookIndex, chapterIndex, idx);
       if (savedColor) {
         const corInfo = HIGHLIGHT_COLORS.find((c) => c.id === savedColor);
-        if (corInfo) p.style.background = corInfo.hex + '33';
+        if (corInfo) { p.style.background = corInfo.hex + '33'; p.style.fontWeight = '700'; }
       }
       p.addEventListener('click', () => {
         // Evita conflitar com uma seleção de texto (arrastar para
@@ -151,9 +195,8 @@ export const readerPage = {
         if (window.getSelection().toString().length > 0) return;
 
         // Marca o versículo selecionado.
-        verseEls.forEach((v, i) => {
-          v.classList.toggle('selected', i === idx);
-        });
+        if (selecionados.has(idx)) selecionados.delete(idx); else selecionados.add(idx);
+        verseEls.forEach((v, i) => v.classList.toggle('selected', selecionados.has(i)));
 
         // Registra este versículo como lido.
         // O repositório evita contar o mesmo versículo duas vezes.
@@ -170,28 +213,7 @@ export const readerPage = {
         // Em vez de abrir a explicação direto, mostra a barra de ações
         // (a mesma usada ao selecionar um trecho), com um botão pra abrir
         // a explicação completa quando o usuário realmente quiser.
-        if (showToolbarForVerse) {
-          showToolbarForVerse(p.getBoundingClientRect(), text, {
-            verseIndex: idx,
-            currentColor: highlightRepository.get(bookIndex, chapterIndex, idx),
-            isFavorite: (() => { try { return favoritesRepository.isFavorite(bookIndex, chapterIndex, idx); } catch (e) { return false; } })(),
-            openFullExplanation: () => showVerseExplanation({
-              bookIndex,
-              bookName: book.name,
-              chapterIndex,
-              verseIndex: idx,
-              verseText: text,
-              onHighlightChange: (colorId) => {
-                if (colorId) {
-                  const corInfo = HIGHLIGHT_COLORS.find((c) => c.id === colorId);
-                  p.style.background = corInfo ? corInfo.hex + '33' : '';
-                } else {
-                  p.style.background = '';
-                }
-              }
-            }),
-          });
-        }
+        abrirBarra(p.getBoundingClientRect());
       });
       if (chapterTitles[String(idx + 1)]) {
         const h = el('h3', { className: 'pericope-title' }, chapterTitles[String(idx + 1)]);
@@ -1027,8 +1049,10 @@ export const readerPage = {
     }
 
     // Seleção de texto: compartilhar / explicar / narrar o trecho selecionado
-    async function handleShareSelection(text) {
-      const resultado = await shareText({ title: `${book.name} ${chapterIndex + 1}`, text });
+    async function handleShareSelection(text, context) {
+      const ref = refDaSelecao(context);
+      const corpo = context && context.verseIndex !== undefined ? text + ' — ' + ref : text;
+      const resultado = await shareText({ title: ref, text: corpo });
       if (resultado === 'copied') toast.success('Trecho copiado!');
       if (resultado === 'error') toast.error('Não foi possível copiar');
       if (resultado === 'unsupported') toast.info('Compartilhamento não suportado neste navegador');
@@ -1100,9 +1124,7 @@ export const readerPage = {
       }
     }
     async function handlePrintSelection(text, context) {
-      const referencia = context && context.verseIndex !== undefined
-        ? `${book.name} ${chapterIndex + 1}:${context.verseIndex + 1}`
-        : `${book.name} ${chapterIndex + 1}`;
+      const referencia = refDaSelecao(context);
 
       const capacitor = typeof window !== 'undefined' ? window.Capacitor : null;
       const isNative = !!(capacitor && typeof capacitor.isNativePlatform === 'function' && capacitor.isNativePlatform());
@@ -1147,9 +1169,7 @@ export const readerPage = {
     }
 
     async function handleImageSelection(text, context) {
-      const referenciaImg = context && context.verseIndex !== undefined
-        ? `${book.name} ${chapterIndex + 1}:${context.verseIndex + 1}`
-        : `${book.name} ${chapterIndex + 1}`;
+      const referenciaImg = refDaSelecao(context);
       try {
         await abrirImagemDoVersiculo({ texto: text, referencia: referenciaImg });
       } catch (err) {
@@ -1159,9 +1179,7 @@ export const readerPage = {
     }
 
     async function handleImageSelectionLegacy(text, context) {
-      const referencia = context && context.verseIndex !== undefined
-        ? `${book.name} ${chapterIndex + 1}:${context.verseIndex + 1}`
-        : `${book.name} ${chapterIndex + 1}`;
+      const referencia = refDaSelecao(context);
 
       const wrapper = document.createElement('div');
       wrapper.style.position = 'fixed';
@@ -1184,38 +1202,83 @@ export const readerPage = {
       if (resultado === 'downloaded') toast.success('Imagem baixada!');
     }
 
+    function refDaSelecao(context) {
+      const base = book.name + ' ' + (chapterIndex + 1);
+      const lista = indicesDe(context).slice().sort((a, b) => a - b);
+      if (!lista.length) return base;
+      const partes = [];
+      let ini = lista[0];
+      let fim = lista[0];
+      for (let k = 1; k <= lista.length; k++) {
+        if (k < lista.length && lista[k] === fim + 1) {
+          fim = lista[k];
+          continue;
+        }
+        partes.push(ini === fim ? String(ini + 1) : (ini + 1) + '-' + (fim + 1));
+        ini = lista[k];
+        fim = lista[k];
+      }
+      return base + ':' + partes.join(', ');
+    }
+
+    function handleDiarySelection(context) {
+      const lista = indicesDe(context);
+      if (!lista.length) return;
+      openDiaryPicker({ bookIndex, bookName: book.name, chapterIndex, verseIndex: lista[0], verseIndexes: lista });
+    }
+
     function handleNoteSelection(context) {
-      if (!context || context.verseIndex === undefined) return;
-      const idx = context.verseIndex;
-      openVerseNoteEditor({ bookIndex, bookName: book.name, chapterIndex, verseIndex: idx, verseText: verses[idx] });
+      const lista = indicesDe(context);
+      if (!lista.length) return;
+      if (lista.length > 1) {
+        toast.info('Para anotar, selecione um versículo por vez.');
+        return;
+      }
+      openVerseNoteEditor({ bookIndex, bookName: book.name, chapterIndex, verseIndex: lista[0], verseText: verses[lista[0]] });
     }
 
     function handleFavoriteSelection(context) {
-      if (!context || context.verseIndex === undefined) return;
-      const idx = context.verseIndex;
-      const antes = favoritesRepository.isFavorite(bookIndex, chapterIndex, idx);
-      const depois = favoritesRepository.toggleFavorite({
-        bookIndex,
-        bookName: book.name,
-        chapterIndex,
-        verseIndex: idx,
-        verseText: verses[idx],
-      });
-      if (depois === antes) return; // sem mudança (por exemplo, sem login)
-      toast.success(depois ? 'Favoritado!' : 'Favorito removido');
+      const lista = indicesDe(context);
+      if (!lista.length) return;
+      const todos = lista.every((i) => favoritesRepository.isFavorite(bookIndex, chapterIndex, i));
+      let mudou = 0;
+      let primeira = true;
+      for (const i of lista) {
+        const antes = favoritesRepository.isFavorite(bookIndex, chapterIndex, i);
+        if (todos ? !antes : antes) continue;
+        const depois = favoritesRepository.toggleFavorite({
+          bookIndex,
+          bookName: book.name,
+          chapterIndex,
+          verseIndex: i,
+          verseText: verses[i],
+        });
+        if (primeira && depois === antes) return; // sem mudança (por exemplo, sem login)
+        primeira = false;
+        if (depois !== antes) mudou++;
+      }
+      if (!mudou) return;
+      if (todos) toast.success(mudou > 1 ? mudou + ' favoritos removidos' : 'Favorito removido');
+      else toast.success(mudou > 1 ? mudou + ' versículos favoritados!' : 'Favoritado!');
+    }
+
+    function indicesDe(context) {
+      if (!context) return [];
+      if (context.verseIndexes && context.verseIndexes.length) return context.verseIndexes;
+      return context.verseIndex !== undefined ? [context.verseIndex] : [];
     }
 
     function handleHighlightSelection(colorId, context) {
-      if (!context || context.verseIndex === undefined) return;
-      const idx = context.verseIndex;
-      if (colorId) {
-        highlightRepository.set(bookIndex, chapterIndex, idx, colorId);
-        const info = HIGHLIGHT_COLORS.find((c) => c.id === colorId);
-        if (verseEls[idx]) verseEls[idx].style.background = info ? info.hex + '33' : '';
-      } else {
-        highlightRepository.remove(bookIndex, chapterIndex, idx);
-        if (verseEls[idx]) verseEls[idx].style.background = '';
-      }
+      const lista = indicesDe(context);
+      const cor = colorId ? HIGHLIGHT_COLORS.find((x) => x.id === colorId) : null;
+      lista.forEach((idx) => {
+        if (colorId) highlightRepository.set(bookIndex, chapterIndex, idx, colorId);
+        else highlightRepository.remove(bookIndex, chapterIndex, idx);
+        if (verseEls[idx]) {
+          verseEls[idx].style.background = cor ? cor.hex + '33' : '';
+          verseEls[idx].style.fontWeight = cor ? '700' : '';
+        }
+      });
     }
 
     const detachSelectionToolbar = attachSelectionToolbar(readContent, {
@@ -1227,7 +1290,9 @@ export const readerPage = {
       onHighlight: handleHighlightSelection,
       onFavorite: handleFavoriteSelection,
       onNote: handleNoteSelection,
-      onReady: (fn) => { showToolbarForVerse = fn; },
+      onDiary: handleDiarySelection,
+      onReady: (fn, fechar) => { showToolbarForVerse = fn; fecharBarra = fechar; },
+      onDismiss: limparSelecao,
     });
 
     // Cleanup: para a leitura em voz alta, desliga wake lock/áudio

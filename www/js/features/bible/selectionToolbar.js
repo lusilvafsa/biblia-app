@@ -11,7 +11,7 @@ function imp(el, props) {
   Object.entries(props).forEach(([k, v]) => el.style.setProperty(k, v, 'important'));
 }
 
-export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarrate, onPrint, onImage, onFullExplain, onHighlight, onFavorite, onNote, onReady }) {
+export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarrate, onPrint, onImage, onFullExplain, onHighlight, onFavorite, onNote, onDiary, onDismiss, onReady }) {
   let toolbarEl = null;
 
   function removeToolbar() {
@@ -56,21 +56,31 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
     button.setAttribute('aria-label', `Velocidade da narração: ${next} vezes`);
   }
 
+  function fecharEDispensar() {
+    removeToolbar();
+    window.getSelection()?.removeAllRanges();
+    if (onDismiss) onDismiss();
+  }
+
   function showToolbar(rect, text, context) {
     removeToolbar();
     toolbarEl = document.createElement('div');
     toolbarEl.className = 'selection-toolbar';
 
+    const temVersiculo = !!(context && context.verseIndex !== undefined);
     const actions = [
       { icon: icons.explain, label: 'Estudo', handler: onFullExplain },
-      (onFavorite && context && context.verseIndex !== undefined)
+      (onFavorite && temVersiculo)
         ? { icon: iconeFavorito(), label: 'Favorito', handler: () => onFavorite(context) }
         : null,
-      (onNote && context && context.verseIndex !== undefined)
+      (onNote && temVersiculo)
         ? { icon: '📝', label: 'Anotação', handler: () => onNote(context) }
         : null,
+      (onDiary && temVersiculo)
+        ? { icon: '📓', label: 'Diário', handler: () => onDiary(context) }
+        : null,
       { icon: icons.share, label: 'Compartilhar', handler: abrirSubmenu },
-      { icon: '✨', label: 'Explicar', handler: onExplain },
+      temVersiculo ? null : { icon: '✨', label: 'Explicar', handler: onExplain },
     ].filter(Boolean);
 
     actions.forEach(({ icon, label, handler }) => {
@@ -82,8 +92,7 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
         e.stopPropagation();
         const manter = handler(text, context);
         if (manter === 'manter') return;
-        removeToolbar();
-        window.getSelection()?.removeAllRanges();
+        fecharEDispensar();
       });
       toolbarEl.appendChild(btn);
     });
@@ -110,8 +119,7 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
       b.addEventListener('click', (e) => {
         e.stopPropagation();
         o.fn(text, context);
-        removeToolbar();
-        window.getSelection()?.removeAllRanges();
+        fecharEDispensar();
       });
       submenuEl.appendChild(b);
     });
@@ -144,8 +152,7 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
         b.addEventListener('click', (e) => {
           e.stopPropagation();
           onHighlight(cor ? cor.id : null, context);
-          removeToolbar();
-          window.getSelection()?.removeAllRanges();
+          fecharEDispensar();
         });
         return b;
       };
@@ -177,9 +184,10 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
   }
 
   function handlePointerDown(e) {
-    if (toolbarEl && !toolbarEl.contains(e.target)) {
-      removeToolbar();
-    }
+    if (toolbarEl && toolbarEl.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('.verse-line')) return; // tocar em outro versículo mantém a seleção
+    removeToolbar();
+    if (onDismiss) onDismiss();
   }
 
   containerEl.addEventListener('mouseup', handleSelectionEnd);
@@ -188,7 +196,7 @@ export function attachSelectionToolbar(containerEl, { onShare, onExplain, onNarr
   document.addEventListener('touchstart', handlePointerDown);
 
   if (onReady) {
-    onReady((rect, text, context) => showToolbar(rect, text, context));
+    onReady((rect, text, context) => showToolbar(rect, text, context), () => removeToolbar());
   }
 
   return function cleanup() {

@@ -153,6 +153,27 @@ export const diaryRepository = {
     return !existente;
   },
 
+  // Liga ou desliga uma seleção (lista de intervalos) num tema. Retorna true se ficou ligada.
+  alternarIntervalos(temaId, info, intervalos) {
+    const temas = ler();
+    const tema = temas.find((t) => t.id === temaId);
+    if (!tema || !intervalos.length) return null;
+    const alvos = intervalos
+      .map(([ini, fim]) => limparPassagem({ bookIndex: info.bookIndex, bookName: info.bookName, chapterIndex: info.chapterIndex, verseStart: ini, verseEnd: fim }))
+      .filter(Boolean);
+    const todos = alvos.every((a) => tema.passagens.some((q) => mesmaPassagem(q, a)));
+    if (todos) {
+      tema.passagens = tema.passagens.filter((q) => !alvos.some((a) => mesmaPassagem(q, a)));
+    } else {
+      alvos.forEach((a) => {
+        if (!tema.passagens.some((q) => mesmaPassagem(q, a))) tema.passagens.push(a);
+      });
+    }
+    tema.atualizadoEm = agora();
+    gravar(temas);
+    return !todos;
+  },
+
   exportar(ids) {
     const todos = ler();
     const escolhidos = ids && ids.length ? todos.filter((t) => ids.includes(t.id)) : todos;
