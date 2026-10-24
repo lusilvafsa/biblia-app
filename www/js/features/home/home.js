@@ -8,6 +8,7 @@ import { navigateTo } from '../../router.js';
 import { ALL_VERSES as DAILY_VERSES, verseIndexForDate } from '../../utils/verseOfDay.js';
 import { getReadingPlan } from '../../../data/readingPlans.js';
 import { PRAYERS } from '../../../data/prayers.js';
+import { oracaoDoDia, oracoesDoPeriodo } from '../../utils/prayerOfDay.js';
 import { abrirImagemDoVersiculo } from '../../utils/verseImage.js';
 import { shareText } from '../../utils/share.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
@@ -131,13 +132,9 @@ let prayerIndex = null;
 
 function getTodaysPrayer() {
   if (prayerIndex === null) {
-    const hoje = new Date();
-    const dia = Math.floor((hoje - new Date(hoje.getFullYear(), 0, 0)) / 86400000);
-    prayerIndex = dia % PRAYERS.length;
-    const hora = hoje.getHours();
-    const alvo = hora >= 5 && hora < 12 ? 'morning' : (hora >= 12 && hora < 18 ? 'strength' : 'night');
-    const achado = PRAYERS.findIndex((p) => p.id === alvo);
-    if (achado >= 0) prayerIndex = achado;
+    const oracao = oracaoDoDia();
+    const achado = PRAYERS.findIndex((p) => p.id === oracao.id);
+    prayerIndex = achado >= 0 ? achado : 0;
   }
   return PRAYERS[prayerIndex];
 }
@@ -510,7 +507,10 @@ export const homePage = {
     qs('#btnImagePrayer', container).addEventListener('click', () => imagemDoTexto(textoOracao(), tituloOracao()));
     qs('#btnNewPrayer', container).addEventListener('click', () => {
       if (audioAtivo) { stopSpeech(); pararAudioExtra(); }
-      prayerIndex = ((prayerIndex === null ? 0 : prayerIndex) + 1) % PRAYERS.length;
+      const doPeriodo = oracoesDoPeriodo();
+      const atualId = PRAYERS[prayerIndex === null ? 0 : prayerIndex].id;
+      const posicao = doPeriodo.findIndex((o) => o.id === atualId);
+      prayerIndex = PRAYERS.indexOf(doPeriodo[(posicao + 1) % doPeriodo.length]);
       const p = PRAYERS[prayerIndex];
       qs('#prayerText', container).textContent = p.text;
       qs('#prayerTitle', container).textContent = p.title;
