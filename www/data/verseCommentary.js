@@ -14,6 +14,8 @@
 //
 // Chave: "{bookIndex}-{chapterIndex}-{verseIndex}", todos 0-based, batendo
 // com os índices de data/bible-acf.json.
+import { VERSE_COMMENTARY_EXTRA } from './verseCommentaryExtra.js';
+
 export const VERSE_COMMENTARY = {
   '0-0-0': {
     explicacao: 'Este é o versículo de abertura de toda a Bíblia e afirma o fundamento de toda a fé: Deus existe antes de tudo e é o criador de todas as coisas — o tempo ("no princípio"), o espaço ("céu e terra") e tudo que neles há.',
@@ -168,5 +170,6 @@ export const VERSE_COMMENTARY = {
 };
 
 export function getVerseCommentary(bookIndex, chapterIndex, verseIndex) {
-  return VERSE_COMMENTARY[`${bookIndex}-${chapterIndex}-${verseIndex}`] || null;
+  const chave = `${bookIndex}-${chapterIndex}-${verseIndex}`;
+  return VERSE_COMMENTARY[chave] || VERSE_COMMENTARY_EXTRA[chave] || null;
 }

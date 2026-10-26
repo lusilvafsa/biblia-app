@@ -114,6 +114,18 @@ function template(settings) {
             Ler os títulos das passagens
           </label>
         </div>
+        <div class="setting-row">
+          <label class="setting-label" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="showExplanationsToggle" ${getVoiceSettings().showExplanations ? 'checked' : ''}>
+            Mostrar a explicação sob o versículo
+          </label>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="readExplanationsToggle" ${getVoiceSettings().readExplanations ? 'checked' : ''}>
+            Ler a explicação depois de cada versículo
+          </label>
+        </div>
         </div>
 
 
@@ -247,6 +259,18 @@ export const settingsPage = {
     if (readTitlesToggle) {
       readTitlesToggle.addEventListener('change', () => {
         setVoiceSettings({ readTitles: readTitlesToggle.checked });
+      });
+    }
+    const showExplanationsToggle = qs('#showExplanationsToggle', container);
+    if (showExplanationsToggle) {
+      showExplanationsToggle.addEventListener('change', () => {
+        setVoiceSettings({ showExplanations: showExplanationsToggle.checked });
+      });
+    }
+    const readExplanationsToggle = qs('#readExplanationsToggle', container);
+    if (readExplanationsToggle) {
+      readExplanationsToggle.addEventListener('change', () => {
+        setVoiceSettings({ readExplanations: readExplanationsToggle.checked });
       });
     }
 

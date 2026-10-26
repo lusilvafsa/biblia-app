@@ -29,6 +29,35 @@ import { attachSelectionToolbar } from './selectionToolbar.js';
 import { showVerseExplanation } from './verseExplanation.js';
 import { openVerseNoteEditor } from './verseNote.js';
 import { openDiaryPicker } from '../diary/diaryPicker.js';
+import { getVerseCommentary } from '../../../data/verseCommentary.js';
+
+// Texto curto da explicação para ser lido depois do versículo (vazio se a opção estiver desligada
+// ou se o versículo não tiver explicação).
+function explicacaoParaFala(bookIdx, chapterIdx, verseIdx) {
+  if (getVoiceSettings().readExplanations !== true) return '';
+  const e = getVerseCommentary(bookIdx, chapterIdx, verseIdx);
+  const texto = e && typeof e.explicacao === 'string' ? e.explicacao.replace(/\s+/g, ' ').trim() : '';
+  return texto ? ' Explicação: ' + texto : '';
+}
+
+// Bloco com a explicação curta, mostrado sob o versículo quando a opção está ligada.
+// Fica fora da lista de versículos (verseEls), então não altera seleção, destaque nem narração.
+function criarNotaDeExplicacao(bookIdx, chapterIdx, verseIdx, ajustes) {
+  if (getVoiceSettings().showExplanations !== true) return null;
+  const e = getVerseCommentary(bookIdx, chapterIdx, verseIdx);
+  const texto = e && typeof e.explicacao === 'string' ? e.explicacao.replace(/\s+/g, ' ').trim() : '';
+  if (!texto) return null;
+  const caixa = document.createElement('div');
+  caixa.className = 'verse-note';
+  caixa.style.cssText = 'margin:2px 0 14px 12px;padding:8px 12px;border-left:3px solid var(--gold);' +
+    'background:rgba(201,169,110,.08);border-radius:0 8px 8px 0;user-select:none;-webkit-user-select:none;' +
+    'font-size:' + Math.round((ajustes.fontSize || 18) * 0.85) + 'px;line-height:' + String(ajustes.lineHeight || 1.6) + ';';
+  const rotulo = document.createElement('strong');
+  rotulo.textContent = 'Explicação: ';
+  rotulo.style.color = 'var(--gold)';
+  caixa.append(rotulo, document.createTextNode(texto));
+  return caixa;
+}
 import { showChapterExplanation } from './chapterExplanation.js';
 import { openExternalExplanation } from '../../utils/externalExplain.js';
 import { shareText } from '../../utils/share.js';
@@ -222,6 +251,8 @@ export const readerPage = {
       }
       readContent.appendChild(p);
       verseEls.push(p);
+      const notaExplicacao = criarNotaDeExplicacao(bookIndex, chapterIndex, idx, settings);
+      if (notaExplicacao) readContent.appendChild(notaExplicacao);
     });
 
     // Progresso salvo para ESTE capítulo específico: se existir um
@@ -414,9 +445,10 @@ export const readerPage = {
           map.push({ chapter: chapterIndex, verse: -1 });
           chars += tCur[String(i + 1)].length;
         }
-        items.push('Versículo ' + (i + 1) + '. ' + verses[i]);
+        const expl = explicacaoParaFala(bookIndex, chapterIndex, i);
+        items.push('Versículo ' + (i + 1) + '. ' + verses[i] + expl);
         map.push({ chapter: chapterIndex, verse: i });
-        chars += verses[i].length + 14;
+        chars += verses[i].length + 14 + expl.length;
       }
       const lastChapter = book.chapterCount - 1;
       let ch = chapterIndex + 1;
@@ -432,9 +464,10 @@ export const readerPage = {
             map.push({ chapter: ch, verse: -1 });
             chars += tNext[String(i + 1)].length;
           }
-          items.push('Versículo ' + (i + 1) + '. ' + vs[i]);
+          const expl = explicacaoParaFala(bookIndex, ch, i);
+          items.push('Versículo ' + (i + 1) + '. ' + vs[i] + expl);
           map.push({ chapter: ch, verse: i });
-          chars += vs[i].length + 14;
+          chars += vs[i].length + 14 + expl.length;
         }
         ch++;
       }
@@ -543,7 +576,7 @@ export const readerPage = {
         return;
       }
       highlightVerse(readingIndex);
-      let text = `Versículo ${readingIndex + 1}. ${verses[readingIndex]}`;
+      let text = `Versículo ${readingIndex + 1}. ${verses[readingIndex]}` + explicacaoParaFala(bookIndex, chapterIndex, readingIndex);
       const tituloLido = (getVoiceSettings().readTitles !== false) ? chapterTitles[String(readingIndex + 1)] : null;
       if (tituloLido) text = tituloLido + '. ' + text;
       speak(text, {

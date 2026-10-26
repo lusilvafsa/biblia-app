@@ -8,6 +8,8 @@ export const DEFAULT_VOICE_SETTINGS = {
   rate: 0.85, // 0.5 (lenta) a 1.5 (rápida)
   voiceURI: null, // null = escolha automática (melhor voz em pt-BR disponível)
   readTitles: true, // ler os títulos das passagens na narração
+  showExplanations: false, // mostrar a explicação curta sob o versículo (quando houver)
+  readExplanations: false, // ler a explicação curta depois do versículo, na narração
 };
 
 const listeners = new Set();
