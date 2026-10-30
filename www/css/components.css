@@ -2794,3 +2794,15 @@ img.icon-glyph {
 .diary-note { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
 .diary-note-form { margin-top: 8px; }
 .diary-note-form[hidden] { display: none; }
+
+/* Celulares largos: tela cheia, sem moldura (abaixo de 900px de largura) */
+@media (max-width: 899px) {
+  body { padding: 0 !important; }
+  body .phone-frame {
+    max-width: none !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}

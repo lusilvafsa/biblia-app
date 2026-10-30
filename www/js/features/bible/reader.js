@@ -289,7 +289,7 @@ export const readerPage = {
       });
       saveReaderSettings(settings);
     }
-    qs('#btnExplainChapter', container).addEventListener('click', () => showChapterExplanation({ bookName: book.name, chapterNumber: chapterIndex + 1 }));
+    qs('#btnExplainChapter', container).addEventListener('click', () => showChapterExplanation({ bookName: book.name, chapterNumber: chapterIndex + 1, bookIndex, chapterIndex }));
 
     // ---- Narrativa: iniciar / pausar / continuar / parar -----------------
     const playPauseBtn = qs('#btnPlayPause', container);

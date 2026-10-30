@@ -3,6 +3,7 @@
 import { icons } from '../../components/icons.js';
 import { supabase } from '../../supabaseClient.js';
 import { usuarioAtual } from '../../supabaseAuth.js';
+import { getChapterSummary } from '../../../data/chapterSummaries.js';
 
 let overlayEl = null;
 
@@ -31,7 +32,7 @@ function formatarResposta(texto) {
     .join('');
 }
 
-export function showChapterExplanation({ bookName, chapterNumber }) {
+export function showChapterExplanation({ bookName, chapterNumber, bookIndex, chapterIndex }) {
   removePanel();
 
   const ref = `${bookName} ${chapterNumber}`;
@@ -56,7 +57,29 @@ export function showChapterExplanation({ bookName, chapterNumber }) {
 
   const resultEl = overlayEl.querySelector('#chapterExplainResult');
 
-  (async () => {
+  const mostrarResumo = (s) => {
+    const itens = (Array.isArray(s.pontos) ? s.pontos : []).map((p) => `<li>${escaparHtml(p)}</li>`).join('');
+    resultEl.innerHTML =
+      `<p><strong>Resumo</strong></p><p>${escaparHtml(s.resumo || '')}</p>` +
+      (itens ? `<p><strong>Pontos principais</strong></p><ul style="margin:0 0 12px;padding-left:20px;">${itens}</ul>` : '') +
+      (s.aplicacao ? `<p><strong>Aplicação</strong></p><p>${escaparHtml(s.aplicacao)}</p>` : '') +
+      '<button type="button" class="tool-btn" id="btnMaisDetalhes" style="width:100%;padding:12px 10px;margin-top:8px;">Pedir um estudo mais detalhado ao Assistente</button>' +
+      '<p style="font-size:12px;opacity:.7;margin-top:8px;">O estudo detalhado é gerado por inteligência artificial e usa uma das suas perguntas do dia.</p>';
+    const botao = resultEl.querySelector('#btnMaisDetalhes');
+    if (botao) {
+      botao.addEventListener('click', async () => {
+        resultEl.innerHTML = '<p>Consultando o Assistente Bíblico...</p>';
+        await pedirAoAssistente();
+        if (/Não foi possível obter o estudo|Entre na sua conta/.test(resultEl.textContent || '')) {
+          const aviso = resultEl.innerHTML;
+          mostrarResumo(s);
+          resultEl.insertAdjacentHTML('beforeend', '<div style="margin-top:10px;opacity:.85;">' + aviso + '</div>');
+        }
+      });
+    }
+  };
+
+  const pedirAoAssistente = async () => {
     const usuario = usuarioAtual();
 
     if (!usuario) {
@@ -81,5 +104,11 @@ export function showChapterExplanation({ bookName, chapterNumber }) {
     } catch (err) {
       resultEl.innerHTML = '<p>Não foi possível obter o estudo agora. Tente novamente.</p>';
     }
-  })();
+  };
+
+  const resumoPronto = typeof bookIndex === 'number' && typeof chapterIndex === 'number'
+    ? getChapterSummary(bookIndex, chapterIndex)
+    : null;
+  if (resumoPronto) mostrarResumo(resumoPronto);
+  else pedirAoAssistente();
 }
