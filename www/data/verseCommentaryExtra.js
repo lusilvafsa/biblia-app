@@ -352,7 +352,7 @@ export const VERSE_COMMENTARY_EXTRA = {
   },
   '42-7-11': {
     ref: 'João 8:12',
-    explicacao: 'Jesus declara ser a luz do mundo e promete que quem o segue não andará em trevas, mas terá a luz da vida.',
+    explicacao: 'Jesus se apresenta como a luz do mundo e promete direção e clareza a quem decide acompanhá-lo, afastando-o da escuridão espiritual.',
     contexto: 'Dito no templo, em Jerusalém, durante um debate com os fariseus.',
     aplicacao: 'Seguir Jesus traz direção e clareza para decidir, e afasta da confusão moral e espiritual.',
     conceitos: '"Luz" simboliza verdade, direção e a presença de Deus; "trevas" representam ignorância e pecado.',
