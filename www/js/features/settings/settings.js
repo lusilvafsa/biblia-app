@@ -230,12 +230,22 @@ function template(settings) {
       </div>
     </div>
 
+    <div class="settings-section">
+      <div class="settings-section-title">Aplicativo Android (APK)</div>
+      <div class="settings-card">
+        <p class="ministry-plain-text" style="margin-bottom:14px;">Baixe o aplicativo oficial para Android (arquivo APK) para instalar diretamente em seu dispositivo com suporte offline completo.</p>
+        <a href="https://www.mediafire.com/file/gnb0pyi6tfr2313/BibliaDeEstudoLS.apk/file" target="_blank" rel="noopener noreferrer" class="read-btn read-btn--primary" style="width:100%;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;">
+          ⬇️ Baixar APK para Android
+        </a>
+      </div>
+    </div>
+
     <div class="app-info">
       Bíblia de Estudo LS — v${APP_VERSION} · build ${APP_BUILD}<br>
     Atualizado em ${APP_DATE}<br>
       Versões: ACF, BLIVRE e ARC 1911<br>
       Referências cruzadas: OpenBible.info (CC BY 4.0)<br>
-      <a href="https://lusilvafsa.github.io/biblia-app/privacidade.html" target="_blank" rel="noopener" style="color:inherit;">Política de privacidade</a> · <a href="https://lusilvafsa.github.io/biblia-app/excluir-conta.html" target="_blank" rel="noopener" style="color:inherit;">Excluir conta</a>
+      <a href="https://www.mediafire.com/file/gnb0pyi6tfr2313/BibliaDeEstudoLS.apk/file" target="_blank" rel="noopener noreferrer" style="color:var(--gold);font-weight:600;">Baixar APK</a> · <a href="https://lusilvafsa.github.io/biblia-app/privacidade.html" target="_blank" rel="noopener" style="color:inherit;">Política de privacidade</a> · <a href="https://lusilvafsa.github.io/biblia-app/excluir-conta.html" target="_blank" rel="noopener" style="color:inherit;">Excluir conta</a>
     </div>
   `;
 }
