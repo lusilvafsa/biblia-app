@@ -37,3 +37,7 @@ patch_*.py
 *.bak*
 *.BAK*
 patch_*.py
+gerar_*.py
+inserir_*.py
+codex-session-*.md
+__pycache__/

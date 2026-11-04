@@ -1,4 +1,4 @@
-const CACHE_NAME = 'biblia-estudo-v2.6';
+const CACHE_NAME = 'biblia-estudo-v3.3';
 const APP_SHELL = [
   './assets/icons/bible-icon.png',
   './assets/icons/favicon.png',
