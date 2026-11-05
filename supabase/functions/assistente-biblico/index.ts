@@ -154,6 +154,7 @@ async function identificarUsuario(
   supabaseUrl: string,
   anonKey: string,
 ): Promise<{ userId: string } | { resposta: Response }> {
+  const corsHeaders = obterCorsHeaders(req);
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
