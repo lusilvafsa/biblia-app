@@ -3,7 +3,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const LIMITE_DIARIO = 40;
 const MAX_TENTATIVAS_GEMINI = 2;
-const TIPOS_CACHEAVEIS = ["versiculo", "capitulo", "ministracao", "trecho"];
 
 const SYSTEM_INSTRUCTION = String.raw`
 Você é o Assistente Bíblico do aplicativo Bíblia de Estudo.
@@ -218,10 +217,6 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const tipo = typeof body.tipo === "string" && TIPOS_CACHEAVEIS.includes(body.tipo) ? body.tipo : null;
-  const chave = typeof body.chave === "string" && body.chave.trim() ? body.chave.trim().slice(0, 200) : null;
-  const usaCache = tipo !== null && chave !== null;
-
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -238,12 +233,20 @@ Deno.serve(async (req: Request) => {
     const quem = await identificarUsuario(req, supabaseUrl, anonKey);
     if ("resposta" in quem) return quem.resposta;
 
-    const { data: uso } = await adminClient
+    const { data: uso, error: erroConsultaUso } = await adminClient
       .from("assistente_uso")
       .select("contagem")
       .eq("user_id", quem.userId)
       .eq("dia", hoje)
       .maybeSingle();
+
+    if (erroConsultaUso) {
+      console.error("[assistente-biblico] Falha ao consultar limite diário.");
+      return Response.json(
+        { erro: "Não foi possível consultar seu limite agora. Tente novamente." },
+        { status: 503, headers: corsHeaders },
+      );
+    }
 
     const usadas = uso?.contagem ?? 0;
 
@@ -258,24 +261,6 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // ===== CACHE COMPARTILHADO — checado ANTES de exigir login, pois é grátis =====
-
-  if (usaCache) {
-    const { data: emCache } = await adminClient
-      .from("assistente_cache_publico")
-      .select("mensagem")
-      .eq("tipo", tipo)
-      .eq("chave", chave)
-      .maybeSingle();
-
-    if (emCache?.mensagem) {
-      return Response.json(
-        { sucesso: true, mensagem: emCache.mensagem, doCache: true },
-        { headers: corsHeaders },
-      );
-    }
-  }
-
   // ===== A PARTIR DAQUI, PRECISA GERAR COM A IA: EXIGE LOGIN =====
 
   const quem = await identificarUsuario(req, supabaseUrl, anonKey);
@@ -283,14 +268,34 @@ Deno.serve(async (req: Request) => {
 
   const userId = quem.userId;
 
+  // Verifica a configuração antes de reservar uma pergunta na quota.
+  const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
+
+  if (!geminiApiKey) {
+    console.error("[assistente-biblico] GEMINI_API_KEY não configurada.");
+
+    return Response.json(
+      { erro: "O Assistente Bíblico ainda não está configurado." },
+      { status: 503, headers: corsHeaders },
+    );
+  }
+
   // ===== LIMITE DIARIO =====
 
-  const { data: usoAtual } = await adminClient
+  const { data: usoAtual, error: erroConsultaLimite } = await adminClient
     .from("assistente_uso")
     .select("contagem")
     .eq("user_id", userId)
     .eq("dia", hoje)
     .maybeSingle();
+
+  if (erroConsultaLimite) {
+    console.error("[assistente-biblico] Falha ao consultar limite diário.");
+    return Response.json(
+      { erro: "Não foi possível validar seu limite agora. Tente novamente." },
+      { status: 503, headers: corsHeaders },
+    );
+  }
 
   if (usoAtual && usoAtual.contagem >= LIMITE_DIARIO) {
     return Response.json(
@@ -301,7 +306,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  await adminClient
+  const { error: erroReserva } = await adminClient
     .from("assistente_uso")
     .upsert(
       {
@@ -312,13 +317,10 @@ Deno.serve(async (req: Request) => {
       { onConflict: "user_id,dia" },
     );
 
-  const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
-
-  if (!geminiApiKey) {
-    console.error("[assistente-biblico] GEMINI_API_KEY não configurada.");
-
+  if (erroReserva) {
+    console.error("[assistente-biblico] Falha ao reservar pergunta.");
     return Response.json(
-      { erro: "O Assistente Bíblico ainda não está configurado." },
+      { erro: "Não foi possível reservar sua pergunta agora. Tente novamente." },
       { status: 503, headers: corsHeaders },
     );
   }
@@ -370,12 +372,6 @@ Deno.serve(async (req: Request) => {
         { erro: "O Gemini retornou uma resposta vazia." },
         { status: 502, headers: corsHeaders },
       );
-    }
-
-    if (usaCache) {
-      await adminClient
-        .from("assistente_cache_publico")
-        .upsert({ tipo, chave, mensagem: resposta }, { onConflict: "tipo,chave" });
     }
 
     return Response.json(
