@@ -54,6 +54,7 @@ test("o CORS do assistente só permite origens conhecidas", () => {
   assert.match(source, /ORIGENS_PERMITIDAS/);
   assert.match(source, /https:\/\/lusilvafsa\.github\.io/);
   assert.match(source, /https:\/\/localhost/);
+  assert.match(source, /const corsHeaders = obterCorsHeaders\(req\);/);
   assert.doesNotMatch(source, /"Access-Control-Allow-Origin": "\*"/);
 });
 
