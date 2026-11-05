@@ -280,48 +280,32 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // ===== LIMITE DIARIO =====
-
-  const { data: usoAtual, error: erroConsultaLimite } = await adminClient
-    .from("assistente_uso")
-    .select("contagem")
-    .eq("user_id", userId)
-    .eq("dia", hoje)
-    .maybeSingle();
-
-  if (erroConsultaLimite) {
-    console.error("[assistente-biblico] Falha ao consultar limite diário.");
-    return Response.json(
-      { erro: "Não foi possível validar seu limite agora. Tente novamente." },
-      { status: 503, headers: corsHeaders },
-    );
-  }
-
-  if (usoAtual && usoAtual.contagem >= LIMITE_DIARIO) {
-    return Response.json(
-      {
-        erro: `Você atingiu o limite de ${LIMITE_DIARIO} perguntas por hoje. Tente novamente amanhã.`,
-      },
-      { status: 429, headers: corsHeaders },
-    );
-  }
-
-  const { error: erroReserva } = await adminClient
-    .from("assistente_uso")
-    .upsert(
-      {
-        user_id: userId,
-        dia: hoje,
-        contagem: (usoAtual?.contagem ?? 0) + 1,
-      },
-      { onConflict: "user_id,dia" },
-    );
+  // ===== RESERVA ATÔMICA DA QUOTA DIÁRIA =====
+  // A RPC executa INSERT/ON CONFLICT dentro de uma única instrução PostgreSQL.
+  // Retorna a contagem reservada ou NULL quando o limite já foi atingido.
+  const { data: contagemReservada, error: erroReserva } = await adminClient.rpc(
+    "reservar_quota_assistente",
+    {
+      p_user_id: userId,
+      p_dia: hoje,
+      p_limite: LIMITE_DIARIO,
+    },
+  );
 
   if (erroReserva) {
     console.error("[assistente-biblico] Falha ao reservar pergunta.");
     return Response.json(
       { erro: "Não foi possível reservar sua pergunta agora. Tente novamente." },
       { status: 503, headers: corsHeaders },
+    );
+  }
+
+  if (contagemReservada === null) {
+    return Response.json(
+      {
+        erro: `Você atingiu o limite de ${LIMITE_DIARIO} perguntas por hoje. Tente novamente amanhã.`,
+      },
+      { status: 429, headers: corsHeaders },
     );
   }
 
