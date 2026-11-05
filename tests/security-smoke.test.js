@@ -41,6 +41,8 @@ test("o assistente reserva quota por RPC atômica e falha de forma segura", () =
   assert.match(source, /reservar_quota_assistente/);
   assert.match(source, /if \(erroReserva\)/);
   assert.match(source, /contagemReservada === null/);
+  assert.match(source, /liberar_quota_assistente/);
+  assert.match(source, /await liberarReserva\(\)/);
   assert.doesNotMatch(source, /\.from\(["']assistente_uso["']\)[\s\S]{0,300}\.upsert\(/);
 });
 
