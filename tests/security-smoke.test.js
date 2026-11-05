@@ -35,11 +35,13 @@ test("o assistente não consulta nem preenche cache público com prompts arbitr�
   assert.doesNotMatch(source, /assistente_cache_publico|TIPOS_CACHEAVEIS|usaCache/);
 });
 
-test("o assistente falha de forma segura quando o controle de quota não responde", () => {
+test("o assistente reserva quota por RPC atômica e falha de forma segura", () => {
   const source = read("supabase/functions/assistente-biblico/index.ts");
-  assert.match(source, /if \(erroConsultaUso\)/);
-  assert.match(source, /if \(erroConsultaLimite\)/);
+  assert.match(source, /adminClient\.rpc\(/);
+  assert.match(source, /reservar_quota_assistente/);
   assert.match(source, /if \(erroReserva\)/);
+  assert.match(source, /contagemReservada === null/);
+  assert.doesNotMatch(source, /\.from\(["']assistente_uso["']\)[\s\S]{0,300}\.upsert\(/);
 });
 
 test("o Android não inclui dados privados no backup automático do sistema", () => {
