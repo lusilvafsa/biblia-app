@@ -659,7 +659,11 @@ function createAuthModal({
       errorBox.style.display = 'none';
 
       try {
-        await entrarComGoogle();
+        const usuario = await entrarComGoogle();
+
+        // No navegador, null significa que o redirecionamento OAuth foi iniciado.
+        // Não anunciar sucesso nem fechar o modal antes do retorno do Google.
+        if (!usuario) return;
 
         modal.remove();
         renderCurrentUser();
