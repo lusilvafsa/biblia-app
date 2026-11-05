@@ -30,6 +30,14 @@ test("os logs de autenticação não expõem IDs nem URLs OAuth", () => {
   );
 });
 
+test("o OAuth web usa PKCE e detecta o retorno da sessão", () => {
+  const client = read("www/js/supabaseClient.js");
+  const profile = read("www/js/features/profile/profile.js");
+  assert.match(client, /flowType:\s*["']pkce["']/);
+  assert.match(client, /detectSessionInUrl:\s*true/);
+  assert.match(profile, /if \(!usuario\) return;/);
+});
+
 test("o assistente não consulta nem preenche cache público com prompts arbitrários", () => {
   const source = read("supabase/functions/assistente-biblico/index.ts");
   assert.doesNotMatch(source, /assistente_cache_publico|TIPOS_CACHEAVEIS|usaCache/);
