@@ -93,12 +93,30 @@ FORMATAÇÃO
 - Não repita a pergunta do usuário.
 `;
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+// Origens usadas pelo site publicado, pelo WebView Android do Capacitor
+// e pelo servidor local de desenvolvimento documentado no README.
+const ORIGENS_PERMITIDAS = new Set([
+  "https://lusilvafsa.github.io",
+  "https://localhost",
+  "http://localhost:8000",
+  "http://127.0.0.1:8000",
+]);
+
+function obterCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin");
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+
+  if (origin && ORIGENS_PERMITIDAS.has(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return headers;
+}
 
 function aguardar(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -169,6 +187,8 @@ async function identificarUsuario(
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = obterCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
