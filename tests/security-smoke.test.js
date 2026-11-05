@@ -41,3 +41,8 @@ test("o assistente falha de forma segura quando o controle de quota não respond
   assert.match(source, /if \(erroConsultaLimite\)/);
   assert.match(source, /if \(erroReserva\)/);
 });
+
+test("o Android não inclui dados privados no backup automático do sistema", () => {
+  const manifest = read("android/app/src/main/AndroidManifest.xml");
+  assert.match(manifest, /android:allowBackup="false"/);
+});
