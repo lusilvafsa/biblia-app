@@ -23,11 +23,7 @@ supabase.auth.onAuthStateChange((event, session) => {
     }
   }
 
-  console.log(
-    "[Supabase Auth] Estado:",
-    event,
-    usuarioAtualEmMemoria?.id || null
-  );
+  console.log("[Supabase Auth] Estado:", event);
 });
 
 export function aguardarAuthInicial() {
@@ -176,10 +172,7 @@ export async function criarConta(email, senha) {
 
   lembrarConta(user.email || normalizedEmail);
 
-  console.log(
-    "[Supabase Auth] Usuário criado:",
-    user.id
-  );
+  console.log("[Supabase Auth] Cadastro concluído.");
 
   if (!data.session) {
     console.log(
@@ -216,10 +209,7 @@ export async function entrar(email, senha) {
 
   lembrarConta(user.email || normalizedEmail);
 
-  console.log(
-    "[Supabase Auth] Login realizado:",
-    user.id
-  );
+  console.log("[Supabase Auth] Login concluído.");
 
   return user;
 }
@@ -287,10 +277,7 @@ export async function entrarComGoogle() {
 
     lembrarConta(user.email || "");
 
-    console.log(
-      "[Supabase Auth] Login Google realizado:",
-      user.id
-    );
+    console.log("[Supabase Auth] Login Google concluído.");
 
     return user;
   }
@@ -312,10 +299,7 @@ export async function entrarComGoogle() {
     throw error;
   }
 
-  console.log(
-    "[Supabase Auth] Redirecionamento Google iniciado:",
-    data?.url || null
-  );
+  console.log("[Supabase Auth] Redirecionamento Google iniciado.");
 
   return null;
 }
