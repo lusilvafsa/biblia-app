@@ -330,6 +330,26 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  // A reserva é devolvida uma única vez se a geração falhar.
+  // O UPDATE da RPC é atômico e impede contagem negativa.
+  let quotaLiberada = false;
+  const liberarReserva = async () => {
+    if (quotaLiberada) return;
+    quotaLiberada = true;
+
+    try {
+      const { error } = await adminClient.rpc("liberar_quota_assistente", {
+        p_user_id: userId,
+        p_dia: hoje,
+      });
+      if (error) {
+        console.error("[assistente-biblico] Não foi possível liberar a reserva.");
+      }
+    } catch {
+      console.error("[assistente-biblico] Falha ao liberar a reserva.");
+    }
+  };
+
   try {
     let response: Response | null = null;
     let data: any = null;
@@ -351,6 +371,7 @@ Deno.serve(async (req: Request) => {
       );
 
       if (!temporario || ultimaTentativa) {
+        await liberarReserva();
         return Response.json(
           {
             erro:
@@ -373,6 +394,7 @@ Deno.serve(async (req: Request) => {
         "[assistente-biblico] Gemini retornou resposta vazia.",
       );
 
+      await liberarReserva();
       return Response.json(
         { erro: "O Gemini retornou uma resposta vazia." },
         { status: 502, headers: corsHeaders },
@@ -387,6 +409,7 @@ Deno.serve(async (req: Request) => {
       { headers: corsHeaders },
     );
   } catch (error) {
+    await liberarReserva();
     console.error("[assistente-biblico] erro:", error);
 
     return Response.json(
