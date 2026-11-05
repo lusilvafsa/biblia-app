@@ -48,3 +48,17 @@ test("o Android não inclui dados privados no backup automático do sistema", ()
   const manifest = read("android/app/src/main/AndroidManifest.xml");
   assert.match(manifest, /android:allowBackup="false"/);
 });
+
+test("o CORS do assistente só permite origens conhecidas", () => {
+  const source = read("supabase/functions/assistente-biblico/index.ts");
+  assert.match(source, /ORIGENS_PERMITIDAS/);
+  assert.match(source, /https:\/\/lusilvafsa\.github\.io/);
+  assert.match(source, /https:\/\/localhost/);
+  assert.doesNotMatch(source, /"Access-Control-Allow-Origin": "\*"/);
+});
+
+test("o FileProvider não expõe o armazenamento externo inteiro", () => {
+  const paths = read("android/app/src/main/res/xml/file_paths.xml");
+  assert.match(paths, /<cache-path/);
+  assert.doesNotMatch(paths, /<external-path/);
+});
