@@ -290,7 +290,10 @@ export async function entrarComGoogle() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo:
+          window.location.hostname === "lusilvafsa.github.io"
+            ? `${window.location.origin}/biblia-app/`
+            : `${window.location.origin}/`,
       },
     });
 
