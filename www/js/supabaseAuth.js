@@ -23,11 +23,7 @@ supabase.auth.onAuthStateChange((event, session) => {
     }
   }
 
-  console.log(
-    "[Supabase Auth] Estado:",
-    event,
-    usuarioAtualEmMemoria?.id || null
-  );
+  console.log("[Supabase Auth] Estado:", event);
 });
 
 export function aguardarAuthInicial() {
@@ -127,7 +123,7 @@ export async function excluirContaAtual() {
   );
 
   if (error || !data?.sucesso) {
-    console.error("[Supabase Auth] Erro ao excluir conta:", error || data);
+    console.error("[Supabase Auth] Erro ao excluir conta:");
     throw new Error("Não foi possível excluir a conta agora. Tente novamente.");
   }
 
@@ -162,10 +158,7 @@ export async function criarConta(email, senha) {
     });
 
   if (error) {
-    console.error(
-      "[Supabase Auth] Erro ao criar conta:",
-      error
-    );
+    console.error("[Supabase Auth] Erro ao criar conta:");
     throw error;
   }
 
@@ -179,10 +172,7 @@ export async function criarConta(email, senha) {
 
   lembrarConta(user.email || normalizedEmail);
 
-  console.log(
-    "[Supabase Auth] Usuário criado:",
-    user.id
-  );
+  console.log("[Supabase Auth] Cadastro concluído.");
 
   if (!data.session) {
     console.log(
@@ -205,10 +195,7 @@ export async function entrar(email, senha) {
     });
 
   if (error) {
-    console.error(
-      "[Supabase Auth] Erro no login:",
-      error
-    );
+    console.error("[Supabase Auth] Erro no login:");
     throw error;
   }
 
@@ -222,10 +209,7 @@ export async function entrar(email, senha) {
 
   lembrarConta(user.email || normalizedEmail);
 
-  console.log(
-    "[Supabase Auth] Login realizado:",
-    user.id
-  );
+  console.log("[Supabase Auth] Login concluído.");
 
   return user;
 }
@@ -279,10 +263,7 @@ export async function entrarComGoogle() {
       });
 
     if (error) {
-      console.error(
-        "[Supabase Auth] Erro no login Google:",
-        error
-      );
+      console.error("[Supabase Auth] Erro no login Google:");
       throw error;
     }
 
@@ -296,10 +277,7 @@ export async function entrarComGoogle() {
 
     lembrarConta(user.email || "");
 
-    console.log(
-      "[Supabase Auth] Login Google realizado:",
-      user.id
-    );
+    console.log("[Supabase Auth] Login Google concluído.");
 
     return user;
   }
@@ -312,22 +290,19 @@ export async function entrarComGoogle() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo:
+          window.location.hostname === "lusilvafsa.github.io"
+            ? `${window.location.origin}/biblia-app/`
+            : `${window.location.origin}/`,
       },
     });
 
   if (error) {
-    console.error(
-      "[Supabase Auth] Erro ao iniciar Google OAuth:",
-      error
-    );
+    console.error("[Supabase Auth] Erro ao iniciar Google OAuth:");
     throw error;
   }
 
-  console.log(
-    "[Supabase Auth] Redirecionamento Google iniciado:",
-    data?.url || null
-  );
+  console.log("[Supabase Auth] Redirecionamento Google iniciado.");
 
   return null;
 }
@@ -337,10 +312,7 @@ export async function sair() {
     await supabase.auth.signOut();
 
   if (error) {
-    console.error(
-      "[Supabase Auth] Erro ao sair:",
-      error
-    );
+    console.error("[Supabase Auth] Erro ao sair:");
     throw error;
   }
 }

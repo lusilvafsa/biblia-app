@@ -93,10 +93,18 @@ async function handleRouteChange() {
 }
 
 function renderErrorState(target, err) {
-  target.innerHTML = `
-    <div class="state-message error">
-      <p>Não foi possível carregar esta tela.</p>
-      <p style="margin-top:6px;font-size:12px;">${err && err.message ? err.message : ''}</p>
-    </div>
-  `;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'state-message error';
+
+  const title = document.createElement('p');
+  title.textContent = 'Não foi possível carregar esta tela.';
+
+  const detail = document.createElement('p');
+  detail.style.marginTop = '6px';
+  detail.style.fontSize = '12px';
+  detail.textContent =
+    err && typeof err.message === 'string' ? err.message : '';
+
+  wrapper.append(title, detail);
+  target.replaceChildren(wrapper);
 }

@@ -1,0 +1,33 @@
+name: Security checks
+
+on:
+  push:
+    branches: ["security-hardening"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  static-tests:
+    name: Static security checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run regression checks
+        run: npm test
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high

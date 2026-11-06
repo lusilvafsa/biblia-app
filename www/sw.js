@@ -1,3 +1,4 @@
+const CACHE_PREFIX = 'biblia-estudo-';
 const CACHE_NAME = 'biblia-estudo-v3.4';
 const APP_SHELL = [
   './assets/icons/bible-icon.png',
@@ -70,7 +71,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map((key) => caches.delete(key))
       ))
       .then(() => self.clients.claim())
   );

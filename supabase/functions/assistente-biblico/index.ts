@@ -3,7 +3,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const LIMITE_DIARIO = 40;
 const MAX_TENTATIVAS_GEMINI = 2;
-const TIPOS_CACHEAVEIS = ["versiculo", "capitulo", "ministracao", "trecho"];
 
 const SYSTEM_INSTRUCTION = String.raw`
 Você é o Assistente Bíblico do aplicativo Bíblia de Estudo.
@@ -94,12 +93,30 @@ FORMATAÇÃO
 - Não repita a pergunta do usuário.
 `;
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+// Origens usadas pelo site publicado, pelo WebView Android do Capacitor
+// e pelo servidor local de desenvolvimento documentado no README.
+const ORIGENS_PERMITIDAS = new Set([
+  "https://lusilvafsa.github.io",
+  "https://localhost",
+  "http://localhost:8000",
+  "http://127.0.0.1:8000",
+]);
+
+function obterCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin");
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+
+  if (origin && ORIGENS_PERMITIDAS.has(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return headers;
+}
 
 function aguardar(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -137,6 +154,7 @@ async function identificarUsuario(
   supabaseUrl: string,
   anonKey: string,
 ): Promise<{ userId: string } | { resposta: Response }> {
+  const corsHeaders = obterCorsHeaders(req);
   const authHeader = req.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -170,6 +188,8 @@ async function identificarUsuario(
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = obterCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -218,10 +238,6 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const tipo = typeof body.tipo === "string" && TIPOS_CACHEAVEIS.includes(body.tipo) ? body.tipo : null;
-  const chave = typeof body.chave === "string" && body.chave.trim() ? body.chave.trim().slice(0, 200) : null;
-  const usaCache = tipo !== null && chave !== null;
-
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -238,12 +254,20 @@ Deno.serve(async (req: Request) => {
     const quem = await identificarUsuario(req, supabaseUrl, anonKey);
     if ("resposta" in quem) return quem.resposta;
 
-    const { data: uso } = await adminClient
+    const { data: uso, error: erroConsultaUso } = await adminClient
       .from("assistente_uso")
       .select("contagem")
       .eq("user_id", quem.userId)
       .eq("dia", hoje)
       .maybeSingle();
+
+    if (erroConsultaUso) {
+      console.error("[assistente-biblico] Falha ao consultar limite diário.");
+      return Response.json(
+        { erro: "Não foi possível consultar seu limite agora. Tente novamente." },
+        { status: 503, headers: corsHeaders },
+      );
+    }
 
     const usadas = uso?.contagem ?? 0;
 
@@ -258,24 +282,6 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // ===== CACHE COMPARTILHADO — checado ANTES de exigir login, pois é grátis =====
-
-  if (usaCache) {
-    const { data: emCache } = await adminClient
-      .from("assistente_cache_publico")
-      .select("mensagem")
-      .eq("tipo", tipo)
-      .eq("chave", chave)
-      .maybeSingle();
-
-    if (emCache?.mensagem) {
-      return Response.json(
-        { sucesso: true, mensagem: emCache.mensagem, doCache: true },
-        { headers: corsHeaders },
-      );
-    }
-  }
-
   // ===== A PARTIR DAQUI, PRECISA GERAR COM A IA: EXIGE LOGIN =====
 
   const quem = await identificarUsuario(req, supabaseUrl, anonKey);
@@ -283,35 +289,7 @@ Deno.serve(async (req: Request) => {
 
   const userId = quem.userId;
 
-  // ===== LIMITE DIARIO =====
-
-  const { data: usoAtual } = await adminClient
-    .from("assistente_uso")
-    .select("contagem")
-    .eq("user_id", userId)
-    .eq("dia", hoje)
-    .maybeSingle();
-
-  if (usoAtual && usoAtual.contagem >= LIMITE_DIARIO) {
-    return Response.json(
-      {
-        erro: `Você atingiu o limite de ${LIMITE_DIARIO} perguntas por hoje. Tente novamente amanhã.`,
-      },
-      { status: 429, headers: corsHeaders },
-    );
-  }
-
-  await adminClient
-    .from("assistente_uso")
-    .upsert(
-      {
-        user_id: userId,
-        dia: hoje,
-        contagem: (usoAtual?.contagem ?? 0) + 1,
-      },
-      { onConflict: "user_id,dia" },
-    );
-
+  // Verifica a configuração antes de reservar uma pergunta na quota.
   const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
 
   if (!geminiApiKey) {
@@ -322,6 +300,55 @@ Deno.serve(async (req: Request) => {
       { status: 503, headers: corsHeaders },
     );
   }
+
+  // ===== RESERVA ATÔMICA DA QUOTA DIÁRIA =====
+  // A RPC executa INSERT/ON CONFLICT dentro de uma única instrução PostgreSQL.
+  // Retorna a contagem reservada ou NULL quando o limite já foi atingido.
+  const { data: contagemReservada, error: erroReserva } = await adminClient.rpc(
+    "reservar_quota_assistente",
+    {
+      p_user_id: userId,
+      p_dia: hoje,
+      p_limite: LIMITE_DIARIO,
+    },
+  );
+
+  if (erroReserva) {
+    console.error("[assistente-biblico] Falha ao reservar pergunta.");
+    return Response.json(
+      { erro: "Não foi possível reservar sua pergunta agora. Tente novamente." },
+      { status: 503, headers: corsHeaders },
+    );
+  }
+
+  if (contagemReservada === null) {
+    return Response.json(
+      {
+        erro: `Você atingiu o limite de ${LIMITE_DIARIO} perguntas por hoje. Tente novamente amanhã.`,
+      },
+      { status: 429, headers: corsHeaders },
+    );
+  }
+
+  // A reserva é devolvida uma única vez se a geração falhar.
+  // O UPDATE da RPC é atômico e impede contagem negativa.
+  let quotaLiberada = false;
+  const liberarReserva = async () => {
+    if (quotaLiberada) return;
+    quotaLiberada = true;
+
+    try {
+      const { error } = await adminClient.rpc("liberar_quota_assistente", {
+        p_user_id: userId,
+        p_dia: hoje,
+      });
+      if (error) {
+        console.error("[assistente-biblico] Não foi possível liberar a reserva.");
+      }
+    } catch {
+      console.error("[assistente-biblico] Falha ao liberar a reserva.");
+    }
+  };
 
   try {
     let response: Response | null = null;
@@ -344,6 +371,7 @@ Deno.serve(async (req: Request) => {
       );
 
       if (!temporario || ultimaTentativa) {
+        await liberarReserva();
         return Response.json(
           {
             erro:
@@ -366,16 +394,11 @@ Deno.serve(async (req: Request) => {
         "[assistente-biblico] Gemini retornou resposta vazia.",
       );
 
+      await liberarReserva();
       return Response.json(
         { erro: "O Gemini retornou uma resposta vazia." },
         { status: 502, headers: corsHeaders },
       );
-    }
-
-    if (usaCache) {
-      await adminClient
-        .from("assistente_cache_publico")
-        .upsert({ tipo, chave, mensagem: resposta }, { onConflict: "tipo,chave" });
     }
 
     return Response.json(
@@ -386,6 +409,7 @@ Deno.serve(async (req: Request) => {
       { headers: corsHeaders },
     );
   } catch (error) {
+    await liberarReserva();
     console.error("[assistente-biblico] erro:", error);
 
     return Response.json(
