@@ -486,97 +486,108 @@ function createAuthModal({
         <div
           style="
             display:flex;
-            gap:10px;
+            flex-direction:column;
+            gap:14px;
             margin-top:20px;
           "
         >
-        <div
-          style="
-            margin-top:18px;
-            padding-top:16px;
-            border-top:1px solid rgba(127,127,127,.2);
-          "
-        >
-                    <div
+          <div
             style="
-              margin-top:16px;
-              text-align:center;
-              font-size:14px;
-              opacity:.8;
+              padding-top:16px;
+              border-top:1px solid rgba(127,127,127,.2);
             "
           >
-            ${
-              isCreate
-                ? 'Já tem uma conta?'
-                : 'Ainda não tem uma conta?'
-            }
-            <button
-              type="button"
-              id="btnAuthSwitchMode"
+            <div
               style="
-                border:none;
-                background:transparent;
-                padding:4px;
-                cursor:pointer;
-                font-weight:700;
-                color:inherit;
+                margin-bottom:12px;
+                text-align:center;
+                font-size:14px;
+                opacity:.8;
               "
             >
-              ${isCreate ? 'Entrar' : 'Criar conta'}
+              ${
+                isCreate
+                  ? 'Já tem uma conta?'
+                  : 'Ainda não tem uma conta?'
+              }
+              <button
+                type="button"
+                id="btnAuthSwitchMode"
+                style="
+                  border:none;
+                  background:transparent;
+                  padding:4px;
+                  cursor:pointer;
+                  font-weight:700;
+                  color:inherit;
+                "
+              >
+                ${isCreate ? 'Entrar' : 'Criar conta'}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              id="btnGoogleLogin"
+              style="
+                width:100%;
+                box-sizing:border-box;
+                padding:12px;
+                border:1px solid rgba(127,127,127,.4);
+                border-radius:10px;
+                cursor:pointer;
+                font-weight:600;
+                background:var(--bg,#fff);
+                color:inherit;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:10px;
+              "
+            >
+              <img src="./assets/icons/google.svg" width="18" height="18" alt="Google">
+              Continuar com Google
             </button>
           </div>
 
-<button
-            type="button"
-            id="btnGoogleLogin"
+          <div
             style="
-              width:100%;
-              padding:12px;
-              border:1px solid rgba(127,127,127,.4);
-              border-radius:10px;
-              cursor:pointer;
-              font-weight:600;
-              background:var(--bg,#fff);
-              color:inherit;
               display:flex;
-              align-items:center;
-              justify-content:center;
               gap:10px;
+              width:100%;
             "
           >
-            <img src="./assets/icons/google.svg" width="18" height="18" alt="Google" style="vertical-align:middle;margin-right:8px;">
-            Continuar com Google
-          </button>
-        </div>
+            <button
+              type="button"
+              id="btnAuthCancel"
+              style="
+                flex:1;
+                min-width:0;
+                padding:12px;
+                border:none;
+                border-radius:10px;
+                cursor:pointer;
+              "
+            >
+              Cancelar
+            </button>
 
-          <button
-            type="button"
-            id="btnAuthCancel"
-            style="
-              flex:1;
-              padding:12px;
-              border:none;
-              border-radius:10px;
-              cursor:pointer;
-            "
-          >
-            Cancelar
-          </button>
-
-          <button
-            type="button"
-            id="btnAuthSubmit"
-            style="
-              flex:1;
-              padding:12px;
-              border:none;
-              border-radius:10px;
-              cursor:pointer;
-              font-weight:600;
-            "
-          >
-            ${isCreate ? 'Criar conta' : 'Entrar'}
-          </button>
+            <button
+              type="button"
+              id="btnAuthSubmit"
+              style="
+                flex:1;
+                min-width:0;
+                padding:12px;
+                border:none;
+                border-radius:10px;
+                cursor:pointer;
+                font-weight:600;
+              "
+            >
+              ${isCreate ? 'Criar conta' : 'Entrar'}
+            </button>
+          </div>
         </div>
 
       </div>

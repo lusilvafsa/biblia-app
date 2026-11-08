@@ -294,6 +294,9 @@ export async function entrarComGoogle() {
           window.location.hostname === "lusilvafsa.github.io"
             ? `${window.location.origin}/biblia-app/`
             : `${window.location.origin}/`,
+        queryParams: {
+          prompt: "select_account",
+        },
       },
     });
 

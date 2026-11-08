@@ -1,0 +1,32 @@
+diff --git a/node_modules/@capacitor-firebase/authentication/android/src/main/java/io/capawesome/capacitorjs/plugins/firebase/authentication/handlers/GoogleAuthProviderHandler.java b/node_modules/@capacitor-firebase/authentication/android/src/main/java/io/capawesome/capacitorjs/plugins/firebase/authentication/handlers/GoogleAuthProviderHandler.java
+--- a/node_modules/@capacitor-firebase/authentication/android/src/main/java/io/capawesome/capacitorjs/plugins/firebase/authentication/handlers/GoogleAuthProviderHandler.java
++++ b/node_modules/@capacitor-firebase/authentication/android/src/main/java/io/capawesome/capacitorjs/plugins/firebase/authentication/handlers/GoogleAuthProviderHandler.java
+@@ -331,14 +331,20 @@
+                 }
+             );
+         } else {
+-            mGoogleSignInClient = buildGoogleSignInClient(call);
+-            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+-
+-            if (isLink) {
+-                pluginImplementation.startActivityForResult(call, signInIntent, "handleGoogleAuthProviderLinkActivityResult");
+-            } else {
+-                pluginImplementation.startActivityForResult(call, signInIntent, "handleGoogleAuthProviderSignInActivityResult");
+-            }
++            final GoogleSignInClient googleSignInClient = buildGoogleSignInClient(call);
++            mGoogleSignInClient = googleSignInClient;
++
++            // Clear the previous app selection before opening Google Sign-In.
++            // Always continue to the account selection flow, even if sign-out fails.
++            googleSignInClient.signOut().addOnCompleteListener(task -> {
++                Intent signInIntent = googleSignInClient.getSignInIntent();
++
++                if (isLink) {
++                    pluginImplementation.startActivityForResult(call, signInIntent, "handleGoogleAuthProviderLinkActivityResult");
++                } else {
++                    pluginImplementation.startActivityForResult(call, signInIntent, "handleGoogleAuthProviderSignInActivityResult");
++                }
++            });
+         }
+     }
+ 

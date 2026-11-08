@@ -4,7 +4,8 @@
   "description": "Aplicativo de estudo bíblico com frontend web responsivo, autenticação e sincronização via Supabase, funções Edge para recursos de IA e aplicativo Android com Capacitor.",
   "main": "sw.js",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "postinstall": "patch-package"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
     "@supabase/supabase-js": "^2.116.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.5.0"
+    "@capacitor/cli": "^8.5.0",
+    "patch-package": "^8.0.1"
   }
 }
