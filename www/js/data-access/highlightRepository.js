@@ -21,31 +21,18 @@ function getUser() {
   return usuarioAtual();
 }
 
-function getStorageKey() {
-  const user = getUser();
-  return user ? `${STORAGE_KEYS.highlights}:${user.id}` : STORAGE_KEYS.highlights;
+function getStorageKey(user = getUser()) {
+  return user
+    ? `${STORAGE_KEYS.highlights}:${user.id}`
+    : STORAGE_KEYS.highlights;
 }
 
-// Migra, uma única vez, os grifos feitos antes do login para a conta.
-function migrateAnonymousHighlights() {
-  const user = getUser();
-  if (!user) return;
-
-  const userKey = `${STORAGE_KEYS.highlights}:${user.id}`;
-  const already = getItem(userKey, null);
-  if (already) return; // já migrado antes
-
-  const anonimo = getItem(STORAGE_KEYS.highlights, {});
-  setItem(userKey, anonimo);
+function readAll(user = getUser()) {
+  return getItem(getStorageKey(user), {});
 }
 
-function readAll() {
-  migrateAnonymousHighlights();
-  return getItem(getStorageKey(), {});
-}
-
-function writeAll(data) {
-  setItem(getStorageKey(), data);
+function writeAll(data, user = getUser()) {
+  setItem(getStorageKey(user), data);
 }
 
 function syncItem(chave, colorId) {
@@ -88,11 +75,10 @@ function deleteItemCloud(chave) {
 }
 
 export const highlightRepository = {
-  async syncWithCloud() {
-    const user = getUser();
+  async syncWithCloud(user = getUser()) {
     if (!user) return {};
 
-    const local = readAll();
+    const local = readAll(user);
 
     try {
       const { data, error } = await supabase
@@ -107,7 +93,8 @@ export const highlightRepository = {
         if (!(row.id in merged)) merged[row.id] = row.color_id;
       });
 
-      writeAll(merged);
+      // Mantém a gravação vinculada à conta capturada no início.
+      writeAll(merged, user);
 
       const rows = Object.entries(merged).map(([chave, colorId]) => {
         const [b, c, v] = chave.split('-').map(Number);
@@ -123,20 +110,24 @@ export const highlightRepository = {
       });
 
       if (rows.length > 0) {
-        await supabase.from('user_highlights').upsert(rows, { onConflict: 'user_id,id' });
+        const { error: upsertError } = await supabase
+          .from('user_highlights')
+          .upsert(rows, { onConflict: 'user_id,id' });
+
+        if (upsertError) throw upsertError;
       }
 
       return merged;
     } catch (e) {
       console.error('[Supabase] Erro ao sincronizar grifos:', e);
-      return local;
+      return readAll(user);
     }
   },
 
   async importMap(incoming) {
     const user = getUser();
     if (!user) return { ok: false, adicionados: 0, mantidos: 0 };
-    const merged = { ...readAll() };
+    const merged = { ...readAll(user) };
     let adicionados = 0;
     let mantidos = 0;
     for (const [chave, cor] of Object.entries(incoming)) {
@@ -147,8 +138,8 @@ export const highlightRepository = {
         adicionados++;
       }
     }
-    writeAll(merged);
-    await this.syncWithCloud();
+    writeAll(merged, user);
+    await this.syncWithCloud(user);
     return { ok: true, adicionados, mantidos };
   },
 

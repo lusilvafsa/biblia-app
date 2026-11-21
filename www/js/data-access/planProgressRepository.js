@@ -10,34 +10,25 @@ function getUser() {
   return usuarioAtual();
 }
 
-function getStorageKey() {
-  const user = getUser();
-  return user ? `${STORAGE_KEYS.readingPlans}:${user.id}` : STORAGE_KEYS.readingPlans;
+function getStorageKey(user = getUser()) {
+  return user
+    ? `${STORAGE_KEYS.readingPlans}:${user.id}`
+    : STORAGE_KEYS.readingPlans;
 }
 
-function migrateAnonymousProgress() {
-  const user = getUser();
-  if (!user) return;
-
-  const userKey = `${STORAGE_KEYS.readingPlans}:${user.id}`;
-  const already = getItem(userKey, null);
-  if (already) return;
-
-  const anonimo = getItem(STORAGE_KEYS.readingPlans, {});
-  setItem(userKey, anonimo);
+function getScopedStorageKey(baseKey, user = getUser()) {
+  return user ? `${baseKey}:${user.id}` : baseKey;
 }
 
-function readAll() {
-  migrateAnonymousProgress();
-  return getItem(getStorageKey(), {});
+function readAll(user = getUser()) {
+  return getItem(getStorageKey(user), {});
 }
 
-function writeAll(data) {
-  setItem(getStorageKey(), data);
+function writeAll(data, user = getUser()) {
+  setItem(getStorageKey(user), data);
 }
 
-function syncPlan(planId, diasConcluidos) {
-  const user = getUser();
+function syncPlan(planId, diasConcluidos, user = getUser()) {
   if (!user) return;
 
   void supabase
@@ -57,11 +48,10 @@ function syncPlan(planId, diasConcluidos) {
 }
 
 export const planProgressRepository = {
-  async syncWithCloud() {
-    const user = getUser();
+  async syncWithCloud(user = getUser()) {
     if (!user) return {};
 
-    const local = readAll();
+    const local = readAll(user);
 
     try {
       const { data, error } = await supabase
@@ -84,7 +74,8 @@ export const planProgressRepository = {
         }
       });
 
-      writeAll(merged);
+      // Grava no espaço da conta capturada, mesmo se a sessão mudar.
+      writeAll(merged, user);
 
       const rows = Object.entries(merged).map(([planId, info]) => ({
         user_id: user.id,
@@ -94,28 +85,34 @@ export const planProgressRepository = {
       }));
 
       if (rows.length > 0) {
-        await supabase.from('user_plan_progress').upsert(rows, { onConflict: 'user_id,plan_id' });
+        const { error: upsertError } = await supabase
+          .from('user_plan_progress')
+          .upsert(rows, { onConflict: 'user_id,plan_id' });
+
+        if (upsertError) throw upsertError;
       }
 
       return merged;
     } catch (e) {
       console.error('[Supabase] Erro ao sincronizar progresso dos planos:', e);
-      return local;
+      return readAll(user);
     }
   },
 
   markStarted(planId) {
-    const lista = getItem('biblia:plans-started', []);
+    const user = getUser();
+    const lista = getItem(getScopedStorageKey('biblia:plans-started', user), []);
     if (!lista.includes(planId)) {
       lista.push(planId);
-      setItem('biblia:plans-started', lista);
+      setItem(getScopedStorageKey('biblia:plans-started', user), lista);
     }
   },
 
   markChapterRead(bookIndex, chapterIndex) {
-    const iniciados = getItem('biblia:plans-started', []);
+    const user = getUser();
+    const iniciados = getItem(getScopedStorageKey('biblia:plans-started', user), []);
     if (!iniciados.length) return;
-    const parcial = getItem('biblia:plans-partial', {});
+    const parcial = getItem(getScopedStorageKey('biblia:plans-partial', user), {});
     const chave = bookIndex + ':' + chapterIndex;
     let mudou = false;
     iniciados.forEach((planId) => {
@@ -135,7 +132,7 @@ export const planProgressRepository = {
         }
       });
     });
-    if (mudou) setItem('biblia:plans-partial', parcial);
+    if (mudou) setItem(getScopedStorageKey('biblia:plans-partial', user), parcial);
   },
 
   exportAll() {
@@ -145,7 +142,7 @@ export const planProgressRepository = {
   async importPlans(incoming) {
     const user = getUser();
     if (!user) return { ok: false, adicionados: 0, planos: 0 };
-    const all = { ...readAll() };
+    const all = { ...readAll(user) };
     let adicionados = 0;
     let planos = 0;
     for (const [planId, valor] of Object.entries(incoming)) {
@@ -158,8 +155,8 @@ export const planProgressRepository = {
         planos++;
       }
     }
-    if (adicionados > 0) writeAll(all);
-    await this.syncWithCloud();
+    if (adicionados > 0) writeAll(all, user);
+    await this.syncWithCloud(user);
     return { ok: true, adicionados, planos };
   },
 
@@ -171,13 +168,14 @@ export const planProgressRepository = {
     return this.getDoneDays(planId).includes(dia);
   },
   toggleDay(planId, dia) {
-    const all = readAll();
+    const user = getUser();
+    const all = readAll(user);
     const current = all[planId]?.diasConcluidos || [];
     const isDone = current.includes(dia);
     const updated = isDone ? current.filter((d) => d !== dia) : [...current, dia];
     all[planId] = { diasConcluidos: updated };
-    writeAll(all);
-    syncPlan(planId, updated);
+    writeAll(all, user);
+    syncPlan(planId, updated, user);
     return !isDone;
   },
 };

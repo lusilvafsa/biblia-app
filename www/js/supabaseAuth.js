@@ -129,7 +129,15 @@ export async function excluirContaAtual() {
 
   esquecerConta(user.email || "");
 
-  const chaves = ["biblia:favorites", "biblia:highlights", "biblia:reading-plans"];
+  const chaves = [
+    "biblia:favorites",
+    "biblia:highlights",
+    "biblia:reading-plans",
+    "biblia:bible-progress",
+    "biblia:home-favorites",
+    "biblia:plans-started",
+    "biblia:plans-partial",
+  ];
   for (const base of chaves) {
     try {
       window.localStorage.removeItem(base + ":" + user.id);

@@ -51,7 +51,7 @@ function accountTemplate(user = null) {
           ${escapeHtml(user.email || 'Usuário')}
         </div>
         <div class="menu-desc">
-          Conta sincronizada com a nuvem
+          Sessão salva neste aparelho
         </div>
       </div>
 
@@ -1304,34 +1304,37 @@ export const profilePage = {
   }
 };
 
-let sincronizacaoEmAndamento = false;
+const sincronizacoesEmAndamento = new Set();
 
 async function sincronizarDadosDaConta(user) {
-  if (!user || sincronizacaoEmAndamento) return;
+  if (!user?.id || sincronizacoesEmAndamento.has(user.id)) {
+    return;
+  }
 
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     console.log('[Cloud Sync] Sem internet. Sincronização adiada.');
     return;
   }
 
-  sincronizacaoEmAndamento = true;
+  const userId = user.id;
+  sincronizacoesEmAndamento.add(userId);
 
   try {
-    await favoritesRepository.syncWithCloud();
+    await favoritesRepository.syncWithCloud(user);
     console.log('[Cloud Sync] Favoritos sincronizados.');
 
-    await progressRepository.syncWithCloud();
+    await progressRepository.syncWithCloud(user);
     console.log('[Cloud Sync] Progresso de leitura sincronizado.');
 
-    await highlightRepository.syncWithCloud();
+    await highlightRepository.syncWithCloud(user);
     console.log('[Cloud Sync] Grifos sincronizados.');
 
-    await planProgressRepository.syncWithCloud();
+    await planProgressRepository.syncWithCloud(user);
     console.log('[Cloud Sync] Progresso dos planos sincronizado.');
   } catch (error) {
     console.error('[Cloud Sync] Falha na sincronização:', error);
   } finally {
-    sincronizacaoEmAndamento = false;
+    sincronizacoesEmAndamento.delete(userId);
   }
 }
 

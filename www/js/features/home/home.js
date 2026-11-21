@@ -3,6 +3,7 @@ import { qs, qsa, el } from '../../utils/dom.js';
 import { icons } from '../../components/icons.js';
 import { toast } from '../../utils/toast.js';
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
+import { usuarioAtual } from '../../supabaseAuth.js';
 import { speak, stopSpeech } from '../../utils/speech.js';
 import { navigateTo } from '../../router.js';
 import { ALL_VERSES as DAILY_VERSES, verseIndexForDate } from '../../utils/verseOfDay.js';
@@ -21,24 +22,55 @@ import { requestAutoStart } from '../bible/reader.js';
 let verseIndex = verseIndexForDate();
 let isSpeakingVerse = false;
 
+function homeFavoritesKey(user = usuarioAtual()) {
+  return user
+    ? `${STORAGE_KEYS.homeFavorites}:${user.id}`
+    : STORAGE_KEYS.homeFavorites;
+}
+
+function readHomeFavorites(user = usuarioAtual()) {
+  const key = homeFavoritesKey(user);
+  const saved = getItem(key, null);
+
+  if (Array.isArray(saved)) {
+    return saved;
+  }
+
+  // A lista antiga é preservada no espaço anônimo.
+  // Ela nunca é importada automaticamente para uma conta.
+  if (!user) {
+    const legacy = getItem(STORAGE_KEYS.favorites, []);
+    const refs = Array.isArray(legacy)
+      ? legacy.filter(ref => typeof ref === 'string')
+      : [];
+
+    setItem(key, refs);
+    return refs;
+  }
+
+  return [];
+}
+
 function isBookmarked(ref) {
-  const favorites = getItem(STORAGE_KEYS.favorites, []);
-  return favorites.includes(ref);
+  return readHomeFavorites().includes(ref);
 }
 
 function toggleBookmark(ref) {
-  const favorites = getItem(STORAGE_KEYS.favorites, []);
+  const user = usuarioAtual();
+  const favorites = readHomeFavorites(user);
   const idx = favorites.indexOf(ref);
+
   if (idx >= 0) {
     favorites.splice(idx, 1);
-    setItem(STORAGE_KEYS.favorites, favorites);
+    setItem(homeFavoritesKey(user), favorites);
     toast.info('Favorito removido');
   } else {
     favorites.push(ref);
-    setItem(STORAGE_KEYS.favorites, favorites);
+    setItem(homeFavoritesKey(user), favorites);
     toast.success('Favoritado!');
   }
-  return isBookmarked(ref);
+
+  return favorites.includes(ref);
 }
 
 function planCardData(planId) {

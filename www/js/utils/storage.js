@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   bibleProgress: 'biblia:bible-progress',
   bibleVersion: 'biblia:bible-version',
   favorites: 'biblia:favorites',
+  homeFavorites: 'biblia:home-favorites',
   anonymousFavorites: 'biblia:favorites:anonymous',
   settings: 'biblia:settings',
   voice: 'biblia:voice-settings',

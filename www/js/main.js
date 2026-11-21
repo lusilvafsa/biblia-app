@@ -10,6 +10,7 @@ import { getTheme, toggleTheme, onThemeChange } from './state/theme.js';
 import { initDailyNotification } from './utils/dailyNotification.js';
 import { iniciarVerificacaoDeVersao } from './utils/updateCheck.js';
 import { initOnboarding } from './features/onboarding/onboarding.js';
+import { aguardarAuthInicial } from './supabaseAuth.js';
 
 import { homePage } from './features/home/home.js';
 import { bookListPage } from './features/bible/bookList.js';
@@ -150,11 +151,12 @@ function initRoutes() {
   });
 }
 
-function init() {
+async function init() {
   bindHeaderTitleElement(qs('#headerTitle'));
   initSplashScreen();
   initBottomNavIcons();
   initRoutes();
+  await aguardarAuthInicial();
   initRouter(qs('#appContent'));
   initDailyNotification();
   iniciarVerificacaoDeVersao();

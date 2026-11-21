@@ -14,32 +14,26 @@ function getUser() {
   return usuarioAtual();
 }
 
-function getStorageKey() {
-  const user = getUser();
-
-  if (!user) {
-    return STORAGE_KEYS.anonymousFavorites;
-  }
-
-  return `${STORAGE_KEYS.favorites}:${user.id}`;
+function getStorageKey(user = getUser()) {
+  return user
+    ? `${STORAGE_KEYS.favorites}:${user.id}`
+    : STORAGE_KEYS.anonymousFavorites;
 }
 
 /*
- * Migra somente registros completos da chave antiga.
- * Textos simples usados pela página inicial não são importados.
+ * Registros legados são preservados no espaço anônimo.
+ * Nunca são importados automaticamente para uma conta.
  */
-function migrateLegacyFavorites() {
-  const user = getUser();
+function readAll(user = getUser()) {
+  const key = getStorageKey(user);
+  const saved = getItem(key, null);
 
-  if (!user) {
-    return;
+  if (Array.isArray(saved)) {
+    return saved;
   }
 
-  const userKey = getStorageKey();
-  const existingUserItems = getItem(userKey, null);
-
-  if (Array.isArray(existingUserItems)) {
-    return;
+  if (user) {
+    return [];
   }
 
   const legacyItems = getItem(STORAGE_KEYS.favorites, []);
@@ -52,28 +46,12 @@ function migrateLegacyFavorites() {
       )
     : [];
 
-  setItem(userKey, validItems);
-
-  if (validItems.length > 0) {
-    console.log(
-      '[Favoritos] Registros antigos migrados para o usuário:',
-      user.id
-    );
-  }
+  setItem(key, validItems);
+  return validItems;
 }
 
-function readAll() {
-  if (getUser()) {
-    migrateLegacyFavorites();
-  }
-
-  const saved = getItem(getStorageKey(), []);
-
-  return Array.isArray(saved) ? saved : [];
-}
-
-function writeAll(items) {
-  return setItem(getStorageKey(), items);
+function writeAll(items, user = getUser()) {
+  return setItem(getStorageKey(user), items);
 }
 
 function itemToRow(item, userId) {
@@ -204,10 +182,8 @@ function createEntry(info) {
 }
 
 export const favoritesRepository = {
-  async syncWithCloud() {
-    const user = getUser();
-
-    const localItems = readAll();
+  async syncWithCloud(user = getUser()) {
+    const localItems = readAll(user);
 
     if (!user) {
       return localItems;
@@ -262,7 +238,8 @@ export const favoritesRepository = {
 
       const mergedItems = Array.from(mergedById.values());
 
-      writeAll(mergedItems);
+      // A gravação usa a conta capturada no início da sincronização.
+      writeAll(mergedItems, user);
 
       if (mergedItems.length > 0) {
         const rows = mergedItems.map(item =>
@@ -295,7 +272,8 @@ export const favoritesRepository = {
   },
 
   async importItems(incoming) {
-    const porId = new Map(readAll().map((item) => [item.id, item]));
+    const user = getUser();
+    const porId = new Map(readAll(user).map((item) => [item.id, item]));
     let adicionados = 0;
     let atualizados = 0;
     let mantidos = 0;
@@ -315,8 +293,8 @@ export const favoritesRepository = {
         mantidos++;
       }
     }
-    writeAll(Array.from(porId.values()));
-    await this.syncWithCloud();
+    writeAll(Array.from(porId.values()), user);
+    await this.syncWithCloud(user);
     return { ok: true, adicionados, atualizados, mantidos };
   },
 
