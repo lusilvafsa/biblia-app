@@ -1,4 +1,8 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.116.0";
+const createClient = globalThis.supabase?.createClient;
+
+if (typeof createClient !== "function") {
+  throw new Error("Biblioteca local do Supabase não foi carregada.");
+}
 
 const SUPABASE_URL = "https://uescntrcecdkonpbkkhc.supabase.co";
 

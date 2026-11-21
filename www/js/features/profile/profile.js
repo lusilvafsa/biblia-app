@@ -1301,60 +1301,58 @@ export const profilePage = {
       currentContainer = null;
     };
 
-    // Ao sair do Perfil, solta o container para que redesenhos tardios
-    // (sincronização após login) não escrevam por cima de outra tela.
-    return () => {
-      currentContainer = null;
-    };
   }
 };
 
+let sincronizacaoEmAndamento = false;
+
+async function sincronizarDadosDaConta(user) {
+  if (!user || sincronizacaoEmAndamento) return;
+
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    console.log('[Cloud Sync] Sem internet. Sincronização adiada.');
+    return;
+  }
+
+  sincronizacaoEmAndamento = true;
+
+  try {
+    await favoritesRepository.syncWithCloud();
+    console.log('[Cloud Sync] Favoritos sincronizados.');
+
+    await progressRepository.syncWithCloud();
+    console.log('[Cloud Sync] Progresso de leitura sincronizado.');
+
+    await highlightRepository.syncWithCloud();
+    console.log('[Cloud Sync] Grifos sincronizados.');
+
+    await planProgressRepository.syncWithCloud();
+    console.log('[Cloud Sync] Progresso dos planos sincronizado.');
+  } catch (error) {
+    console.error('[Cloud Sync] Falha na sincronização:', error);
+  } finally {
+    sincronizacaoEmAndamento = false;
+  }
+}
+
 observarUsuario(async (user) => {
-
   if (user) {
-    try {
-      await favoritesRepository.syncWithCloud();
-
-      console.log(
-        '[Cloud Sync] Favoritos sincronizados após login.'
-      );
-
-      await progressRepository.syncWithCloud();
-
-      console.log(
-        '[Cloud Sync] Progresso de leitura sincronizado após login.'
-      );
-
-      await highlightRepository.syncWithCloud();
-
-      console.log(
-        '[Cloud Sync] Grifos sincronizados após login.'
-      );
-
-      await planProgressRepository.syncWithCloud();
-
-      console.log(
-        '[Cloud Sync] Progresso dos planos de leitura sincronizado após login.'
-      );
-
-    } catch (error) {
-      console.error(
-        '[Cloud Sync] Falha após login:',
-        error
-      );
-    }
+    void sincronizarDadosDaConta(user);
   }
 
   if (currentContainer) {
-    currentContainer.innerHTML =
-      template(user);
-
-    bindAccountEvents(
-      currentContainer
-    );
-
-    bindNavigationEvents(
-      currentContainer
-    );
+    currentContainer.innerHTML = template(user);
+    bindAccountEvents(currentContainer);
+    bindNavigationEvents(currentContainer);
   }
 });
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    const user = usuarioAtual();
+
+    if (user) {
+      void sincronizarDadosDaConta(user);
+    }
+  });
+}

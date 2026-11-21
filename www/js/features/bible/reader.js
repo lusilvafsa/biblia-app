@@ -16,9 +16,8 @@ import { qs, el } from '../../utils/dom.js';
 import { icons } from '../../components/icons.js';
 import { toast } from '../../utils/toast.js';
 import { navigateTo } from '../../router.js';
-import { getBook, getChapter, getAllBooks } from '../../data-access/bibleRepository.js';
+import { getBook, getChapter, getChapterExtras, getAllBooks } from '../../data-access/bibleRepository.js';
 import { progressRepository } from '../../data-access/progressRepository.js';
-import { aguardarAuthInicial } from '../../supabaseAuth.js';
 import { statsRepository } from '../../data-access/statsRepository.js';
 import { getItem, setItem, STORAGE_KEYS } from '../../utils/storage.js';
 import { speak, stopSpeech, isSpeechSupported } from '../../utils/speech.js';
@@ -30,6 +29,7 @@ import { showVerseExplanation } from './verseExplanation.js';
 import { openVerseNoteEditor } from './verseNote.js';
 import { openDiaryPicker } from '../diary/diaryPicker.js';
 import { getVerseCommentary } from '../../../data/verseCommentary.js';
+import { TITLE_STUDIES } from '../../../data/titleStudies.js';
 
 // Texto curto da explicação para ser lido depois do versículo (vazio se a opção estiver desligada
 // ou se o versículo não tiver explicação).
@@ -38,6 +38,138 @@ function explicacaoParaFala(bookIdx, chapterIdx, verseIdx) {
   const e = getVerseCommentary(bookIdx, chapterIdx, verseIdx);
   const texto = e && typeof e.explicacao === 'string' ? e.explicacao.replace(/\s+/g, ' ').trim() : '';
   return texto ? ' Explicação: ' + texto : '';
+}
+
+// Prepara o estudo completo para ser narrado ao final da passagem.
+function separarConceitos(texto) {
+  return String(texto || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(/\.\s+(?=[A-ZÀ-Ú][^:]{1,70}:)/u)
+    .map((item) => item.trim().replace(/[.]$/, ''))
+    .filter(Boolean);
+}
+
+function referenciaParaFala(ref) {
+  const referencia = String(ref || '').trim();
+
+  const salmos = referencia.match(
+    /^Salmos?\s+(\d+)(?:\s*:\s*(\d+)(?:\s*[–—-]\s*(\d+))?)?$/i
+  );
+
+  if (salmos) {
+    if (!salmos[2]) return `Salmos ${salmos[1]}`;
+
+    if (salmos[3]) {
+      return `Salmos ${salmos[1]}, versículos ${salmos[2]} a ${salmos[3]}`;
+    }
+
+    return `Salmos ${salmos[1]}, versículo ${salmos[2]}`;
+  }
+
+  const formasNumeradas = [
+    [/^1 Samuel\b/i, 'Primeiro Samuel'],
+    [/^2 Samuel\b/i, 'Segundo Samuel'],
+    [/^1 Reis\b/i, 'Primeiro Reis'],
+    [/^2 Reis\b/i, 'Segundo Reis'],
+    [/^1 Crônicas\b/i, 'Primeiro Crônicas'],
+    [/^2 Crônicas\b/i, 'Segundo Crônicas'],
+    [/^1 Coríntios\b/i, 'Primeira aos Coríntios'],
+    [/^2 Coríntios\b/i, 'Segunda aos Coríntios'],
+    [/^1 Tessalonicenses\b/i, 'Primeira aos Tessalonicenses'],
+    [/^2 Tessalonicenses\b/i, 'Segunda aos Tessalonicenses'],
+    [/^1 Timóteo\b/i, 'Primeira a Timóteo'],
+    [/^2 Timóteo\b/i, 'Segunda a Timóteo'],
+    [/^1 Pedro\b/i, 'Primeira Carta de Pedro'],
+    [/^2 Pedro\b/i, 'Segunda Carta de Pedro'],
+    [/^1 João\b/i, 'Primeira Carta de João'],
+    [/^2 João\b/i, 'Segunda Carta de João'],
+    [/^3 João\b/i, 'Terceira Carta de João']
+  ];
+
+  let referenciaFalada = referencia;
+
+  for (const [padrao, forma] of formasNumeradas) {
+    if (padrao.test(referenciaFalada)) {
+      referenciaFalada = referenciaFalada.replace(padrao, forma);
+      break;
+    }
+  }
+
+  return referenciaFalada
+    .replace(
+      /^(.+?)\s+(\d+):(\d+)\s*[–—-]\s*(\d+)$/,
+      '$1, capítulo $2, versículos $3 a $4'
+    )
+    .replace(
+      /^(.+?)\s+(\d+):(\d+)$/,
+      '$1, capítulo $2, versículo $3'
+    )
+    .replace(
+      /^([^,]+?)\s+(\d+)$/,
+      '$1, capítulo $2'
+    );
+}
+
+function estudoCompletoParaFala(bookIdx, chapterIdx, verseIdx, verseCount, chapterTitles) {
+  if (getVoiceSettings().readTitleStudies !== true) return '';
+
+  const starts = Object.keys(chapterTitles || {})
+    .map(Number)
+    .filter((n) => Number.isInteger(n) && n >= 1)
+    .sort((a, b) => a - b);
+
+  const verseNumber = verseIdx + 1;
+  let start = 0;
+
+  for (const n of starts) {
+    if (n > verseNumber) break;
+    start = n;
+  }
+
+  if (!start) return '';
+
+  const nextStart = starts.find((n) => n > start);
+  const end = nextStart ? nextStart - 1 : verseCount;
+
+  if (verseNumber !== end) return '';
+
+  const study = TITLE_STUDIES[`${bookIdx}-${chapterIdx}-${start - 1}`];
+  if (!study) return '';
+
+  const parts = [];
+  const add = (label, value) => {
+    if (typeof value === 'string' && value.trim()) {
+      parts.push(`${label}: ${value.replace(/\s+/g, ' ').trim()}`);
+    }
+  };
+
+  const identificacaoFalada = (study.identificacao || '').replace(
+    /^(.+?)\s+(\d+):(\d+)\s*[–—-]\s*(\d+)\s*[—–-]\s*(.+)$/,
+    '$1, capítulo $2, versículos $3 a $4. $5'
+  );
+
+  add('Estudo da passagem', identificacaoFalada);
+  add('Explicação', study.explicacao);
+  add('Contexto bíblico', study.contexto);
+  add('Aplicação', study.aplicacao);
+  const conceitos = separarConceitos(study.conceitos);
+  if (conceitos.length) {
+    parts.push('Conceitos importantes. ' + conceitos.join('. '));
+  }
+
+  if (Array.isArray(study.referencias) && study.referencias.length) {
+    const refs = study.referencias
+      .filter((r) => r && typeof r.ref === 'string' && typeof r.explicacao === 'string')
+      .map((r) => `${referenciaParaFala(r.ref)}: ${r.explicacao.replace(/\s+/g, ' ').trim()}`)
+      .filter((s) => s.trim());
+
+    if (refs.length) {
+      parts.push('Referências bíblicas relacionadas: ' + refs.join('. '));
+    }
+  }
+
+  return parts.join('. ').replace(/\s+/g, ' ').trim();
 }
 
 // Bloco com a explicação curta, mostrado sob o versículo quando a opção está ligada.
@@ -124,9 +256,8 @@ function template() {
 }
 
 export const readerPage = {
-  async render(container, params) {
-    // Aguarda o Supabase restaurar a sessão antes de consultar ou salvar o progresso.
-    await aguardarAuthInicial();
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
 
     const bookIndex = Number(params.book);
     const chapterIndex = Number(params.chapter);
@@ -135,15 +266,22 @@ export const readerPage = {
 
     container.innerHTML = '<div class="state-message">Carregando capítulo...</div>';
 
-    let book, verses;
+    let book, verses, chapterExtras;
     try {
-      [book, verses] = await Promise.all([getBook(bookIndex), getChapter(bookIndex, chapterIndex)]);
+      [book, verses, chapterExtras] = await Promise.all([
+        getBook(bookIndex),
+        getChapter(bookIndex, chapterIndex),
+        getChapterExtras(bookIndex, chapterIndex),
+      ]);
+      if (!isCurrent()) return;
       statsRepository.registerActivityToday();
     } catch (err) {
+      if (!isCurrent()) return;
       container.innerHTML = `<div class="state-message error">Capítulo não encontrado.</div>`;
       return;
     }
 
+    if (!isCurrent()) return;
     container.innerHTML = template();
     setHeaderTitle(book.name);
     qs('#readSubtitle', container).textContent = `${book.name} — Capítulo ${chapterIndex + 1}`;
@@ -206,6 +344,63 @@ export const readerPage = {
     } catch (e) {
       chapterTitles = {};
     }
+    if (!isCurrent()) return;
+    const showTitles = getVoiceSettings().readTitles !== false;
+
+    // Identifica o início de cada passagem para posicionar seu estudo no final.
+    const titleStarts = Object.keys(chapterTitles)
+      .map(Number)
+      .filter((n) => Number.isInteger(n) && n >= 1)
+      .sort((a, b) => a - b);
+
+    const showTitleStudies = getVoiceSettings().showTitleStudies === true;
+
+
+    function appendChapterExtras(position) {
+      chapterExtras
+        .filter((item) => item && item.aposVersiculo === position && item.texto)
+        .forEach((item) => {
+          const tipo = item.tipo;
+          const classe = `onbv-extra onbv-extra-${tipo}`;
+          let elemento;
+
+          if (tipo === 's1') {
+            elemento = el('h3', { className: classe }, item.texto);
+            elemento.style.cssText =
+              'margin:22px 0 10px;font-size:' + Math.round(settings.fontSize * 1.05) +
+              'px;font-weight:700;color:var(--gold);';
+          } else if (tipo === 'd') {
+            elemento = el('div', { className: classe }, item.texto);
+            elemento.style.cssText =
+              'margin:8px 0 14px;padding:8px 12px;font-style:italic;' +
+              'font-size:' + Math.round(settings.fontSize * 0.9) +
+              'px;color:var(--text-secondary);background:rgba(201,169,110,.07);' +
+              'border-radius:8px;';
+          } else if (tipo === 'sp') {
+            elemento = el('div', { className: classe }, item.texto);
+            elemento.style.cssText =
+              'margin:14px 0 4px;font-size:' + Math.round(settings.fontSize * 0.85) +
+              'px;font-weight:700;color:var(--gold);';
+          } else if (tipo === 'qa') {
+            elemento = el('div', { className: classe }, item.texto);
+            elemento.style.cssText =
+              'margin:14px 0 6px;font-size:' + Math.round(settings.fontSize * 0.85) +
+              'px;font-style:italic;font-weight:600;color:var(--text-secondary);';
+          } else if (tipo === 'lh') {
+            elemento = el('div', { className: classe }, item.texto);
+            elemento.style.cssText =
+              'margin:14px 0 6px;font-size:' + Math.round(settings.fontSize * 0.9) +
+              'px;font-weight:700;color:var(--text-secondary);';
+          } else {
+            return;
+          }
+
+          readContent.appendChild(elemento);
+        });
+    }
+
+    appendChapterExtras(0);
+
     verses.forEach((text, idx) => {
       const p = el('p', { className: 'verse-line' }, [
         el('sup', { className: 'verse-num' }, String(idx + 1)),
@@ -244,7 +439,7 @@ export const readerPage = {
         // a explicação completa quando o usuário realmente quiser.
         abrirBarra(p.getBoundingClientRect());
       });
-      if (chapterTitles[String(idx + 1)]) {
+      if (showTitles && chapterTitles[String(idx + 1)]) {
         const h = el('h3', { className: 'pericope-title' }, chapterTitles[String(idx + 1)]);
         h.style.cssText = 'margin:20px 0 6px;font-weight:700;color:var(--gold);font-size:' + Math.round(settings.fontSize * 0.95) + 'px;';
         readContent.appendChild(h);
@@ -253,12 +448,107 @@ export const readerPage = {
       verseEls.push(p);
       const notaExplicacao = criarNotaDeExplicacao(bookIndex, chapterIndex, idx, settings);
       if (notaExplicacao) readContent.appendChild(notaExplicacao);
+
+      // Exibe o estudo completo após o último versículo da passagem.
+      if (showTitleStudies && titleStarts.length > 0) {
+        const numeroVersiculo = idx + 1;
+        const inicioAtual = titleStarts
+          .filter((n) => n <= numeroVersiculo)
+          .pop();
+
+        if (inicioAtual !== undefined) {
+          const proximoInicio = titleStarts.find((n) => n > inicioAtual);
+          const fimPassagem = proximoInicio
+            ? proximoInicio - 1
+            : verses.length;
+
+          if (numeroVersiculo === fimPassagem) {
+            const chaveEstudo = `${bookIndex}-${chapterIndex}-${inicioAtual - 1}`;
+            const estudo = TITLE_STUDIES[chaveEstudo];
+
+            if (estudo) {
+              const card = el('div', { className: 'title-study-card' }, []);
+              card.style.cssText =
+                'margin:22px 0 28px;padding:16px;border-left:3px solid var(--gold);' +
+                'background:rgba(201,169,110,.08);border-radius:0 10px 10px 0;';
+
+              const titulo = el('h3', { className: 'title-study-heading' },
+                estudo.identificacao || 'Estudo da passagem');
+              titulo.style.cssText =
+                'margin:0 0 14px;font-size:1.05em;color:var(--gold);';
+              card.appendChild(titulo);
+
+              const secoes = [
+                ['Explicação', estudo.explicacao],
+                ['Contexto bíblico', estudo.contexto],
+                ['Aplicação', estudo.aplicacao],
+                ['Conceitos importantes', estudo.conceitos],
+              ];
+
+              secoes.forEach(([rotulo, conteudo]) => {
+                if (typeof conteudo !== 'string' || !conteudo.trim()) return;
+
+                const secao = el('section', { className: 'title-study-section' }, []);
+                const subtitulo = el('h4', {}, rotulo);
+
+                subtitulo.style.cssText = 'margin:14px 0 6px;font-size:0.95em;';
+                secao.appendChild(subtitulo);
+
+                if (rotulo === 'Conceitos importantes') {
+                  const lista = el('ul', {}, []);
+                  lista.style.cssText =
+                    'margin:4px 0 0;padding-left:22px;line-height:1.65;color:var(--text-primary);';
+
+                  separarConceitos(conteudo).forEach((item) => {
+                    const topico = el('li', {}, item);
+                    topico.style.cssText = 'margin:0 0 7px;';
+                    lista.appendChild(topico);
+                  });
+
+                  secao.appendChild(lista);
+                } else {
+                  const paragrafo = el('p', {}, conteudo);
+                  paragrafo.style.cssText =
+                    'margin:0;line-height:1.65;color:var(--text-primary);';
+                  secao.appendChild(paragrafo);
+                }
+
+                card.appendChild(secao);
+              });
+
+              if (Array.isArray(estudo.referencias) && estudo.referencias.length) {
+                const secao = el('section', { className: 'title-study-section' }, []);
+                const subtitulo = el('h4', {}, 'Referências bíblicas relacionadas');
+                subtitulo.style.cssText = 'margin:14px 0 6px;font-size:0.95em;';
+                secao.appendChild(subtitulo);
+
+                estudo.referencias.forEach((item) => {
+                  if (!item || !item.ref) return;
+                  const texto = item.ref +
+                    (item.explicacao ? ' — ' + item.explicacao : '');
+                  const paragrafo = el('p', {}, texto);
+                  paragrafo.style.cssText =
+                    'margin:6px 0;line-height:1.55;color:var(--text-secondary);';
+                  secao.appendChild(paragrafo);
+                });
+
+                card.appendChild(secao);
+              }
+
+              readContent.appendChild(card);
+            }
+          }
+        }
+      }
+
+      appendChapterExtras(idx + 1);
     });
 
     // Progresso salvo para ESTE capítulo específico: se existir um
     // versículo em andamento, o botão nasce oferecendo "Continuar" a
     // partir dali em vez de "Iniciar" do zero.
     const savedProgress = await progressRepository.getProgress();
+    if (!isCurrent()) return;
     const hasResumableProgress =
       savedProgress.book === bookIndex && savedProgress.chapter === chapterIndex && savedProgress.verse > 0;
 
@@ -296,6 +586,7 @@ export const readerPage = {
     const stopBtn = qs('#btnStop', container);
 
     let readingState = 'idle'; // 'idle' | 'playing' | 'paused'
+    let pendingTitleStudyText = '';
 
     const hasRequestedVerse =
       Number.isInteger(requestedVerse) &&
@@ -437,10 +728,12 @@ export const readerPage = {
       const map = skipIntro ? [] : [{ chapter: chapterIndex, verse: -1 }];
       let chars = skipIntro ? 0 : items[0].length;
       const titles = await getBookTitles();
-      const lerTitulos = getVoiceSettings().readTitles !== false;
-      const tCur = lerTitulos ? (titles[String(chapterIndex + 1)] || {}) : {};
+      const settings = getVoiceSettings();
+      const lerTitulos = settings.readTitles !== false;
+      const lerEstudos = settings.readTitleStudies === true;
+      const tCur = titles[String(chapterIndex + 1)] || {};
       for (let i = fromVerse; i < verses.length; i++) {
-        if (tCur[String(i + 1)]) {
+        if (lerTitulos && tCur[String(i + 1)]) {
           items.push(tCur[String(i + 1)]);
           map.push({ chapter: chapterIndex, verse: -1 });
           chars += tCur[String(i + 1)].length;
@@ -449,6 +742,17 @@ export const readerPage = {
         items.push('Versículo ' + (i + 1) + '. ' + verses[i] + expl);
         map.push({ chapter: chapterIndex, verse: i });
         chars += verses[i].length + 14 + expl.length;
+
+        if (lerEstudos) {
+          const estudo = estudoCompletoParaFala(
+            bookIndex, chapterIndex, i, verses.length, tCur
+          );
+          if (estudo) {
+            items.push(estudo);
+            map.push({ chapter: chapterIndex, verse: -1 });
+            chars += estudo.length;
+          }
+        }
       }
       const lastChapter = book.chapterCount - 1;
       let ch = chapterIndex + 1;
@@ -457,9 +761,9 @@ export const readerPage = {
         try { vs = await getChapter(bookIndex, ch); } catch (e) { break; }
         items.push('Você concluiu ' + book.name + ' capítulo ' + ch + '. Agora vamos continuar com ' + book.name + ' capítulo ' + (ch + 1) + '.');
         map.push({ chapter: ch, verse: -1 });
-        const tNext = lerTitulos ? (titles[String(ch + 1)] || {}) : {};
+        const tNext = titles[String(ch + 1)] || {};
         for (let i = 0; i < vs.length; i++) {
-          if (tNext[String(i + 1)]) {
+          if (lerTitulos && tNext[String(i + 1)]) {
             items.push(tNext[String(i + 1)]);
             map.push({ chapter: ch, verse: -1 });
             chars += tNext[String(i + 1)].length;
@@ -468,6 +772,17 @@ export const readerPage = {
           items.push('Versículo ' + (i + 1) + '. ' + vs[i] + expl);
           map.push({ chapter: ch, verse: i });
           chars += vs[i].length + 14 + expl.length;
+
+          if (lerEstudos) {
+            const estudo = estudoCompletoParaFala(
+              bookIndex, ch, i, vs.length, tNext
+            );
+            if (estudo) {
+              items.push(estudo);
+              map.push({ chapter: ch, verse: -1 });
+              chars += estudo.length;
+            }
+          }
         }
         ch++;
       }
@@ -477,6 +792,7 @@ export const readerPage = {
     function startNativeNarration(fromVerse, skipIntro) {
       const p = getNativeNarrator();
       if (!p || !p.startChapterNarration) return false;
+      pendingTitleStudyText = '';
       readingState = 'playing';
       readingIndex = fromVerse;
       nativeNarrationActive = true;
@@ -510,6 +826,16 @@ export const readerPage = {
       }, 200);
     }
 
+    function nativePlaybackStateChanged(e) {
+      if (!nativeNarrationActive) return;
+      const playing = !!(e.detail && e.detail.playing);
+      const nextState = playing ? "playing" : "paused";
+      if (readingState === nextState) return;
+      readingState = nextState;
+      if (window.__nativeNarr) window.__nativeNarr.paused = !playing;
+      updateControlsUI();
+    }
+
     function nativeVerseChanged(e) {
       if (!nativeNarrationActive) return;
       const n = Number(e.detail && e.detail.verseIndex);
@@ -519,10 +845,8 @@ export const readerPage = {
       if (prev && prev.verse >= 0) {
         statsRepository.markAudioVerse(bookIndex, prev.chapter, prev.verse);
       }
-      if (prev && prev.verse >= 0 && m.chapter !== prev.chapter) {
-        try { planProgressRepository.markChapterRead(bookIndex, prev.chapter); } catch (e) { /* plano é opcional */ }
-      }
       if (m.chapter !== chapterIndex) {
+        try { planProgressRepository.markChapterRead(bookIndex, chapterIndex); } catch (e) { /* plano é opcional */ }
         nativeFollowChapter(m.chapter, m.verse);
         return;
       }
@@ -560,7 +884,7 @@ export const readerPage = {
       s.follow = null;
       nativeNarrationActive = true;
       nativeMap = s.map;
-      readingState = 'playing';
+      readingState = s.paused ? 'paused' : 'playing';
       updateControlsUI();
       if (s.finishedPending) {
         s.finishedPending = false;
@@ -568,27 +892,68 @@ export const readerPage = {
       }
     })();
 
+    function falarEstudoPendente() {
+      if (!pendingTitleStudyText || readingState !== 'playing') return;
+
+      speak(pendingTitleStudyText, {
+        onEnd: () => {
+          if (readingState !== 'playing') return;
+          pendingTitleStudyText = '';
+          readingIndex++;
+          persistVerseProgress();
+          setTimeout(readLoop, VERSE_PAUSE_MS);
+        },
+        onError: () => {
+          if (readingState !== 'playing') return;
+          toast.error('A leitura do estudo foi interrompida.');
+          stopReading();
+        },
+      });
+    }
+
     function readLoop() {
       if (nativeNarrationActive) return;
       if (readingState !== 'playing') return;
+
+      // Se houve pausa durante o estudo, retoma o estudo antes de avançar.
+      if (pendingTitleStudyText) {
+        falarEstudoPendente();
+        return;
+      }
+
       if (readingIndex >= verses.length) {
         onChapterFinished();
         return;
       }
+
       highlightVerse(readingIndex);
       let text = `Versículo ${readingIndex + 1}. ${verses[readingIndex]}` + explicacaoParaFala(bookIndex, chapterIndex, readingIndex);
       const tituloLido = (getVoiceSettings().readTitles !== false) ? chapterTitles[String(readingIndex + 1)] : null;
       if (tituloLido) text = tituloLido + '. ' + text;
+
       speak(text, {
         onEnd: () => {
           if (readingState !== 'playing') return; // foi pausado/parado durante a fala
-          // Conta o versículo como áudio ouvido somente após
-          // a narração daquele versículo terminar.
+
+          // Conta o versículo uma única vez, após terminar sua narração.
           statsRepository.markAudioVerse(
             bookIndex,
             chapterIndex,
             readingIndex
           );
+
+          pendingTitleStudyText = estudoCompletoParaFala(
+            bookIndex,
+            chapterIndex,
+            readingIndex,
+            verses.length,
+            chapterTitles
+          );
+
+          if (pendingTitleStudyText) {
+            falarEstudoPendente();
+            return;
+          }
 
           readingIndex++;
           persistVerseProgress();
@@ -603,6 +968,7 @@ export const readerPage = {
     }
 
     function onChapterFinished() {
+      pendingTitleStudyText = '';
       try { planProgressRepository.markChapterRead(bookIndex, chapterIndex); } catch (e) { /* plano é opcional */ }
       readingState = 'idle';
       readingIndex = 0;
@@ -665,6 +1031,7 @@ export const readerPage = {
      * conforme pedido — vale tanto para o primeiro play quanto para
      * retomar uma leitura salva de uma sessão anterior. */
     function startFresh(fromVerse) {
+      pendingTitleStudyText = '';
       if (startNativeNarration(fromVerse)) return;
       readingState = 'playing';
       readingIndex = fromVerse;
@@ -715,6 +1082,7 @@ export const readerPage = {
     }
 
     function stopReading() {
+      pendingTitleStudyText = '';
       nativeStop();
       stopSpeech();
       readingState = 'idle';
@@ -731,7 +1099,8 @@ export const readerPage = {
       if (nativeNarrationActive) return; // o serviço nativo controla os versículos
       if (!verses.length) return;
 
-      // Interrompe imediatamente a fala do versículo atual.
+      // Interrompe imediatamente a fala do versículo ou estudo atual.
+      pendingTitleStudyText = '';
       stopSpeech();
 
       // Calcula o novo versículo sem sair dos limites do capítulo.
@@ -761,6 +1130,7 @@ export const readerPage = {
 
       const wasPlaying = readingState === 'playing';
 
+      pendingTitleStudyText = '';
       stopSpeech();
       readingIndex = 0;
 
@@ -778,13 +1148,11 @@ export const readerPage = {
     }
 
 
-    window.addEventListener('media-notification-prev', () => {
-      changeNotificationVerse(-1);
-    });
+    const nativeMediaPrev = () => changeNotificationVerse(-1);
+    const nativeMediaNext = () => changeNotificationVerse(1);
 
-    window.addEventListener('media-notification-next', () => {
-      changeNotificationVerse(1);
-    });
+    window.addEventListener('media-notification-prev', nativeMediaPrev);
+    window.addEventListener('media-notification-next', nativeMediaNext);
 
     playPauseBtn.addEventListener('click', () => {
       if (readingState === 'idle') {
@@ -802,6 +1170,7 @@ export const readerPage = {
       if (!Number.isInteger(verseIndex)) return;
       if (verseIndex < 0 || verseIndex >= verseEls.length) return;
 
+      pendingTitleStudyText = '';
       readingIndex = verseIndex;
       userSelectedVerse = verseIndex;
 
@@ -1042,6 +1411,7 @@ export const readerPage = {
     window.addEventListener('media-notification-pause', nativeMediaPause);
     window.addEventListener('media-notification-stop', nativeMediaStop);
     window.addEventListener('media-notification-verse-changed', nativeVerseChanged);
+    window.addEventListener('media-notification-playback-state', nativePlaybackStateChanged);
     if (!window.__rateListener) {
       window.__rateListener = true;
       window.addEventListener('media-notification-rate-changed', (e) => {
@@ -1334,8 +1704,12 @@ export const readerPage = {
     return () => {
       stopSpeech();
 
+      window.removeEventListener('open-verse', openVerseFromFavorite);
+      window.removeEventListener('media-notification-prev', nativeMediaPrev);
+      window.removeEventListener('media-notification-next', nativeMediaNext);
       window.removeEventListener('media-notification-play', nativeMediaPlay);
       window.removeEventListener('media-notification-verse-changed', nativeVerseChanged);
+      window.removeEventListener('media-notification-playback-state', nativePlaybackStateChanged);
       window.removeEventListener('media-notification-chapter-complete', nativeChapterComplete);
       window.removeEventListener('media-notification-prev-chapter', nativeMediaPrevChapter);
       window.removeEventListener('media-notification-next-chapter', nativeMediaNextChapter);

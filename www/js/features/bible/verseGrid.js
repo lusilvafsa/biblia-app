@@ -11,7 +11,9 @@ import { getBook, getChapter } from '../../data-access/bibleRepository.js';
 import { setHeaderTitle } from '../../state/header.js';
 
 export const verseGridPage = {
-  async render(container, params) {
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
+
     const bookIndex = Number(params.book);
     const chapterIndex = Number(params.chapter);
 
@@ -27,6 +29,7 @@ export const verseGridPage = {
         getChapter(bookIndex, chapterIndex),
       ]);
     } catch (err) {
+      if (!isCurrent()) return;
       console.error('[verseGrid] erro ao carregar capítulo', err);
 
       container.innerHTML =
@@ -35,6 +38,7 @@ export const verseGridPage = {
       return;
     }
 
+    if (!isCurrent()) return;
     setHeaderTitle(`${book.name} — Capítulo ${chapterIndex + 1}`);
 
     const grid = el('div', { className: 'verse-grid' });

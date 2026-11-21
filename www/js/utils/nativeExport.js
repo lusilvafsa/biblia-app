@@ -1,3 +1,5 @@
+import { carregarHtml2Canvas } from './html2canvasLoader.js';
+
 // Exporta um elemento da tela como imagem, funcionando tanto no navegador
 // quanto dentro do APK. O WebView do Android não tem window.print() nem
 // compartilhamento de arquivos via navegador, então no app nativo a
@@ -5,7 +7,12 @@
 // pelo menu nativo do Android (Share) — de onde dá pra imprimir, salvar
 // no Drive, enviar por WhatsApp, etc.
 export async function shareElementAsImage(element, filename, title) {
-  if (typeof html2canvas === 'undefined') {
+  let html2canvas;
+
+  try {
+    html2canvas = await carregarHtml2Canvas();
+  } catch (error) {
+    console.error('[Exportação] Falha ao carregar html2canvas:', error);
     return 'unavailable';
   }
 

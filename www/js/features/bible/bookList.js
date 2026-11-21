@@ -119,21 +119,24 @@ function attachVersionSelector(container, onSwitched) {
 }
 
 export const bookListPage = {
-  async render(container) {
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
     container.innerHTML = '<div class="state-message">Carregando livros...</div>';
 
     let books;
     try {
       books = await getAllBooks();
     } catch (err) {
+      if (!isCurrent()) return;
       container.innerHTML = `
         <div class="state-message error">Não foi possível carregar a Bíblia. Verifique sua conexão e tente novamente.</div>
         ${versionSelectorHtml()}
       `;
-      attachVersionSelector(container, () => bookListPage.render(container));
+      attachVersionSelector(container, () => bookListPage.render(container, params, isCurrent));
       return;
     }
 
+    if (!isCurrent()) return;
     const currentLayout = getSavedLayout();
     container.innerHTML = template(currentLayout);
 
@@ -242,6 +245,6 @@ export const bookListPage = {
       handleSearch();
     });
 
-    attachVersionSelector(container, () => bookListPage.render(container));
+    attachVersionSelector(container, () => bookListPage.render(container, params, isCurrent));
   },
 };

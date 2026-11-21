@@ -40,6 +40,7 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
     public static final String ACTION_START_NARRATION = "com.biblia.deestudo.MEDIA_START_NARRATION";
 
     public static final String EVENT_VERSE_CHANGED = "com.biblia.deestudo.NARRATION_VERSE_CHANGED";
+    public static final String EVENT_PLAYBACK_STATE = "com.biblia.deestudo.NARRATION_PLAYBACK_STATE";
     public static final String EVENT_CHAPTER_COMPLETE = "com.biblia.deestudo.NARRATION_CHAPTER_COMPLETE";
     public static final String EVENT_BOOK_COMPLETE = "com.biblia.deestudo.NARRATION_BOOK_COMPLETE";
     public static final String EVENT_REQUEST_PREV_CHAPTER = "com.biblia.deestudo.NARRATION_REQUEST_PREV_CHAPTER";
@@ -113,12 +114,17 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
 
             @Override
             public void onError(String utteranceId) {
-                if (!narracaoValida(utteranceId)) return;
-                avancarENarrar();
+                falhaNaFala(utteranceId, "O mecanismo de voz não conseguiu reproduzir o item.");
             }
         });
 
         Log.d("BIBLIA_MEDIA", "Motor de voz nativo pronto.");
+
+        // Se a reprodução foi solicitada antes da inicialização do TTS,
+        // inicia a fila agora. Uma pausa anterior mantém playing como false.
+        if (playing && !verses.isEmpty()) {
+            falarVersiculoAtual();
+        }
     }
 
     private void aplicarVoz() {
@@ -176,6 +182,7 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
         Log.d("BIBLIA_MEDIA", "SLEEP TIMER disparou: encerrando a narração");
         pararFala();
         playing = false;
+        notificarEstadoReproducao();
         verses.clear();
         currentIndex = 0;
         updateWakeLock();
@@ -213,6 +220,18 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
         if (tts != null) tts.stop();
     }
 
+    private void falhaNaFala(String utteranceId, String motivo) {
+        if (!narracaoValida(utteranceId)) return;
+
+        // Mantém currentIndex no item que falhou para permitir nova tentativa.
+        utteranceAtual = null;
+        playing = false;
+        updateWakeLock();
+        notificarEstadoReproducao();
+        Log.e("BIBLIA_MEDIA", motivo + " Índice: " + currentIndex);
+        atualizarNotificacao();
+    }
+
     private void avancarENarrar() {
         currentIndex++;
         if (currentIndex < verses.size()) {
@@ -233,12 +252,27 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
         String utteranceId = "verso_" + currentIndex + "_" + (++contadorFala);
         utteranceAtual = utteranceId;
 
-        tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
-
         playing = true;
         updateWakeLock();
+        notificarEstadoReproducao();
+
+        int resultado = tts.speak(texto, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
+
+        if (resultado == TextToSpeech.ERROR) {
+            falhaNaFala(utteranceId, "Falha ao iniciar a síntese de voz.");
+            return;
+        }
+
         notificarVersiculo(currentIndex);
         atualizarNotificacao();
+    }
+
+    private void notificarEstadoReproducao() {
+        MediaNotificationPlugin.isNarrating = playing;
+        Intent intent = new Intent(EVENT_PLAYBACK_STATE);
+        intent.setPackage(getPackageName());
+        intent.putExtra(EXTRA_PLAYING, playing);
+        sendBroadcast(intent);
     }
 
     private void notificarVersiculo(int index) {
@@ -299,13 +333,17 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
                     aplicarVelocidade();
                 }
 
-                if (!verses.isEmpty()) {
+                playing = !verses.isEmpty();
+                notificarEstadoReproducao();
+                if (playing) {
                     falarVersiculoAtual();
                 }
 
             } else if (ACTION_PLAY.equals(action)) {
                 if (playing) return START_STICKY;
                 if (!verses.isEmpty()) {
+                    playing = true;
+                    notificarEstadoReproducao();
                     falarVersiculoAtual();
                 }
 
@@ -317,31 +355,48 @@ public class MediaNotificationService extends Service implements TextToSpeech.On
                 pararFala();
                 playing = false;
                 updateWakeLock();
+                notificarEstadoReproducao();
                 atualizarNotificacao();
 
             } else if (ACTION_NEXT.equals(action)) {
+                boolean continuar = playing;
                 pararFala();
                 if (currentIndex < verses.size() - 1) {
                     currentIndex++;
-                    falarVersiculoAtual();
+                    if (continuar) {
+                        falarVersiculoAtual();
+                    } else {
+                        playing = false;
+                        updateWakeLock();
+                        notificarVersiculo(currentIndex);
+                    }
                 }
 
             } else if (ACTION_PREV.equals(action)) {
+                boolean continuar = playing;
                 pararFala();
                 if (currentIndex > 0) {
                     currentIndex--;
-                    falarVersiculoAtual();
+                    if (continuar) {
+                        falarVersiculoAtual();
+                    } else {
+                        playing = false;
+                        updateWakeLock();
+                        notificarVersiculo(currentIndex);
+                    }
                 }
 
             } else if (ACTION_PREV_CHAPTER.equals(action)) {
                 pararFala();
                 playing = false;
+                MediaNotificationPlugin.isNarrating = false;
                 updateWakeLock();
                 notificarSemDado(EVENT_REQUEST_PREV_CHAPTER);
 
             } else if (ACTION_NEXT_CHAPTER.equals(action)) {
                 pararFala();
                 playing = false;
+                MediaNotificationPlugin.isNarrating = false;
                 updateWakeLock();
                 notificarSemDado(EVENT_REQUEST_NEXT_CHAPTER);
 

@@ -1142,6 +1142,10 @@
   position: relative;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
 }
+/* Reserva o espaço ocupado pelo botão flutuante apenas no painel com comentário. */
+.verse-explain-panel:has(> .verse-explain-section:last-child) {
+  padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+}
 .verse-explain-handle {
   width: 40px;
   height: 4px;
@@ -3109,6 +3113,60 @@ img.icon-glyph {
 .diary-note-form { margin-top: 8px; }
 .diary-note-form[hidden] { display: none; }
 
+/* Índice de Títulos Bíblicos */
+.title-index-page,
+.title-detail-page { width: 100%; max-width: 860px; margin: 0 auto; padding: 12px 0 30px; box-sizing: border-box; }
+.title-index-intro { margin: 0 0 16px; color: var(--text-secondary); line-height: 1.55; }
+.title-index-search-label { display: block; margin: 0 0 7px; color: var(--text-secondary); font-size: 13px; font-weight: 600; }
+.title-index-search { width: 100%; min-height: 48px; box-sizing: border-box; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--navy-light); color: var(--text-primary); font: inherit; }
+.title-index-search:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.title-index-legend { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
+.title-index-result-count { margin: 8px 0 10px; color: var(--text-tertiary); font-size: 13px; }
+.title-index-result-count.error { color: var(--danger, #e88); }
+.title-index-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 18px; }
+.title-index-book,
+.title-index-chapter { min-width: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--navy-light); overflow: hidden; }
+.title-index-book > summary,
+.title-index-chapter > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 10px 13px; cursor: pointer; list-style-position: inside; color: var(--text-primary); }
+.title-index-book > summary { font-weight: 700; }
+.title-index-book[open] > summary { color: var(--gold); border-bottom: 1px solid var(--border); }
+.title-index-count { flex: 0 0 auto; color: var(--text-tertiary); font-size: 12px; font-weight: 400; }
+.title-index-chapters { display: flex; flex-direction: column; gap: 6px; padding: 8px; }
+.title-index-chapter { background: var(--navy); }
+.title-index-chapter > summary { min-height: 42px; padding: 8px 10px; font-size: 14px; }
+.title-index-chapter[open] > summary { border-bottom: 1px solid var(--border); }
+.title-index-chapter-list { display: flex; flex-direction: column; gap: 5px; padding: 7px; }
+.title-index-entry { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-width: 0; padding: 10px; border: 1px solid transparent; border-radius: 9px; background: var(--navy-light); color: var(--text-primary); text-align: left; font: inherit; cursor: pointer; }
+.title-index-entry:hover, .title-index-entry:focus-visible { border-color: var(--gold); outline: none; }
+.title-index-entry-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.title-index-entry-name { overflow-wrap: anywhere; font-size: 14px; font-weight: 600; }
+.title-index-entry-reference { color: var(--text-tertiary); font-size: 12px; }
+.title-index-status { display: inline-flex; align-items: center; flex: 0 0 auto; width: fit-content; padding: 4px 8px; border: 1px solid transparent; border-radius: 999px; font-size: 11px; line-height: 1.25; white-space: normal; }
+.title-index-status.approved { border-color: rgba(83, 180, 128, .35); background: rgba(83, 180, 128, .12); color: #8fddb0; }
+.title-index-status.provisional { border-color: rgba(201, 169, 110, .4); background: rgba(201, 169, 110, .12); color: var(--gold); }
+.title-index-status.missing { border-color: var(--border); color: var(--text-tertiary); }
+.title-index-status.unverified { border-color: rgba(220, 130, 80, .45); color: #e9a174; }
+.title-index-empty { padding: 20px 12px; color: var(--text-secondary); text-align: center; }
+.title-detail-page { padding-top: 8px; }
+.title-detail-topline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.title-detail-reference { color: var(--text-secondary); font-size: 13px; }
+.title-detail-heading { margin: 0 0 8px; color: var(--gold); font-size: clamp(22px, 6vw, 30px); line-height: 1.25; overflow-wrap: anywhere; }
+.title-detail-identification { margin: 0 0 18px; color: var(--text-secondary); line-height: 1.6; }
+.title-detail-section { margin: 18px 0; padding: 15px; border: 1px solid var(--border); border-radius: 14px; background: var(--navy-light); }
+.title-detail-section h2 { margin: 0 0 8px; font-size: 16px; color: var(--gold); }
+.title-detail-text { margin: 0; color: var(--text-primary); line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.title-detail-references { margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.6; overflow-wrap: anywhere; }
+.title-detail-references li + li { margin-top: 8px; }
+.title-detail-unavailable { margin: 16px 0; padding: 15px; border: 1px solid var(--border); border-radius: 12px; color: var(--text-secondary); line-height: 1.6; }
+.title-detail-actions { display: flex; flex-wrap: wrap; gap: 9px; margin: 22px 0 12px; }
+.title-detail-actions .read-btn { min-width: min(100%, 150px); }
+
+@media (max-width: 380px) {
+  .title-index-entry { align-items: flex-start; flex-direction: column; gap: 7px; }
+  .title-detail-actions { flex-direction: column; }
+  .title-detail-actions .read-btn { width: 100%; }
+}
+
 /* Celulares largos: tela cheia, sem moldura (abaixo de 900px de largura) */
 @media (max-width: 899px) {
   body { padding: 0 !important; }
@@ -3119,4 +3177,337 @@ img.icon-glyph {
     border: none !important;
     box-shadow: none !important;
   }
+}
+
+/* Texto bíblico na tela de estudo por título */
+.title-detail-passage {
+  margin: 18px 0;
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--navy-light);
+}
+
+.title-detail-passage-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 7px 12px;
+  margin-bottom: 13px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.title-detail-passage-heading h2 {
+  margin: 0;
+  color: var(--gold);
+  font-size: 16px;
+}
+
+.title-detail-passage-reference {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.title-detail-passage-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title-detail-passage-verse {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+.title-detail-verse-number {
+  flex: 0 0 19px;
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.title-detail-verse-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.title-detail-passage-error {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Índice de títulos em lista única */
+.title-index-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 18px;
+}
+
+.title-index-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 13px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--navy-light);
+  color: var(--text-primary);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.title-index-entry:hover,
+.title-index-entry:focus-visible {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.title-index-entry-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 7px;
+  min-width: 0;
+}
+
+.title-index-entry-name {
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.title-index-entry-reference {
+  color: var(--text-secondary);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.title-index-entry-arrow {
+  flex: 0 0 auto;
+  color: var(--gold);
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* Ajuste: título e referência na mesma linha */
+.title-index-entry {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  min-height: 58px;
+  padding: 12px 14px;
+}
+
+.title-index-entry-main {
+  flex: 1 1 auto;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 3px 7px;
+  min-width: 0;
+}
+
+.title-index-entry-name,
+.title-index-entry-reference {
+  text-align: left;
+}
+
+.title-index-entry-arrow {
+  margin-left: 8px;
+}
+
+/* Índice de títulos: título e passagem em duas linhas */
+.title-index-entry {
+  min-height: 0;
+  padding: 12px 14px;
+}
+
+.title-index-entry-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.title-index-entry-name {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.title-index-entry-reference {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.title-index-entry-arrow {
+  align-self: center;
+  margin-left: 8px;
+}
+
+/* Títulos do índice na cor dourada padrão */
+.title-index-entry-name {
+  color: var(--gold);
+}
+
+/* Leitura bíblica: espaçamento entre linhas mais compacto */
+.title-detail-passage-verse {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* Ajuste fino da leitura bíblica */
+.title-detail-passage-verse {
+  line-height: 1.45;
+}
+
+/* Aproxima o texto da numeração dos versículos */
+.title-detail-passage-verse {
+  gap: 4px;
+}
+
+.title-detail-verse-number {
+  flex-basis: 15px;
+}
+
+/* Move números e textos dos versículos juntos para a esquerda */
+.title-detail-passage-content {
+  margin-left: -8px;
+}
+
+/* Cartão do texto bíblico um pouco mais largo */
+.title-detail-passage {
+  width: calc(100% + 16px);
+  margin-left: -8px;
+  box-sizing: border-box;
+}
+
+/* Segunda ampliação do cartão bíblico */
+.title-detail-passage {
+  width: calc(100% + 32px);
+  margin-left: -16px;
+}
+
+/* Padroniza a largura dos cartões da tela de estudo */
+.title-detail-section,
+.title-detail-unavailable {
+  width: calc(100% + 32px);
+  margin-left: -16px;
+  box-sizing: border-box;
+}
+
+/* Padronização das larguras dos cartões do estudo */
+.title-detail-passage,
+.title-detail-section,
+.title-detail-unavailable {
+  width: calc(100% + 32px);
+  margin-left: -16px;
+  box-sizing: border-box;
+}
+
+/* Botões inferiores alinhados aos cartões */
+.title-detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: calc(100% + 32px);
+  margin-left: -16px;
+  box-sizing: border-box;
+}
+
+.title-detail-actions .read-btn {
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+  box-sizing: border-box;
+  border-radius: 12px;
+}
+
+
+/* Narração acompanhada na tela de estudo do título */
+.title-detail-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.title-detail-heading-row .title-detail-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.title-detail-audio,
+.title-detail-audio-stop {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 12px;
+}
+
+.title-detail-audio svg,
+.title-detail-audio-stop svg {
+  width: 19px;
+  height: 19px;
+}
+
+.title-detail-audio.playing {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  animation: btnPulse 1.5s ease-in-out infinite;
+}
+
+.title-detail-audio-stop:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.title-detail-audio-status {
+  margin: 0 0 12px;
+  color: var(--gold);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.title-detail-audio-status[hidden] {
+  display: none !important;
+}
+
+.title-detail-page .audio-reading-current {
+  border-color: var(--gold) !important;
+  background: var(--gold-soft) !important;
+  box-shadow: 0 0 0 1px var(--gold);
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.title-detail-passage-verse.audio-reading-current {
+  padding: 7px;
+  margin-left: -7px;
+  margin-right: -7px;
+  border-radius: 9px;
 }

@@ -23,7 +23,7 @@ const STEPS = [
     desde: 1,
     icon: '📖',
     title: 'Compare versões',
-    text: 'Veja o mesmo versículo em ACF, BLIVRE e ARC 1911 lado a lado, direto no painel do versículo.',
+    text: 'Consulte o texto bíblico e abra o Cantinho de Estudo para explorar a explicação do versículo.',
   },
   {
     desde: 1,

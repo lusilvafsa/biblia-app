@@ -12,8 +12,11 @@ function escapeHtml(value) {
 }
 
 export const favoritesPage = {
-  async render(container) {
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
+
     function render() {
+      if (!isCurrent()) return;
       const items = favoritesRepository.getAll();
 
       const favorites = items.filter(item => item.favorite === true);
@@ -113,7 +116,7 @@ export const favoritesPage = {
     }
 
     function openNoteEditor(item) {
-      if (!item) return;
+      if (!isCurrent() || !item) return;
 
       const note = window.prompt(
         `Anotação para ${item.reference}:`,
@@ -141,19 +144,22 @@ export const favoritesPage = {
         .querySelectorAll('.favorite-verse')
         .forEach(button => {
           button.addEventListener('click', () => {
+            if (!isCurrent()) return;
             const book = Number(button.dataset.openBook);
             const chapter = Number(button.dataset.openChapter);
             const verse = Number(button.dataset.openVerse);
 
-            navigateTo(`/biblia/${book}/${chapter}`);
+            const targetPath = `/biblia/${book}/${chapter}`;
 
-            setTimeout(() => {
+            navigateTo(targetPath).then((rendered) => {
+              if (!rendered || window.location.hash !== `#${targetPath}`) return;
+
               window.dispatchEvent(
                 new CustomEvent('open-verse', {
                   detail: { verseIndex: verse }
                 })
               );
-            }, 150);
+            });
           });
         });
 
@@ -161,6 +167,7 @@ export const favoritesPage = {
         .querySelectorAll('.favorite-remove-btn')
         .forEach(button => {
           button.addEventListener('click', () => {
+            if (!isCurrent()) return;
             const item = getItemById(button.dataset.removeId);
             if (!item) return;
 
@@ -178,6 +185,7 @@ export const favoritesPage = {
         .querySelectorAll('.favorite-note-btn')
         .forEach(button => {
           button.addEventListener('click', () => {
+            if (!isCurrent()) return;
             const item = getItemById(button.dataset.noteId);
             openNoteEditor(item);
           });
@@ -187,6 +195,7 @@ export const favoritesPage = {
         .querySelectorAll('.favorite-remove-note-btn')
         .forEach(button => {
           button.addEventListener('click', () => {
+            if (!isCurrent()) return;
             const item = getItemById(button.dataset.removeNoteId);
             if (!item) return;
 
@@ -204,7 +213,7 @@ export const favoritesPage = {
     render();
 
     return () => {
-      container.innerHTML = '';
+      if (isCurrent()) container.innerHTML = '';
     };
   }
 };

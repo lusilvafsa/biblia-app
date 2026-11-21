@@ -10,6 +10,9 @@ let notFoundHandler = null;
 let container = null;
 let onNavigate = null; // callback(routeMeta, params) — usado p/ header e bottom-nav
 let currentCleanup = null; // função opcional retornada pela página anterior
+let navigationId = 0; // identifica a renderização mais recente
+let pendingNavigation = null;
+let activeNavigation = null;
 
 export function registerRoute(pattern, page, meta = {}) {
   // pattern: '/biblia/:book/:chapter' -> regex com grupos nomeados
@@ -43,11 +46,32 @@ export function initRouter(rootEl) {
 }
 
 export function navigateTo(path) {
-  if (window.location.hash === `#${path}`) {
-    handleRouteChange();
-  } else {
-    window.location.hash = path;
-  }
+  return new Promise((resolve) => {
+    if (pendingNavigation) {
+      pendingNavigation.resolve(false);
+      pendingNavigation = null;
+    }
+
+    if (activeNavigation) {
+      activeNavigation.resolve(false);
+      activeNavigation = null;
+    }
+
+    pendingNavigation = { path, resolve };
+
+    if (window.location.hash === `#${path}`) {
+      handleRouteChange();
+    } else {
+      window.location.hash = path;
+    }
+  });
+}
+
+function finishNavigation(navigation, success) {
+  if (!navigation || activeNavigation !== navigation) return;
+
+  activeNavigation = null;
+  navigation.resolve(success);
 }
 
 function currentPath() {
@@ -58,38 +82,93 @@ function currentPath() {
 async function handleRouteChange() {
   const path = currentPath();
 
+  // Ignora eventos hashchange duplicados durante a mesma renderização.
+  if (activeNavigation && activeNavigation.path === path) return;
+
+  const currentNavigationId = ++navigationId;
+  const isCurrent = () => currentNavigationId === navigationId;
+
+  if (activeNavigation) {
+    activeNavigation.resolve(false);
+    activeNavigation = null;
+  }
+
+  let routeNavigation = null;
+
+  if (pendingNavigation) {
+    const requested = pendingNavigation;
+    pendingNavigation = null;
+
+    if (requested.path === path) {
+      routeNavigation = requested;
+      activeNavigation = requested;
+    } else {
+      requested.resolve(false);
+    }
+  }
+
   for (const route of routes) {
     const match = path.match(route.regex);
     if (!match) continue;
 
     const params = {};
-    route.paramNames.forEach((name, i) => {
-      params[name] = decodeURIComponent(match[i + 1]);
-    });
-
-    if (typeof currentCleanup === 'function') {
-      try { currentCleanup(); } catch (_e) { /* ignora */ }
-    }
-    currentCleanup = null;
-
-    if (onNavigate) onNavigate(route.meta, params);
-    container.innerHTML = '';
-    window.scrollTo(0, 0);
 
     try {
-      const cleanup = await route.page.render(container, params);
-      if (typeof cleanup === 'function') currentCleanup = cleanup;
+      route.paramNames.forEach((name, i) => {
+        params[name] = decodeURIComponent(match[i + 1]);
+      });
+
+      if (typeof currentCleanup === 'function') {
+        try { currentCleanup(); } catch (_e) { /* ignora */ }
+      }
+      currentCleanup = null;
+
+      if (onNavigate) onNavigate(route.meta, params);
+      container.innerHTML = '';
+      window.scrollTo(0, 0);
     } catch (err) {
+      if (!isCurrent()) return;
+      console.error('[router] erro ao preparar rota', path, err);
+      renderErrorState(container, err);
+      finishNavigation(routeNavigation, false);
+      return;
+    }
+
+    try {
+      const cleanup = await route.page.render(container, params, isCurrent);
+      if (!isCurrent()) {
+        if (typeof cleanup === 'function') {
+          try { cleanup(); } catch (_e) { /* ignora limpeza obsoleta */ }
+        }
+        return;
+      }
+      if (typeof cleanup === 'function') currentCleanup = cleanup;
+
+      finishNavigation(routeNavigation, true);
+    } catch (err) {
+      if (!isCurrent()) return;
       console.error('[router] erro ao renderizar rota', path, err);
       renderErrorState(container, err);
+      finishNavigation(routeNavigation, false);
     }
     return;
   }
 
   if (notFoundHandler) {
     container.innerHTML = '';
-    await notFoundHandler.render(container, {});
+
+    try {
+      await notFoundHandler.render(container, {});
+    } catch (err) {
+      if (!isCurrent()) return;
+      console.error('[router] erro ao renderizar rota inexistente', path, err);
+      renderErrorState(container, err);
+    }
+
+    if (!isCurrent()) return;
   }
+
+  finishNavigation(routeNavigation, false);
 }
 
 function renderErrorState(target, err) {

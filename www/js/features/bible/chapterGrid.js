@@ -5,7 +5,9 @@ import { getBook } from '../../data-access/bibleRepository.js';
 import { setHeaderTitle } from '../../state/header.js';
 
 export const chapterGridPage = {
-  async render(container, params) {
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
+
     const bookIndex = Number(params.book);
     container.innerHTML = '<div class="state-message">Carregando capítulos...</div>';
 
@@ -13,10 +15,12 @@ export const chapterGridPage = {
     try {
       book = await getBook(bookIndex);
     } catch (err) {
+      if (!isCurrent()) return;
       container.innerHTML = `<div class="state-message error">Livro não encontrado.</div>`;
       return;
     }
 
+    if (!isCurrent()) return;
     setHeaderTitle(book.name);
 
     const grid = el('div', { className: 'chapter-grid' });

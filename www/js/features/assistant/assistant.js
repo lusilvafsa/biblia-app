@@ -263,15 +263,12 @@ function adicionarMensagem(messagesEl, tipo, texto, extra) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-let usoEl = null;
-let inputEl = null;
-let sendEl = null;
-let limiteAtingido = false;
-
-function aplicarBloqueio() {
+function aplicarBloqueio(inputEl, sendEl, limiteAtingido) {
   if (!inputEl || !sendEl) return;
+
   inputEl.disabled = limiteAtingido;
   sendEl.disabled = limiteAtingido;
+
   if (limiteAtingido) {
     if (inputEl.dataset.ph === undefined) inputEl.dataset.ph = inputEl.placeholder;
     inputEl.placeholder = 'Limite diário atingido. Volta à meia-noite.';
@@ -280,25 +277,32 @@ function aplicarBloqueio() {
   }
 }
 
-async function carregarUso() {
-  if (!usoEl) return;
+async function carregarUso({ usoEl, inputEl, sendEl, state, isCurrent }) {
+  if (!usoEl || !isCurrent()) return;
+
   try {
     await aguardarAuthInicial();
+    if (!isCurrent()) return;
+
     if (!usuarioAtual()) {
       usoEl.textContent = '';
-      limiteAtingido = false;
-      aplicarBloqueio();
+      state.limiteAtingido = false;
+      aplicarBloqueio(inputEl, sendEl, state.limiteAtingido);
       return;
     }
+
     const { data, error } = await supabase.functions.invoke('assistente-biblico', {
       body: { consultarUso: true },
     });
-    if (error || !data?.sucesso) return;
-    limiteAtingido = data.restantes <= 0;
-    usoEl.textContent = limiteAtingido
+
+    if (!isCurrent() || error || !data?.sucesso) return;
+
+    state.limiteAtingido = data.restantes <= 0;
+    usoEl.textContent = state.limiteAtingido
       ? `Você usou as ${data.limite} perguntas de hoje. Volta à meia-noite.`
       : `Restam ${data.restantes} de ${data.limite} perguntas hoje`;
-    aplicarBloqueio();
+
+    aplicarBloqueio(inputEl, sendEl, state.limiteAtingido);
   } catch (_e) {
     /* mantém o texto anterior */
   }
@@ -310,8 +314,13 @@ async function enviarPergunta({
   input,
   sendButton,
   statusEl,
+  usoEl,
+  state,
+  isCurrent,
 }) {
-  if (limiteAtingido) {
+  if (!isCurrent()) return;
+
+  if (state.limiteAtingido) {
     statusEl.textContent = 'Você usou todas as perguntas de hoje. Volta à meia-noite.';
     return;
   }
@@ -358,6 +367,8 @@ async function enviarPergunta({
       },
     );
 
+    if (!isCurrent()) return;
+
     if (error) {
       console.error(
         '[Assistente Bíblico] Erro na função:',
@@ -367,6 +378,7 @@ async function enviarPergunta({
       let msgServidor = null;
         try {
           const corpo = await error.context.json();
+          if (!isCurrent()) return;
           msgServidor = corpo && corpo.erro ? String(corpo.erro) : null;
         } catch (_e) {
           /* sem corpo legível */
@@ -385,8 +397,10 @@ async function enviarPergunta({
       );
     }
 
+    if (!isCurrent()) return;
     adicionarMensagem(messagesEl, 'bot', data.mensagem, { ia: true, pergunta: texto });
   } catch (error) {
+    if (!isCurrent()) return;
     console.error(
       '[Assistente Bíblico] Erro:',
       error,
@@ -400,64 +414,65 @@ async function enviarPergunta({
           : 'Não foi possível responder agora. Verifique sua conexão e tente novamente.',
       );
   } finally {
-    input.disabled = false;
-    sendButton.disabled = false;
-    statusEl.textContent = '';
-    carregarUso();
-    input.focus();
+    if (isCurrent()) {
+      input.disabled = false;
+      sendButton.disabled = false;
+      statusEl.textContent = '';
+      carregarUso({ usoEl, inputEl: input, sendEl: sendButton, state, isCurrent });
+      input.focus();
+    }
   }
 }
 
 export const assistantPage = {
-  async render(container) {
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
+
+    const state = { limiteAtingido: false };
     container.innerHTML = template();
 
     const headerEl = container.querySelector('.assistant-page .page-header');
+    const messagesEl = container.querySelector('#assistantMessages');
+    const form = container.querySelector('#assistantForm');
+    const input = container.querySelector('#assistantInput');
+    const sendButton = container.querySelector('#assistantSendButton');
+    const statusEl = container.querySelector('#assistantStatus');
+
+    if (!messagesEl || !form || !input || !sendButton || !statusEl) return;
+
+    let usoEl = null;
+
     if (headerEl) {
       usoEl = document.createElement('p');
       usoEl.style.cssText = 'margin:8px 4px 0;font-size:13px;opacity:.7;';
       headerEl.insertAdjacentElement('afterend', usoEl);
+
       const avisoEl = document.createElement('p');
       avisoEl.style.cssText = 'margin:4px 4px 0;font-size:12px;opacity:.65;line-height:1.4;';
       avisoEl.textContent = 'Privacidade: não escreva dados pessoais nem informações sensíveis. As perguntas são processadas pelo Google (Gemini) e, no plano gratuito, podem ser usadas por ele para melhorar seus serviços.';
       usoEl.insertAdjacentElement('afterend', avisoEl);
-      carregarUso();
     }
 
-    const messagesEl = container.querySelector(
-      '#assistantMessages',
-    );
-
-    const form = container.querySelector(
-      '#assistantForm',
-    );
-
-    const input = container.querySelector(
-      '#assistantInput',
-    );
-
-    const sendButton = container.querySelector(
-      '#assistantSendButton',
-    );
-
-    const statusEl = container.querySelector(
-      '#assistantStatus',
-    );
-
-    inputEl = input;
-    sendEl = sendButton;
+    carregarUso({
+      usoEl,
+      inputEl: input,
+      sendEl: sendButton,
+      state,
+      isCurrent,
+    });
 
     await aguardarAuthInicial();
+    if (!isCurrent()) return;
 
     const usuario = usuarioAtual();
 
     if (!usuario) {
-      statusEl.textContent =
-        'Entre na sua conta para usar o assistente.';
+      statusEl.textContent = 'Entre na sua conta para usar o assistente.';
     }
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
+      if (!isCurrent()) return;
 
       await enviarPergunta({
         pergunta: input.value,
@@ -465,31 +480,33 @@ export const assistantPage = {
         input,
         sendButton,
         statusEl,
+        usoEl,
+        state,
+        isCurrent,
       });
     });
 
     input.addEventListener('keydown', (event) => {
-      if (
-        event.key === 'Enter' &&
-        !event.shiftKey
-      ) {
+      if (!isCurrent()) return;
+
+      if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         form.requestSubmit();
       }
     });
 
-    container
-      .querySelectorAll('[data-suggestion]')
-      .forEach((button) => {
-        button.addEventListener('click', () => {
-          const tipo = button.dataset.suggestion;
-          const sugestao = SUGESTOES[tipo];
+    container.querySelectorAll('[data-suggestion]').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (!isCurrent()) return;
 
-          if (!sugestao) return;
+        const tipo = button.dataset.suggestion;
+        const sugestao = SUGESTOES[tipo];
 
-          input.value = sugestao;
-          input.focus();
-        });
+        if (!sugestao) return;
+
+        input.value = sugestao;
+        input.focus();
       });
+    });
   },
 };

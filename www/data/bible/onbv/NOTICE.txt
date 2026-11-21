@@ -1,0 +1,17 @@
+Biblica® Open Nova Bíblia Viva™
+Copyright © 2007, 2010 by Biblica, Inc.
+
+“Biblica” é uma marca registrada de Biblica, Inc.
+Usado com permissão.
+
+Original disponível gratuitamente em:
+https://www.biblica.com
+https://open.bible
+
+Licença: Creative Commons Attribution-ShareAlike 4.0 International
+(CC BY-SA 4.0)
+https://creativecommons.org/licenses/by-sa/4.0/
+
+A conversão para JSON preserva o texto da tradução e altera apenas
+sua estrutura de armazenamento. As contribuições e adaptações
+distribuídas devem permanecer sob a mesma licença.

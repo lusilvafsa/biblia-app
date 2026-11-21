@@ -23,7 +23,9 @@ function nomeArquivo(nome) {
 }
 
 export const diaryThemePage = {
-  async render(container, params) {
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
+
     let tema = diaryRepository.obter(params.id);
     if (!tema) {
       container.innerHTML = '<div class="state-message error">Tema não encontrado.</div>';
@@ -35,6 +37,8 @@ export const diaryThemePage = {
     } catch (e) {
       livros = [];
     }
+    if (!isCurrent()) return;
+
     const cache = new Map();
 
     async function versosDe(bookIndex, chapterIndex) {
@@ -67,6 +71,8 @@ export const diaryThemePage = {
     }
 
     async function desenhar() {
+      if (!isCurrent()) return;
+
       tema = diaryRepository.obter(tema.id) || tema;
       setHeaderTitle(tema.nome);
       const opcoes = livros.map((b, i) => '<option value="' + (Number.isInteger(b.index) ? b.index : i) + '">' + esc(b.name) + '</option>').join('');
@@ -130,6 +136,7 @@ export const diaryThemePage = {
 
       editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!isCurrent()) return;
         const r = diaryRepository.atualizar(tema.id, { nome: q('#diaryEditNome').value, descricao: q('#diaryEditDesc').value });
         if (!r) {
           toast.info('Digite o nome do tema.');
@@ -141,6 +148,7 @@ export const diaryThemePage = {
 
       addForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (!isCurrent()) return;
         const bookIndex = Number(q('#diaryLivro').value);
         const cap = parseInt(q('#diaryCap').value, 10);
         const ini = parseInt(q('#diaryVerIni').value, 10);
@@ -155,6 +163,7 @@ export const diaryThemePage = {
           return;
         }
         const versos = await versosDe(bookIndex, cap - 1);
+        if (!isCurrent()) return;
         if (!versos.length) {
           toast.error('Não foi possível ler esse capítulo.');
           return;
@@ -171,18 +180,29 @@ export const diaryThemePage = {
       });
 
       q('#diaryShare').addEventListener('click', async () => {
+        if (!isCurrent()) return;
+
         if (!tema.passagens.length) {
           toast.info('Adicione passagens antes de compartilhar.');
           return;
         }
-        const r = await shareText({ title: tema.nome, text: await montarTexto() });
+        const texto = await montarTexto();
+        if (!isCurrent()) return;
+
+        const r = await shareText({ title: tema.nome, text: texto });
+        if (!isCurrent()) return;
+
         if (r === 'copied') toast.success('Texto copiado!');
         if (r === 'unsupported') toast.info('Compartilhamento não suportado neste aparelho');
         if (r === 'error') toast.error('Não foi possível compartilhar agora.');
       });
 
       q('#diaryExport').addEventListener('click', async () => {
+        if (!isCurrent()) return;
+
         const r = await exportarJson(nomeArquivo(tema.nome), diaryRepository.exportar([tema.id]), tema.nome);
+        if (!isCurrent()) return;
+
         if (r === 'erro') toast.error('Não foi possível exportar agora.');
       });
 
@@ -202,12 +222,14 @@ export const diaryThemePage = {
         });
         item.querySelector('[data-acao="nota"]').addEventListener('click', () => { notaForm.hidden = !notaForm.hidden; });
         item.querySelector('[data-acao="remover"]').addEventListener('click', async () => {
+          if (!isCurrent()) return;
           diaryRepository.removerPassagem(tema.id, id);
           toast.info('Passagem removida');
           await desenhar();
         });
         notaForm.addEventListener('submit', async (e) => {
           e.preventDefault();
+          if (!isCurrent()) return;
           diaryRepository.salvarNota(tema.id, id, notaForm.querySelector('textarea').value);
           toast.success('Nota salva!');
           await desenhar();
@@ -215,11 +237,20 @@ export const diaryThemePage = {
       });
 
       tema.passagens.forEach(async (p) => {
+        if (!isCurrent()) return;
+
         const alvo = container.querySelector('[data-texto="' + p.id + '"]');
-        if (alvo) alvo.textContent = '"' + (await textoDe(p)) + '"';
+        if (!alvo) return;
+
+        const texto = await textoDe(p);
+
+        if (!isCurrent() || !container.contains(alvo)) return;
+
+        alvo.textContent = '"' + texto + '"';
       });
     }
 
+    if (!isCurrent()) return;
     await desenhar();
   },
 };

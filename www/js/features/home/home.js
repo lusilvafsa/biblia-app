@@ -17,7 +17,6 @@ import { getBook, getChapter } from '../../data-access/bibleRepository.js';
 import { statsRepository } from '../../data-access/statsRepository.js';
 import { getTodaysSong } from '../../../data/worshipSongs.js';
 import { requestAutoStart } from '../bible/reader.js';
-import { aguardarAuthInicial } from '../../supabaseAuth.js';
 
 let verseIndex = verseIndexForDate();
 let isSpeakingVerse = false;
@@ -237,6 +236,11 @@ function template() {
         <div class="menu-title">Diário de Estudo</div>
         <div class="menu-desc">Temas e passagens</div>
       </button>
+      <button class="menu-item" data-route="/indice-titulos">
+        <div class="menu-icon">${icons.list}</div>
+        <div class="menu-title">Índice de Títulos</div>
+        <div class="menu-desc">Explore os títulos bíblicos.</div>
+      </button>
     </div>
 
     <div class="section-title">
@@ -406,7 +410,6 @@ async function renderContinueReadingCard(container) {
   const slot = qs('#continueReadingSlot', container);
   if (!slot) return;
 
-  await aguardarAuthInicial();
   if (!document.body.contains(slot)) return;
 
   const progress = await progressRepository.getProgress();

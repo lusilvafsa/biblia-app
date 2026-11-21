@@ -87,11 +87,15 @@ function aplicarFiltro(lista, filtro) {
 }
 
 export const reviewPage = {
-  async render(container) {
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
+
     container.innerHTML = '<div class="state-message">Carregando...</div>';
 
     let filtro = 'todos';
     const todos = await montarLista();
+
+    if (!isCurrent()) return;
 
     function renderLista() {
       const lista = aplicarFiltro(todos, filtro);

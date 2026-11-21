@@ -108,6 +108,7 @@ function template(settings) {
             <button type="button" data-gender="auto" class="${pref === 'auto' ? 'active' : ''}">Automática</button>
           </div>
           <div class="voice-hint" id="voiceHint" hidden></div>
+        </div>
         <div class="setting-row">
           <label class="setting-label" style="display:flex;align-items:center;gap:10px;">
             <input type="checkbox" id="readTitlesToggle" ${getVoiceSettings().readTitles !== false ? 'checked' : ''}>
@@ -126,6 +127,17 @@ function template(settings) {
             Ler a explicação depois de cada versículo
           </label>
         </div>
+        <div class="setting-row">
+          <label class="setting-label" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="readTitleStudiesToggle" ${getVoiceSettings().readTitleStudies ? 'checked' : ''}>
+            Ler estudos completos em áudio
+          </label>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="showTitleStudiesToggle" ${getVoiceSettings().showTitleStudies ? 'checked' : ''}>
+            Mostrar estudos completos após cada título
+          </label>
         </div>
 
 
@@ -243,8 +255,21 @@ function template(settings) {
     <div class="app-info">
       Bíblia de Estudo LS — v${APP_VERSION} · build ${APP_BUILD}<br>
     Atualizado em ${APP_DATE}<br>
-      Versões: ACF, BLIVRE e ARC 1911<br>
+      Versões disponíveis: ACF, BLIVRE e ONBV<br>
       Referências cruzadas: OpenBible.info (CC BY 4.0)<br>
+      <details style="margin:10px auto;max-width:520px;text-align:left;">
+        <summary style="cursor:pointer;text-align:center;">Créditos e licença da ONBV</summary>
+        <div style="padding:8px 4px;">
+          Biblica® Open Nova Bíblia Viva™<br>
+          Copyright © 2007, 2010 Biblica, Inc.<br>
+          Marca Biblica usada com permissão.<br>
+          Tradução distribuída sob licença
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer" style="color:var(--gold);">Creative Commons Atribuição-CompartilhaIgual 4.0 Internacional (CC BY-SA 4.0)</a>.<br>
+          Original: <a href="https://www.biblica.com" target="_blank" rel="noopener noreferrer" style="color:var(--gold);">Biblica</a> · <a href="https://open.bible" target="_blank" rel="noopener noreferrer" style="color:var(--gold);">Open.Bible</a>.<br>
+          Os dados foram convertidos para JSON, preservando o texto. Adaptações distribuídas devem permanecer sob a mesma licença.
+        </div>
+      </details>
+
       <a href="https://www.mediafire.com/file/gnb0pyi6tfr2313/BibliaDeEstudoLS.apk/file" target="_blank" rel="noopener noreferrer" style="color:var(--gold);font-weight:600;">Baixar APK</a> · <a href="https://lusilvafsa.github.io/biblia-app/privacidade.html" target="_blank" rel="noopener" style="color:inherit;">Política de privacidade</a> · <a href="https://lusilvafsa.github.io/biblia-app/excluir-conta.html" target="_blank" rel="noopener" style="color:inherit;">Excluir conta</a>
     </div>
   `;
@@ -281,6 +306,20 @@ export const settingsPage = {
     if (readExplanationsToggle) {
       readExplanationsToggle.addEventListener('change', () => {
         setVoiceSettings({ readExplanations: readExplanationsToggle.checked });
+      });
+    }
+
+    const readTitleStudiesToggle = qs('#readTitleStudiesToggle', container);
+    if (readTitleStudiesToggle) {
+      readTitleStudiesToggle.addEventListener('change', () => {
+        setVoiceSettings({ readTitleStudies: readTitleStudiesToggle.checked });
+      });
+    }
+
+    const showTitleStudiesToggle = qs('#showTitleStudiesToggle', container);
+    if (showTitleStudiesToggle) {
+      showTitleStudiesToggle.addEventListener('change', () => {
+        setVoiceSettings({ showTitleStudies: showTitleStudiesToggle.checked });
       });
     }
 

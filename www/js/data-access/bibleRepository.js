@@ -12,6 +12,8 @@ const indexCache = new Map(); // versionId -> índice leve dos 66 livros
 const indexPromiseCache = new Map();
 const bookCache = new Map(); // "versionId:bookIndex" -> livro completo
 const bookPromiseCache = new Map();
+const extrasCache = new Map();
+const extrasPromiseCache = new Map();
 
 function loadIndex(versionId) {
   if (indexCache.has(versionId)) return Promise.resolve(indexCache.get(versionId));
@@ -86,6 +88,39 @@ export async function getBook(bookIndex) {
   const livro = indice[bookIndex];
   if (!livro) throw new Error(`Livro inválido: ${bookIndex}`);
   return { index: bookIndex, name: livro.name, abbrev: livro.abbrev, chapterCount: livro.chapterCount };
+}
+
+async function loadVersionExtras(versionId) {
+  if (extrasCache.has(versionId)) return extrasCache.get(versionId);
+  if (extrasPromiseCache.has(versionId)) return extrasPromiseCache.get(versionId);
+
+  const url = new URL(`../../data/bible/${versionId}/extras.json`, import.meta.url);
+  const promise = fetch(url)
+    .then((res) => {
+      if (!res.ok) throw new Error(`Falha ao carregar elementos da Bíblia (HTTP ${res.status})`);
+      return res.json();
+    })
+    .then((data) => {
+      extrasCache.set(versionId, data);
+      extrasPromiseCache.delete(versionId);
+      return data;
+    })
+    .catch((err) => {
+      extrasPromiseCache.delete(versionId);
+      throw err;
+    });
+
+  extrasPromiseCache.set(versionId, promise);
+  return promise;
+}
+
+/** Elementos editoriais posicionados entre os versículos de uma versão. */
+export async function getChapterExtras(bookIndex, chapterIndex) {
+  const versionId = currentVersionId();
+  if (versionId !== 'onbv') return [];
+
+  const data = await loadVersionExtras(versionId);
+  return data[String(bookIndex)]?.[String(chapterIndex + 1)] || [];
 }
 
 export async function getChapter(bookIndex, chapterIndex) {

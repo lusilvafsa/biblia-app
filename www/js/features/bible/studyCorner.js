@@ -50,7 +50,9 @@ async function nomeDoLivro(bookIndex) {
 }
 
 export const studyCornerPage = {
-  async render(container, params) {
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
+
     const bookIndex = Number(params.book);
     const chapterIndex = Number(params.chapter);
     const verseIndex = Number(params.verse);
@@ -62,10 +64,12 @@ export const studyCornerPage = {
       book = await getBook(bookIndex);
       verses = await getChapter(bookIndex, chapterIndex);
     } catch (_e) {
+      if (!isCurrent()) return;
       container.innerHTML = '<div class="state-message error">Não foi possível carregar este versículo.</div>';
       return;
     }
 
+    if (!isCurrent()) return;
     const verseText = verses[verseIndex];
     const ref = `${book.name} ${chapterIndex + 1}:${verseIndex + 1}`;
     setHeaderTitle('Cantinho de Estudo');
@@ -119,6 +123,7 @@ export const studyCornerPage = {
     const crossRefsEl = container.querySelector('#studyCrossRefs');
     try {
       const relacionados = await getCrossReferences(bookIndex, chapterIndex, verseIndex, nomeDoLivro);
+      if (!isCurrent()) return;
       if (!relacionados.length) {
         crossRefsEl.innerHTML = '<p class="verse-explain-fallback">Nenhuma referência cruzada catalogada para este versículo.</p>';
       } else {
@@ -132,8 +137,11 @@ export const studyCornerPage = {
         });
       }
     } catch (_e) {
+      if (!isCurrent()) return;
       crossRefsEl.innerHTML = '<p class="verse-explain-fallback">Não foi possível carregar as referências agora.</p>';
     }
+
+    if (!isCurrent()) return;
 
     // Comparar versões: dado local, carrega sozinho, sem custo de IA
     const compareResult = container.querySelector('#studyCompareResult');
@@ -148,12 +156,16 @@ export const studyCornerPage = {
           }
         })
       );
+      if (!isCurrent()) return;
       compareResult.innerHTML = textos
         .map(({ label, texto }) => sectionHtml('📖', label, texto ? escaparHtml(texto) : 'Não disponível nesta versão.'))
         .join('');
     } catch (_e) {
+      if (!isCurrent()) return;
       compareResult.innerHTML = '<p>Não foi possível comparar as versões agora.</p>';
     }
+
+    if (!isCurrent()) return;
 
     // Assistente: só ao tocar, pra não gastar o limite diário sem o usuário pedir
     const aiBtn = container.querySelector('#btnStudyAiExplain');
@@ -162,6 +174,7 @@ export const studyCornerPage = {
     aiBtn.addEventListener('click', async () => {
       aiBtn.disabled = true;
       const textoOriginal = aiBtn.textContent;
+      if (!isCurrent()) return;
       aiBtn.textContent = 'Consultando...';
       aiResult.hidden = false;
       aiResult.innerHTML = '<p>Consultando o Assistente Bíblico...</p>';
@@ -179,12 +192,16 @@ export const studyCornerPage = {
           throw new Error(data?.erro || error?.message || 'Sem resposta.');
         }
 
+        if (!isCurrent()) return;
         aiResult.innerHTML = formatarRespostaIa(data.mensagem);
       } catch (_e) {
+        if (!isCurrent()) return;
         aiResult.innerHTML = '<p>Não foi possível obter a explicação agora. Tente novamente.</p>';
       } finally {
-        aiBtn.disabled = false;
-        aiBtn.textContent = textoOriginal;
+        if (isCurrent()) {
+          aiBtn.disabled = false;
+          aiBtn.textContent = textoOriginal;
+        }
       }
     });
   },

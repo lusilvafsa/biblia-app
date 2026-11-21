@@ -12,8 +12,6 @@
 // - ACF: já usada no app desde o protótipo original.
 // - BLIVRE (Bíblia Livre): tradução moderna sob licença Creative Commons
 //   Atribuição (uso livre, inclusive comercial, com menção da fonte).
-// - ALM1911 (Almeida Revista e Corrigida, 1911): edição em domínio
-//   público (linguagem mais antiga que as demais).
 export const BIBLE_VERSIONS = [
   {
     id: 'acf',
@@ -28,10 +26,12 @@ export const BIBLE_VERSIONS = [
     available: true,
   },
   {
-    id: 'alm1911',
-    label: 'ARC 1911',
-    name: 'Almeida Revista e Corrigida (1911)',
+    id: 'onbv',
+    label: 'ONBV',
+    name: 'Open Nova Bíblia Viva',
     available: true,
+    license: 'CC BY-SA 4.0',
+    attribution: 'Biblica, Inc. — Copyright © 2007, 2010',
   },
 ];
 

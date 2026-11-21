@@ -33,6 +33,8 @@ import { studyCornerPage } from './features/bible/studyCorner.js';
 import { plansListPage } from './features/plans/plansList.js';
 import { diaryListPage } from './features/diary/diaryList.js';
 import { diaryThemePage } from './features/diary/diaryTheme.js';
+import { titleIndexPage } from './features/bible/titleIndex.js';
+import { titleStudyDetailPage } from './features/bible/titleStudyDetail.js';
 
 // Fecha o menu flutuante depois de escolher um item.
 document.addEventListener('click', (e) => {
@@ -123,6 +125,8 @@ function initRoutes() {
   registerRoute('/biblia/:book', chapterGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
   registerRoute('/biblia/:book/:chapter', verseGridPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
   registerRoute('/biblia/:book/:chapter/versiculo/:verse', readerPage, { title: 'Bíblia Sagrada', navKey: 'bible', showBack: true, showSearch: true });
+  registerRoute('/indice-titulos', titleIndexPage, { title: 'Índice de Títulos', navKey: null, showBack: true });
+  registerRoute('/indice-titulos/estudo/:book/:chapter/:verse', titleStudyDetailPage, { title: 'Estudo da Passagem', navKey: null, showBack: true });
   registerRoute('/oracao', prayerPage, { title: 'Oração Diária', navKey: 'prayer' });
   registerRoute('/quiz', quizPage, { title: 'Quiz Bíblico', navKey: null, showBack: true });
   registerRoute('/ministracao', ministryListPage, { title: 'Guia de Ministração', navKey: null, showBack: true });

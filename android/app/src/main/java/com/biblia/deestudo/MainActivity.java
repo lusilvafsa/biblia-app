@@ -26,6 +26,13 @@ public class MainActivity extends BridgeActivity {
                 return;
             }
 
+            // Estado real da reprodução no serviço nativo.
+            if (MediaNotificationService.EVENT_PLAYBACK_STATE.equals(action)) {
+                boolean playing = intent.getBooleanExtra(MediaNotificationService.EXTRA_PLAYING, false);
+                dispatchToWebWithPlaybackState("media-notification-playback-state", playing);
+                return;
+            }
+
             // Avisos vindos do motor de narração nativo (rodando no serviço)
             if (MediaNotificationService.EVENT_VERSE_CHANGED.equals(action)) {
                 int verseIndex = intent.getIntExtra(MediaNotificationService.EXTRA_VERSE_INDEX, 0);
@@ -115,6 +122,18 @@ public class MainActivity extends BridgeActivity {
         });
     }
 
+    private void dispatchToWebWithPlaybackState(final String eventName, final boolean playing) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (getBridge() == null || getBridge().getWebView() == null) return;
+                String javascript = "window.dispatchEvent(new CustomEvent(\'" + eventName
+                        + "\', { detail: { playing: " + playing + " } }));";
+                getBridge().getWebView().evaluateJavascript(javascript, null);
+            }
+        });
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(MediaNotificationPlugin.class);
@@ -143,6 +162,7 @@ public class MainActivity extends BridgeActivity {
         filter.addAction(MediaNotificationService.ACTION_NEXT);
         filter.addAction(MediaNotificationService.ACTION_STOP);
         filter.addAction(MediaNotificationService.EVENT_VERSE_CHANGED);
+        filter.addAction(MediaNotificationService.EVENT_PLAYBACK_STATE);
         filter.addAction(MediaNotificationService.EVENT_CHAPTER_COMPLETE);
         filter.addAction(MediaNotificationService.EVENT_RATE_CHANGED);
         filter.addAction(MediaNotificationService.EVENT_REQUEST_PREV_CHAPTER);

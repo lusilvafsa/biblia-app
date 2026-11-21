@@ -2,6 +2,7 @@
 // esboço estruturado, aplicação prática e sugestão de oração final.
 import { icons } from '../../components/icons.js';
 import { toast } from '../../utils/toast.js';
+import { carregarHtml2Canvas } from '../../utils/html2canvasLoader.js';
 import { navigateTo } from '../../router.js';
 import { setHeaderTitle } from '../../state/header.js';
 import { getMinistryOutline } from '../../../data/ministryOutlines.js';
@@ -32,7 +33,8 @@ function montarTextoCompartilhavel(item) {
 }
 
 export const ministryDetailPage = {
-  async render(container, params) {
+  async render(container, params, isCurrent = () => true) {
+    if (!isCurrent()) return;
     const item = getMinistryOutline(params.id);
     if (!item) {
       container.innerHTML = `<div class="state-message error">Tema não encontrado.</div>`;
@@ -91,6 +93,7 @@ export const ministryDetailPage = {
     const openBtn = container.querySelector('#btnOpenPassage');
     if (openBtn) {
       openBtn.addEventListener('click', async () => {
+        if (!isCurrent()) return;
         const parsed = parseRef(item.versiculoPrincipal.ref);
         if (!parsed) {
           toast.info('Não foi possível localizar essa referência automaticamente.');
@@ -98,6 +101,7 @@ export const ministryDetailPage = {
         }
         try {
           const books = await getAllBooks();
+          if (!isCurrent()) return;
           const book = books.find((b) => b.name === parsed.bookName);
           if (!book) {
             toast.info('Não foi possível localizar esse livro automaticamente.');
@@ -105,12 +109,14 @@ export const ministryDetailPage = {
           }
           navigateTo(`/biblia/${book.index}/${parsed.chapter - 1}`);
         } catch (_e) {
+          if (!isCurrent()) return;
           toast.error('Não foi possível abrir a passagem agora.');
         }
       });
     }
 
     container.querySelector('#btnShareOutline').addEventListener('click', async () => {
+      if (!isCurrent()) return;
       const texto = montarTextoCompartilhavel(item);
       if (navigator.share) {
         try {
@@ -120,6 +126,7 @@ export const ministryDetailPage = {
         }
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(texto);
+        if (!isCurrent()) return;
         toast.success('Esboço copiado! Cole onde quiser compartilhar.');
       } else {
         toast.info('Compartilhamento não suportado neste navegador.');
@@ -131,22 +138,21 @@ export const ministryDetailPage = {
     });
 
     container.querySelector('#btnImageOutline').addEventListener('click', async () => {
+      if (!isCurrent()) return;
       const area = container.querySelector('#ministryCaptureArea');
       const btn = container.querySelector('#btnImageOutline');
-
-      if (typeof html2canvas === 'undefined') {
-        toast.error('Recurso de imagem ainda carregando, tente novamente em instantes.');
-        return;
-      }
 
       btn.disabled = true;
       const textoOriginal = btn.textContent;
       btn.textContent = 'Gerando...';
 
       try {
+        const html2canvas = await carregarHtml2Canvas();
         const canvas = await html2canvas(area, { backgroundColor: '#0f1729', scale: 2 });
+        if (!isCurrent()) return;
 
         canvas.toBlob(async (blob) => {
+          if (!isCurrent()) return;
           const arquivo = new File([blob], `${item.tema}.png`, { type: 'image/png' });
 
           if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
@@ -164,10 +170,12 @@ export const ministryDetailPage = {
             URL.revokeObjectURL(url);
           }
 
+          if (!isCurrent()) return;
           btn.disabled = false;
           btn.textContent = textoOriginal;
         }, 'image/png');
       } catch (_e) {
+        if (!isCurrent()) return;
         toast.error('Não foi possível gerar a imagem agora.');
         btn.disabled = false;
         btn.textContent = textoOriginal;

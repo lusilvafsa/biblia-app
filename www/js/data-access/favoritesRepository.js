@@ -7,12 +7,8 @@ function makeId(bookIndex, chapterIndex, verseIndex) {
 }
 
 /*
- * Cada usuário possui seu próprio armazenamento local.
- *
- * Exemplo:
- * biblia:favorites:ID_DO_USUARIO
- *
- * Sem usuário autenticado, não existe lista de favoritos.
+ * Cada conta possui seu próprio armazenamento local.
+ * Sem login, os dados ficam em uma chave anônima separada.
  */
 function getUser() {
   return usuarioAtual();
@@ -22,16 +18,15 @@ function getStorageKey() {
   const user = getUser();
 
   if (!user) {
-    return null;
+    return STORAGE_KEYS.anonymousFavorites;
   }
 
   return `${STORAGE_KEYS.favorites}:${user.id}`;
 }
 
 /*
- * Migra uma única vez os favoritos antigos que estavam
- * na chave global "biblia:favorites" para o usuário
- * atualmente autenticado.
+ * Migra somente registros completos da chave antiga.
+ * Textos simples usados pela página inicial não são importados.
  */
 function migrateLegacyFavorites() {
   const user = getUser();
@@ -41,64 +36,44 @@ function migrateLegacyFavorites() {
   }
 
   const userKey = getStorageKey();
-
-  if (!userKey) {
-    return;
-  }
-
   const existingUserItems = getItem(userKey, null);
 
   if (Array.isArray(existingUserItems)) {
     return;
   }
 
-  const legacyItems = getItem(STORAGE_KEYS.favorites, null);
+  const legacyItems = getItem(STORAGE_KEYS.favorites, []);
+  const validItems = Array.isArray(legacyItems)
+    ? legacyItems.filter(item =>
+        item &&
+        typeof item === 'object' &&
+        !Array.isArray(item) &&
+        typeof item.id === 'string'
+      )
+    : [];
 
-  if (!Array.isArray(legacyItems) || legacyItems.length === 0) {
-    setItem(userKey, []);
-    return;
+  setItem(userKey, validItems);
+
+  if (validItems.length > 0) {
+    console.log(
+      '[Favoritos] Registros antigos migrados para o usuário:',
+      user.id
+    );
   }
-
-  setItem(userKey, legacyItems);
-
-  console.log(
-    '[Favoritos] Dados antigos migrados para o usuário:',
-    user.id
-  );
 }
 
 function readAll() {
-  const user = getUser();
-
-  if (!user) {
-    return [];
+  if (getUser()) {
+    migrateLegacyFavorites();
   }
 
-  migrateLegacyFavorites();
-
-  const key = getStorageKey();
-
-  if (!key) {
-    return [];
-  }
-
-  const saved = getItem(key, []);
+  const saved = getItem(getStorageKey(), []);
 
   return Array.isArray(saved) ? saved : [];
 }
 
 function writeAll(items) {
-  const key = getStorageKey();
-
-  if (!key) {
-    console.warn(
-      '[Favoritos] Tentativa de gravar favoritos sem usuário autenticado.'
-    );
-
-    return false;
-  }
-
-  return setItem(key, items);
+  return setItem(getStorageKey(), items);
 }
 
 function itemToRow(item, userId) {
@@ -138,9 +113,10 @@ function syncItem(item) {
   const user = getUser();
 
   if (!user) {
-    console.warn(
-      '[Favoritos] Sincronização ignorada: usuário não autenticado.'
-    );
+    return;
+  }
+
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
     return;
   }
 
@@ -177,6 +153,10 @@ function deleteItem(id) {
   const user = getUser();
 
   if (!user || !id) {
+    return;
+  }
+
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
     return;
   }
 
@@ -227,15 +207,15 @@ export const favoritesRepository = {
   async syncWithCloud() {
     const user = getUser();
 
-    if (!user) {
-      console.log(
-        '[Supabase] Nenhum usuário autenticado. Favoritos isolados.'
-      );
+    const localItems = readAll();
 
-      return [];
+    if (!user) {
+      return localItems;
     }
 
-    const localItems = readAll();
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return localItems;
+    }
 
     try {
       const { data, error } = await supabase
@@ -315,8 +295,6 @@ export const favoritesRepository = {
   },
 
   async importItems(incoming) {
-    const user = getUser();
-    if (!user) return { ok: false, adicionados: 0, atualizados: 0, mantidos: 0 };
     const porId = new Map(readAll().map((item) => [item.id, item]));
     let adicionados = 0;
     let atualizados = 0;
@@ -389,20 +367,6 @@ export const favoritesRepository = {
   },
 
   toggleFavorite(info) {
-    const user = getUser();
-
-    if (!user) {
-      console.warn(
-        '[Favoritos] Usuário não autenticado.'
-      );
-
-      alert(
-        'Faça login para usar os favoritos.'
-      );
-
-      return false;
-    }
-
     const items = readAll();
 
     const id = makeId(
@@ -449,20 +413,6 @@ export const favoritesRepository = {
   },
 
   saveNote(info, note) {
-    const user = getUser();
-
-    if (!user) {
-      console.warn(
-        '[Anotações] Usuário não autenticado.'
-      );
-
-      alert(
-        'Faça login para usar as anotações.'
-      );
-
-      return null;
-    }
-
     const items = readAll();
 
     const id = makeId(
@@ -512,16 +462,6 @@ export const favoritesRepository = {
     chapterIndex,
     verseIndex
   ) {
-    const user = getUser();
-
-    if (!user) {
-      console.warn(
-        '[Favoritos] Usuário não autenticado.'
-      );
-
-      return;
-    }
-
     const items = readAll();
 
     const id = makeId(
@@ -565,16 +505,6 @@ export const favoritesRepository = {
     chapterIndex,
     verseIndex
   ) {
-    const user = getUser();
-
-    if (!user) {
-      console.warn(
-        '[Anotações] Usuário não autenticado.'
-      );
-
-      return;
-    }
-
     const items = readAll();
 
     const id = makeId(
