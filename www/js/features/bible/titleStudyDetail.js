@@ -5,6 +5,7 @@ import { getTitleEntry } from '../../data-access/titleRepository.js';
 import { getChapter } from '../../data-access/bibleRepository.js';
 import { icons } from '../../components/icons.js';
 import { speak, stopSpeech, isSpeechSupported } from '../../utils/speech.js';
+import { referenciaParaFala } from '../../utils/bibleReferenceSpeech.js';
 
 function statusText(status) {
   if (status === 'approved') return ['Aprovado editorialmente', 'approved'];
@@ -114,7 +115,8 @@ function montarFilaDeAudio(entry, verses) {
         .filter((item) => item && item.ref)
         .map((item) => {
           const explanation = limparTexto(item.explicacao);
-          return explanation ? `${item.ref}. ${explanation}` : item.ref;
+          const reference = referenciaParaFala(item.ref);
+          return explanation ? `${reference}. ${explanation}` : reference;
         });
 
       if (references.length) {
