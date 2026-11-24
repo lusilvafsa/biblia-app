@@ -54,7 +54,7 @@ const NAV_ICONS = {
   diary: icons.diary,
   profile: icons.profile,
   favorites: '♥',
-  assistant: icons.explain,
+  assistant: '<span class="assistant-menu-angel" aria-hidden="true"></span>',
   settings: icons.settings
 };
 

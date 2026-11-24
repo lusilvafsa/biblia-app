@@ -32,12 +32,33 @@
   <nav class="bottom-nav compact-menu" aria-label="Navegação principal">
     <button class="menu-toggle" id="bottomMenuToggle" type="button" aria-label="Abrir menu" aria-expanded="false">
       <span class="menu-toggle-icon">
-      <svg class="menu-four-squares" viewBox="0 0 40 40" aria-hidden="true">
-        <rect x="4" y="4" width="12" height="12" rx="3"></rect>
-        <rect x="20" y="4" width="12" height="12" rx="3"></rect>
-        <rect x="4" y="20" width="12" height="12" rx="3"></rect>
-        <rect x="20" y="20" width="12" height="12" rx="3"></rect>
-      </svg>
+      <svg class="menu-bible-icon" viewBox="0 0 100 100" aria-hidden="true">
+  <defs>
+    <linearGradient id="menuBibleCover" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#344b78"/>
+      <stop offset=".55" stop-color="#172747"/>
+      <stop offset="1" stop-color="#0c1932"/>
+    </linearGradient>
+    <linearGradient id="menuBibleGold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe5a2"/>
+      <stop offset=".5" stop-color="#d5a84f"/>
+      <stop offset="1" stop-color="#9b6a27"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0 -3)">
+    <path d="M24 19 Q19 20 19 28 L19 72 Q20 79 27 81 L72 81 Q79 80 81 73 L81 28 Q80 20 73 19 Z"
+      fill="url(#menuBibleCover)" stroke="url(#menuBibleGold)" stroke-width="3"/>
+    <path d="M26 24 Q22 25 22 31 L22 70 Q23 75 29 77 L73 77"
+      fill="none" stroke="#f0ce82" stroke-width="1.6" opacity=".85"/>
+    <path d="M29 19 L29 78" stroke="#e4bd70" stroke-width="2" opacity=".8"/>
+    <path d="M51 34 V62 M39 47 H63"
+      stroke="#f7d47f" stroke-width="5" stroke-linecap="round"/>
+    <path d="M19 71 Q48 77 81 71 L81 78 Q51 85 23 78 Z"
+      fill="#d8ad5c" opacity=".95"/>
+    <path d="M32 82 L32 94 L42 88 L51 94 L51 82"
+      fill="url(#menuBibleGold)" stroke="#b8863b" stroke-width="1"/>
+  </g>
+</svg>
     </span>
     </button>
 
